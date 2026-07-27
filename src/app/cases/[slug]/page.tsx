@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { ShareButtons } from "@/components/share-buttons";
+import { GhostWord } from "@/components/ghost-word";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
@@ -58,6 +59,7 @@ export async function generateMetadata({
   const title = `${caseRow.clientName} — ${CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status}`;
   const origin = await getOrigin();
   const url = `${origin}/cases/${slug}`;
+  const shareImage = caseRow.photoUrl ?? `${origin}/opengraph-image`;
 
   return {
     title,
@@ -68,13 +70,13 @@ export async function generateMetadata({
       description: caseRow.summary,
       url,
       type: "article",
-      images: caseRow.photoUrl ? [caseRow.photoUrl] : undefined,
+      images: [shareImage],
     },
     twitter: {
-      card: caseRow.photoUrl ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description: caseRow.summary,
-      images: caseRow.photoUrl ? [caseRow.photoUrl] : undefined,
+      images: [shareImage],
     },
   };
 }
@@ -144,23 +146,29 @@ export default async function CaseDetailPage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
-        <p className="text-xs font-medium uppercase tracking-wide text-brand">
-          {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
-        </p>
-        <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
+        <div className="relative overflow-hidden">
+          <GhostWord word="Truth" className="top-0 left-0 text-[44px] sm:text-[104px]" />
 
-        {caseRow.photoUrl && (
-          <Image
-            src={caseRow.photoUrl}
-            alt={caseRow.clientName}
-            width={96}
-            height={96}
-            className="mt-6 h-24 w-24 rounded-full object-cover"
-            unoptimized
-          />
-        )}
+          <div className="relative">
+            <p className="text-xs font-medium uppercase tracking-wide text-brand">
+              {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
+            </p>
+            <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
 
-        <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>
+            {caseRow.photoUrl && (
+              <Image
+                src={caseRow.photoUrl}
+                alt={caseRow.clientName}
+                width={96}
+                height={96}
+                className="mt-6 h-24 w-24 rounded-full object-cover"
+                unoptimized
+              />
+            )}
+
+            <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>
+          </div>
+        </div>
 
         {innocenceClaim && innocenceClaim.stats.length > 0 && (
           <div className="mt-8 flex flex-wrap gap-8">
@@ -179,32 +187,37 @@ export default async function CaseDetailPage({
           </blockquote>
         )}
 
-        <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">{convictionRoman}. The conviction</h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div>
-              <dt className="text-muted">Charge</dt>
-              <dd className="text-foreground">{conviction.charge}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Year convicted</dt>
-              <dd className="text-foreground">{conviction.year}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Sentence</dt>
-              <dd className="text-foreground">{conviction.sentence}</dd>
-            </div>
-            {caseRow.timeServed && (
+        <section className="relative mt-10 overflow-hidden">
+          <GhostWord word="Evidence" className="right-0 bottom-0 text-[34px] sm:text-[76px]" />
+          <div className="relative">
+            <h2 className="font-serif text-lg text-foreground">
+              {convictionRoman}. The conviction
+            </h2>
+            <dl className="mt-3 space-y-2 text-sm">
               <div>
-                <dt className="text-muted">Time served</dt>
-                <dd className="text-foreground">{caseRow.timeServed}</dd>
+                <dt className="text-muted">Charge</dt>
+                <dd className="text-foreground">{conviction.charge}</dd>
               </div>
-            )}
-            <div>
-              <dt className="text-muted">What contributed to the conviction</dt>
-              <dd className="text-foreground">{conviction.contributingFactors}</dd>
-            </div>
-          </dl>
+              <div>
+                <dt className="text-muted">Year convicted</dt>
+                <dd className="text-foreground">{conviction.year}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Sentence</dt>
+                <dd className="text-foreground">{conviction.sentence}</dd>
+              </div>
+              {caseRow.timeServed && (
+                <div>
+                  <dt className="text-muted">Time served</dt>
+                  <dd className="text-foreground">{caseRow.timeServed}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-muted">What contributed to the conviction</dt>
+                <dd className="text-foreground">{conviction.contributingFactors}</dd>
+              </div>
+            </dl>
+          </div>
         </section>
 
         {exoneration && (
@@ -277,42 +290,48 @@ export default async function CaseDetailPage({
           )}
         </section>
 
-        <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">{takeActionRoman}. Take action</h2>
-          {petition ? (
-            <div className="mt-4 rounded-lg border border-border p-5">
-              <p className="font-serif text-lg text-foreground">{petition.title}</p>
-              <p className="mt-2 whitespace-pre-line text-sm text-foreground">
-                {petition.askText}
-              </p>
-              <div className="mt-4">
-                <div className="h-2 rounded-full bg-muted-background">
-                  <div
-                    className="h-2 rounded-full bg-brand"
-                    style={{
-                      width: `${Math.min(100, Math.round((signatureCount / petition.goalCount) * 100))}%`,
-                    }}
+        <section className="relative mt-10 overflow-hidden">
+          <GhostWord word="Justice" className="top-0 left-0 text-[38px] sm:text-[84px]" />
+
+          <div className="relative">
+            <h2 className="font-serif text-lg text-foreground">
+              {takeActionRoman}. Take action
+            </h2>
+            {petition ? (
+              <div className="mt-4 rounded-lg border border-border p-5">
+                <p className="font-serif text-lg text-foreground">{petition.title}</p>
+                <p className="mt-2 whitespace-pre-line text-sm text-foreground">
+                  {petition.askText}
+                </p>
+                <div className="mt-4">
+                  <div className="h-2 rounded-full bg-muted-background">
+                    <div
+                      className="h-2 rounded-full bg-brand"
+                      style={{
+                        width: `${Math.min(100, Math.round((signatureCount / petition.goalCount) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-muted">
+                    {signatureCount.toLocaleString()} of {petition.goalCount.toLocaleString()}{" "}
+                    signatures ·{" "}
+                    <Link href={`/petitions/${petition.slug}`} className="underline">
+                      view petition
+                    </Link>
+                  </p>
+                </div>
+                <div className="mt-5">
+                  <PetitionSignForm
+                    petitionId={petition.id}
+                    alreadyConfirmed={confirmed === "1"}
+                    initiallySigned={initiallySigned}
                   />
                 </div>
-                <p className="mt-1 text-xs text-muted">
-                  {signatureCount.toLocaleString()} of {petition.goalCount.toLocaleString()}{" "}
-                  signatures ·{" "}
-                  <Link href={`/petitions/${petition.slug}`} className="underline">
-                    view petition
-                  </Link>
-                </p>
               </div>
-              <div className="mt-5">
-                <PetitionSignForm
-                  petitionId={petition.id}
-                  alreadyConfirmed={confirmed === "1"}
-                  initiallySigned={initiallySigned}
-                />
-              </div>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-muted">No active petition for this case yet.</p>
-          )}
+            ) : (
+              <p className="mt-3 text-sm text-muted">No active petition for this case yet.</p>
+            )}
+          </div>
         </section>
 
         <div className="mt-10">

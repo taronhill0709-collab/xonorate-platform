@@ -1,6 +1,7 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
+import { SealMark } from "@/components/seal-mark";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, petitions, posts, signatures } from "@/db/schema";
@@ -67,9 +68,13 @@ export default async function Home() {
     .limit(FEED_LIMIT);
 
   return (
-    <>
+    <div className="relative flex flex-1 flex-col">
+      <div className="relative mx-auto h-0 w-full max-w-3xl">
+        <SealMark className="pointer-events-none absolute top-[70px] left-3 h-[130px] w-[180px] text-brand opacity-[0.14] sm:top-[62px] sm:left-6 sm:h-[320px] sm:w-[440px]" />
+      </div>
+
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+      <main className="relative mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <section className="text-center">
           <h1 className="font-serif text-4xl text-foreground">Xonorate Media Platform</h1>
           <p className="mx-auto mt-3 max-w-md text-muted">
@@ -210,6 +215,6 @@ export default async function Home() {
           </section>
         )}
       </main>
-    </>
+    </div>
   );
 }

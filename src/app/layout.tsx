@@ -20,12 +20,20 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.AUTH_URL ?? "http://localhost:8888"),
   title: {
     default: "Xonorate Media Platform",
     template: "%s | Xonorate Media Platform",
   },
   description:
     "Advocating for the wrongfully convicted — client cases, live petitions, and daily advocacy news.",
+  openGraph: {
+    siteName: "Xonorate Media Platform",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

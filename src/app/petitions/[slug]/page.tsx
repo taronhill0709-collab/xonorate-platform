@@ -21,8 +21,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const [petition] = await db
-    .select({ title: petitions.title, askText: petitions.askText })
+    .select({
+      title: petitions.title,
+      askText: petitions.askText,
+      casePhotoUrl: cases.photoUrl,
+    })
     .from(petitions)
+    .leftJoin(cases, eq(petitions.caseId, cases.id))
     .where(eq(petitions.slug, slug))
     .limit(1);
 
@@ -30,6 +35,7 @@ export async function generateMetadata({
 
   const origin = await getOrigin();
   const url = `${origin}/petitions/${slug}`;
+  const shareImage = petition.casePhotoUrl ?? `${origin}/opengraph-image`;
 
   return {
     title: petition.title,
@@ -40,11 +46,13 @@ export async function generateMetadata({
       description: petition.askText,
       url,
       type: "website",
+      images: [shareImage],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: petition.title,
       description: petition.askText,
+      images: [shareImage],
     },
   };
 }

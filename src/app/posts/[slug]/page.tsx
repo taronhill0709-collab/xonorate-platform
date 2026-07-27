@@ -79,8 +79,10 @@ export async function generateMetadata({
       title: posts.title,
       body: posts.body,
       publishedAt: posts.publishedAt,
+      casePhotoUrl: cases.photoUrl,
     })
     .from(posts)
+    .leftJoin(cases, eq(posts.caseId, cases.id))
     .where(and(eq(posts.slug, slug), eq(posts.status, "published")))
     .limit(1);
 
@@ -89,6 +91,7 @@ export async function generateMetadata({
   const description = excerptFromMarkdown(post.body);
   const origin = await getOrigin();
   const url = `${origin}/posts/${slug}`;
+  const shareImage = post.casePhotoUrl ?? `${origin}/opengraph-image`;
 
   return {
     title: post.title,
@@ -100,11 +103,13 @@ export async function generateMetadata({
       url,
       type: "article",
       publishedTime: post.publishedAt?.toISOString(),
+      images: [shareImage],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: post.title,
       description,
+      images: [shareImage],
     },
   };
 }
