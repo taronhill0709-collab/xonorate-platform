@@ -48,6 +48,28 @@ export function SavedBanner() {
   );
 }
 
+const BADGE_TONES = {
+  brand: "bg-brand-light text-brand",
+  neutral: "border border-border text-muted",
+  danger: "bg-red-50 text-red-700",
+} as const;
+
+export function Badge({
+  tone = "neutral",
+  children,
+}: {
+  tone?: keyof typeof BADGE_TONES;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${BADGE_TONES[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function SubmitButton({ children }: { children: ReactNode }) {
   return (
     <button

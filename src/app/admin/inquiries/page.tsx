@@ -1,7 +1,9 @@
 import { desc } from "drizzle-orm";
 import Link from "next/link";
+import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { inquiries } from "@/db/schema";
+import { INQUIRY_STATUS_LABEL } from "@/lib/inquiry-status";
 import { setInquiryStatus } from "./actions";
 
 export default async function AdminInquiriesPage() {
@@ -20,7 +22,17 @@ export default async function AdminInquiriesPage() {
                 <p className="font-medium text-foreground">
                   {row.personName} <span className="text-muted">· {row.state}</span>
                 </p>
-                <span className="text-xs text-muted">{row.status}</span>
+                <Badge
+                  tone={
+                    row.status === "accepted"
+                      ? "brand"
+                      : row.status === "declined"
+                        ? "danger"
+                        : "neutral"
+                  }
+                >
+                  {INQUIRY_STATUS_LABEL[row.status] ?? row.status}
+                </Badge>
               </div>
               <p className="mt-1 text-muted">
                 Submitted by {row.submitterName} ({row.submitterEmail}) —{" "}

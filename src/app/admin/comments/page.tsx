@@ -1,6 +1,8 @@
 import { desc, eq } from "drizzle-orm";
+import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { comments, users } from "@/db/schema";
+import { COMMENT_STATUS_LABEL, COMMENT_TARGET_LABEL } from "@/lib/comment-status";
 import { setCommentStatus } from "./actions";
 
 export default async function AdminCommentsPage() {
@@ -37,9 +39,23 @@ export default async function AdminCommentsPage() {
             {rows.map((row) => (
               <tr key={row.id} className="border-b border-border">
                 <td className="py-2 text-foreground">{row.authorName ?? row.authorEmail}</td>
-                <td className="py-2 text-foreground">{row.targetType}</td>
+                <td className="py-2 text-muted">
+                  {COMMENT_TARGET_LABEL[row.targetType] ?? row.targetType}
+                </td>
                 <td className="max-w-xs truncate py-2 text-foreground">{row.body}</td>
-                <td className="py-2 text-foreground">{row.status}</td>
+                <td className="py-2">
+                  <Badge
+                    tone={
+                      row.status === "published"
+                        ? "brand"
+                        : row.status === "removed"
+                          ? "danger"
+                          : "neutral"
+                    }
+                  >
+                    {COMMENT_STATUS_LABEL[row.status] ?? row.status}
+                  </Badge>
+                </td>
                 <td className="py-2 text-right">
                   {row.status !== "published" && (
                     <form
