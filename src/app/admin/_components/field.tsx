@@ -40,6 +40,14 @@ export function Select(
   return <select {...props} className={inputClass} />;
 }
 
+export function SavedBanner() {
+  return (
+    <div className="mb-6 rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-brand">
+      Saved.
+    </div>
+  );
+}
+
 export function SubmitButton({ children }: { children: ReactNode }) {
   return (
     <button

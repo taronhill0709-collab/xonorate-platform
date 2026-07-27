@@ -77,5 +77,5 @@ export async function updatePetition(petitionId: string, formData: FormData) {
   revalidatePath("/admin/petitions");
   revalidatePath(`/admin/petitions/${petitionId}/edit`);
   if (row) revalidatePath(`/petitions/${row.slug}`);
-  redirect(`/admin/petitions/${petitionId}/edit`);
+  redirect(`/admin/petitions/${petitionId}/edit?saved=1`);
 }

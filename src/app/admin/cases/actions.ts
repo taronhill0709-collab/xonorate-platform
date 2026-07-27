@@ -139,7 +139,7 @@ export async function updateCase(caseId: string, formData: FormData) {
   revalidatePath("/admin/cases");
   revalidatePath(`/admin/cases/${caseId}/edit`);
   if (row) revalidatePath(`/cases/${row.slug}`);
-  redirect(`/admin/cases/${caseId}/edit`);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }
 
 const documentSchema = z.object({

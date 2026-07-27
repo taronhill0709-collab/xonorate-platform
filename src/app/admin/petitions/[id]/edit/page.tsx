@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { cases, petitions, signatures } from "@/db/schema";
 import {
   Field,
+  SavedBanner,
   Select,
   SubmitButton,
   TextArea,
@@ -13,10 +14,13 @@ import { updatePetition } from "../../actions";
 
 export default async function EditPetitionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
 }) {
   const { id } = await params;
+  const { saved } = await searchParams;
 
   const [petition] = await db
     .select()
@@ -40,12 +44,14 @@ export default async function EditPetitionPage({
   return (
     <div className="max-w-2xl">
       <h1 className="font-serif text-2xl text-foreground">Edit {petition.title}</h1>
-      <p className="mt-1 text-sm text-muted">
+      <p className="mt-1 mb-6 text-sm text-muted">
         Public page:{" "}
         <a href={`/petitions/${petition.slug}`} className="underline">
           /petitions/{petition.slug}
         </a>
       </p>
+
+      {saved === "1" && <SavedBanner />}
 
       <form action={updatePetitionWithId} className="mt-6 space-y-4">
         <Field label="Title" name="title">

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { caseDocuments, cases } from "@/db/schema";
 import {
   Field,
+  SavedBanner,
   Select,
   SubmitButton,
   TextArea,
@@ -36,10 +37,13 @@ type ExonerationDetails = {
 
 export default async function EditCasePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
 }) {
   const { id } = await params;
+  const { saved } = await searchParams;
 
   const [caseRow] = await db.select().from(cases).where(eq(cases.id, id)).limit(1);
   if (!caseRow) notFound();
@@ -66,12 +70,14 @@ export default async function EditCasePage({
       <h1 className="font-serif text-2xl text-foreground">
         Edit {caseRow.clientName}
       </h1>
-      <p className="mt-1 text-sm text-muted">
+      <p className="mt-1 mb-6 text-sm text-muted">
         Public page:{" "}
         <a href={`/cases/${caseRow.slug}`} className="underline">
           /cases/{caseRow.slug}
         </a>
       </p>
+
+      {saved === "1" && <SavedBanner />}
 
       <form action={updateCaseWithId} className="mt-6 space-y-4">
         <Field label="Client name" name="clientName">
