@@ -60,6 +60,7 @@ export default async function Home() {
       title: posts.title,
       slug: posts.slug,
       body: posts.body,
+      imageUrl: posts.imageUrl,
       publishedAt: posts.publishedAt,
     })
     .from(posts)
@@ -186,29 +187,41 @@ export default async function Home() {
             </div>
             <ul className="mt-5 space-y-4">
               {recentPosts.map((row) => (
-                <li key={row.id} className="rounded-lg border border-border p-5">
-                  <p className="text-xs font-medium uppercase tracking-wide text-brand">
-                    {POST_TYPE_LABEL[row.type] ?? row.type}
-                    {row.publishedAt && (
-                      <>
-                        {" · "}
-                        {row.publishedAt.toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </>
-                    )}
-                  </p>
-                  <Link
-                    href={`/posts/${row.slug}`}
-                    className="mt-1 block font-serif text-lg text-foreground hover:underline"
-                  >
-                    {row.title}
-                  </Link>
-                  <p className="mt-2 line-clamp-2 text-sm text-muted">
-                    {excerptFromMarkdown(row.body)}
-                  </p>
+                <li key={row.id} className="flex gap-4 rounded-lg border border-border p-5">
+                  {row.imageUrl && (
+                    <Image
+                      src={row.imageUrl}
+                      alt=""
+                      width={112}
+                      height={84}
+                      className="h-[84px] w-28 shrink-0 rounded-md object-cover"
+                      unoptimized
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium uppercase tracking-wide text-brand">
+                      {POST_TYPE_LABEL[row.type] ?? row.type}
+                      {row.publishedAt && (
+                        <>
+                          {" · "}
+                          {row.publishedAt.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </>
+                      )}
+                    </p>
+                    <Link
+                      href={`/posts/${row.slug}`}
+                      className="mt-1 block font-serif text-lg text-foreground hover:underline"
+                    >
+                      {row.title}
+                    </Link>
+                    <p className="mt-2 line-clamp-2 text-sm text-muted">
+                      {excerptFromMarkdown(row.body)}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

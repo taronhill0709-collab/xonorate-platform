@@ -234,6 +234,9 @@ export const posts = pgTable("posts", {
   body: text("body").notNull(), // markdown
   // [{ url, title }]
   sources: jsonb("sources").notNull().default([]),
+  // Preview thumbnail — the og:image pulled from the first citable source
+  // article at generation time. Null if none of the sources had one.
+  imageUrl: text("image_url"),
   state: text("state"), // relevant for compensation-policy spotlight posts
   // set for case_spotlight posts — lets the daily job avoid re-spotlighting
   // the same case, and lets the post link back to it

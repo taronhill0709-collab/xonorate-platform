@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -79,6 +80,7 @@ export async function generateMetadata({
       title: posts.title,
       body: posts.body,
       publishedAt: posts.publishedAt,
+      imageUrl: posts.imageUrl,
       casePhotoUrl: cases.photoUrl,
     })
     .from(posts)
@@ -91,7 +93,7 @@ export async function generateMetadata({
   const description = excerptFromMarkdown(post.body);
   const origin = await getOrigin();
   const url = `${origin}/posts/${slug}`;
-  const shareImage = post.casePhotoUrl ?? `${origin}/opengraph-image`;
+  const shareImage = post.casePhotoUrl ?? post.imageUrl ?? `${origin}/opengraph-image`;
 
   return {
     title: post.title,
@@ -167,6 +169,17 @@ export default async function PostDetailPage({
               {linkedCase.clientName}
             </Link>
           </p>
+        )}
+
+        {post.imageUrl && (
+          <Image
+            src={post.imageUrl}
+            alt=""
+            width={672}
+            height={378}
+            className="mt-6 h-auto w-full rounded-lg object-cover"
+            unoptimized
+          />
         )}
 
         <article>

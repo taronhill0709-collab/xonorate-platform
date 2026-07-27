@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { cases, petitions, posts } from "@/db/schema";
 import { sendMail } from "@/lib/email";
+import { fetchFirstSourceImage } from "@/lib/fetch-source-image";
 import { getSiteOrigin } from "@/lib/site-url";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -169,6 +170,7 @@ export async function generateDailyPost(): Promise<{
   const candidate = await findSpotlightCandidate();
   const draft = candidate ? await draftSpotlight(candidate) : await draftRoundup();
   const type = candidate ? ("case_spotlight" as const) : ("daily_roundup" as const);
+  const imageUrl = await fetchFirstSourceImage(draft.sources);
 
   const row = await insertWithUniqueSlug(draft.title, (slug) =>
     db
@@ -179,6 +181,7 @@ export async function generateDailyPost(): Promise<{
         slug,
         body: draft.body,
         sources: draft.sources,
+        imageUrl,
         state: draft.state ?? (candidate ? candidate.state : null),
         caseId: candidate?.id ?? null,
         status: "pending",
