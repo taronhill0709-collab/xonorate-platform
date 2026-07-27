@@ -1,0 +1,74 @@
+import { Field, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
+import { createCase } from "../actions";
+
+export default async function NewCasePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clientName?: string; state?: string; summary?: string }>;
+}) {
+  const prefill = await searchParams;
+
+  return (
+    <div className="max-w-2xl">
+      <h1 className="font-serif text-2xl text-foreground">New case</h1>
+      <form action={createCase} className="mt-6 space-y-4">
+        <Field label="Client name" name="clientName">
+          <TextInput
+            id="clientName"
+            name="clientName"
+            defaultValue={prefill.clientName}
+            required
+          />
+        </Field>
+        <Field label="Slug (optional — generated from client name if left blank)" name="slug">
+          <TextInput id="slug" name="slug" placeholder="e.g. richard-barge" />
+        </Field>
+        <Field label="State" name="state">
+          <TextInput id="state" name="state" defaultValue={prefill.state} required />
+        </Field>
+        <Field label="Status" name="status">
+          <Select id="status" name="status" defaultValue="awaiting_review" required>
+            <option value="awaiting_review">Awaiting review</option>
+            <option value="active_case">Active case</option>
+            <option value="exonerated">Exonerated</option>
+          </Select>
+        </Field>
+        <Field label="Summary" name="summary">
+          <TextArea id="summary" name="summary" rows={4} defaultValue={prefill.summary} required />
+        </Field>
+        <Field label="Photo URL (optional)" name="photoUrl">
+          <TextInput id="photoUrl" name="photoUrl" type="url" />
+        </Field>
+
+        <h2 className="pt-2 font-serif text-lg text-foreground">Conviction</h2>
+        <Field label="Charge" name="charge">
+          <TextInput id="charge" name="charge" required />
+        </Field>
+        <Field label="Year convicted" name="year">
+          <TextInput id="year" name="year" type="number" required />
+        </Field>
+        <Field label="Sentence" name="sentence">
+          <TextInput id="sentence" name="sentence" required />
+        </Field>
+        <Field label="Time served" name="timeServed">
+          <TextInput id="timeServed" name="timeServed" />
+        </Field>
+        <Field label="What contributed to the conviction" name="contributingFactors">
+          <TextArea id="contributingFactors" name="contributingFactors" rows={3} required />
+        </Field>
+
+        <h2 className="pt-2 font-serif text-lg text-foreground">
+          Exoneration (leave blank if not yet exonerated)
+        </h2>
+        <Field label="What led to exoneration" name="exonerationSummary">
+          <TextArea id="exonerationSummary" name="exonerationSummary" rows={3} />
+        </Field>
+        <Field label="Year exonerated" name="exonerationYear">
+          <TextInput id="exonerationYear" name="exonerationYear" type="number" />
+        </Field>
+
+        <SubmitButton>Create case</SubmitButton>
+      </form>
+    </div>
+  );
+}
