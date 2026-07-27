@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const FROM =
   process.env.EMAIL_FROM ??
-  "Xonorate Advisory Services <no-reply@xonorate.com>";
+  "Xonorate Media Platform <no-reply@xonorate.com>";
 
 /**
  * Sends transactional email via Resend. Without RESEND_API_KEY (e.g. local

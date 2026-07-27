@@ -70,7 +70,7 @@ export default async function Home() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <section className="text-center">
-          <h1 className="font-serif text-4xl text-foreground">Xonorate Advisory Services</h1>
+          <h1 className="font-serif text-4xl text-foreground">Xonorate Media Platform</h1>
           <p className="mx-auto mt-3 max-w-md text-muted">
             Advocating for the wrongfully convicted — client cases, live petitions, and daily
             advocacy news.

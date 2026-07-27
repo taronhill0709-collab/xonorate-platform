@@ -21,8 +21,8 @@ const playfairDisplay = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Xonorate Advisory Services",
-    template: "%s | Xonorate Advisory Services",
+    default: "Xonorate Media Platform",
+    template: "%s | Xonorate Media Platform",
   },
   description:
     "Advocating for the wrongfully convicted — client cases, live petitions, and daily advocacy news.",

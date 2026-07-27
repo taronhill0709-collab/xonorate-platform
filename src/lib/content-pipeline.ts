@@ -47,7 +47,7 @@ async function draftWithClaude(system: string, userPrompt: string): Promise<Post
   return response.parsed_output;
 }
 
-const ROUNDUP_SYSTEM = `You are the daily content writer for Xonorate Advisory Services, a nonprofit that advocates for the wrongfully convicted.
+const ROUNDUP_SYSTEM = `You are the daily content writer for Xonorate Media Platform, a nonprofit that advocates for the wrongfully convicted.
 
 Write a "roundup" post: today's news on wrongful convictions, police misconduct, and judicial discipline or removal.
 
@@ -61,7 +61,7 @@ Requirements:
 - Populate "sources" with every real URL you cited, each with a short descriptive title.
 - Only set "state" if the post centers on one particular state.`;
 
-const SPOTLIGHT_SYSTEM = `You are the daily content writer for Xonorate Advisory Services, a nonprofit that advocates for the wrongfully convicted.
+const SPOTLIGHT_SYSTEM = `You are the daily content writer for Xonorate Media Platform, a nonprofit that advocates for the wrongfully convicted.
 
 Write a "case spotlight" post about the client case described in the user message. Those case facts come from Xonorate's own case files and are ground truth — do not alter, embellish, or add unstated details to them.
 

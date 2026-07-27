@@ -10,7 +10,7 @@ import { CASE_STATUS_LABEL } from "@/lib/case-status";
 export const metadata: Metadata = {
   title: "Cases",
   description:
-    "Client cases represented by Xonorate Advisory Services — active cases, exonerations, and cases awaiting review.",
+    "Client cases represented by Xonorate Media Platform — active cases, exonerations, and cases awaiting review.",
 };
 
 // New cases are added via the admin CMS at any time — never statically prerendered.

@@ -56,7 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       apiKey: process.env.RESEND_API_KEY,
       from:
         process.env.EMAIL_FROM ??
-        "Xonorate Advisory Services <no-reply@xonorate.com>",
+        "Xonorate Media Platform <no-reply@xonorate.com>",
     }),
   ],
 });

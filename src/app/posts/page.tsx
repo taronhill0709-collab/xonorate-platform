@@ -10,7 +10,7 @@ import { POST_TYPE_LABEL } from "@/lib/post-type";
 export const metadata: Metadata = {
   title: "Updates",
   description:
-    "Daily advocacy news, case spotlights, and policy coverage from Xonorate Advisory Services.",
+    "Daily advocacy news, case spotlights, and policy coverage from Xonorate Media Platform.",
 };
 
 // New posts publish throughout the day — never statically prerendered.
