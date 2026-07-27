@@ -147,9 +147,7 @@ export default async function CaseDetailPage({
       <SiteHeader />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
         <div className="relative overflow-hidden">
-          {!caseRow.photoUrl && (
-            <GhostWord word="Truth" className="top-0 left-0 text-[44px] sm:text-[104px]" />
-          )}
+          <GhostWord word="Truth" className="top-0 right-0 text-[44px] sm:text-[104px]" />
 
           <div className="relative">
             <p className="text-xs font-medium uppercase tracking-wide text-brand">
