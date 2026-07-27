@@ -52,7 +52,12 @@ export default async function AdminLayout({
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
           <p className="text-sm text-muted">Signed in as {session.user.email}</p>
-          <SignOutButton />
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/settings" className="text-sm text-brand underline">
+              Account settings
+            </Link>
+            <SignOutButton />
+          </div>
         </header>
         <main className="flex-1 px-6 py-8">{children}</main>
       </div>
