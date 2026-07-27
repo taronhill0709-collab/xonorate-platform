@@ -109,7 +109,7 @@ export function PetitionSignForm({
       <button
         type="submit"
         disabled={status.kind === "loading"}
-        className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90 disabled:opacity-60"
+        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-60"
       >
         Sign the petition
       </button>

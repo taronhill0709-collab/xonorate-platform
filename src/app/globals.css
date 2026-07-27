@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
 /*
- * Placeholder brand palette derived from the existing per-client campaign
- * sites (muted blue accent, neutral background, sans-serif UI with serif
- * for editorial headings). Swap these values once real brand assets land.
+ * Brand palette matched to the live campaign template (richard.xonorate.com):
+ * warm cream background, navy primary, gold accent for petition CTAs,
+ * Playfair Display headings over Inter body/UI text.
  */
 :root {
-  --background: #ffffff;
-  --foreground: #1a2230;
-  --muted: #64748b;
-  --muted-background: #f4f6f8;
-  --border: #e2e8f0;
-  --brand: #1d4e79;
+  --background: #f7f4ef;
+  --foreground: #2a2a28;
+  --muted: #6b6b68;
+  --muted-background: #efeae0;
+  --border: #e2ddd3;
+  --brand: #1b2a4a;
   --brand-foreground: #ffffff;
-  --brand-light: #e8f0f7;
+  --brand-light: #e4e8f0;
+  --accent: #b8860b;
+  --accent-foreground: #ffffff;
 }
 
 @theme inline {
@@ -25,21 +27,25 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-light: var(--brand-light);
-  --font-sans: var(--font-geist-sans);
-  --font-serif: var(--font-source-serif);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f1720;
-    --foreground: #e7ecf2;
-    --muted: #94a3b8;
-    --muted-background: #172032;
-    --border: #263244;
-    --brand: #5b9bd5;
-    --brand-foreground: #0f1720;
-    --brand-light: #16283a;
+    --background: #17191c;
+    --foreground: #ede9e0;
+    --muted: #9a988f;
+    --muted-background: #1f2226;
+    --border: #33363a;
+    --brand: #7b93c2;
+    --brand-foreground: #14181f;
+    --brand-light: #232a3a;
+    --accent: #d4a12e;
+    --accent-foreground: #14181f;
   }
 }
 
