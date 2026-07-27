@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export async function SiteHeader() {
   const session = await auth();
@@ -27,9 +28,12 @@ export async function SiteHeader() {
             Submit an inquiry
           </Link>
           {session?.user ? (
-            <Link href="/dashboard" className="text-muted transition hover:text-foreground">
-              Dashboard
-            </Link>
+            <>
+              <Link href="/dashboard" className="text-muted transition hover:text-foreground">
+                Dashboard
+              </Link>
+              <SignOutButton />
+            </>
           ) : (
             <Link href="/login" className="text-muted transition hover:text-foreground">
               Sign in
