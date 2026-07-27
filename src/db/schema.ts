@@ -124,6 +124,14 @@ export const cases = pgTable("cases", {
   status: caseStatusEnum("status").notNull().default("awaiting_review"),
   state: text("state").notNull(),
   photoUrl: text("photo_url"),
+  // Full attorney-confirmed evidence dossier, matching the standard
+  // Xonorate campaign-brief template — null until that level of detail
+  // exists for a case. Shape:
+  // { stats: [{ value, label }], pullQuote: string,
+  //   categories: [{ title, items: [{ title, body }] }] } — categories are
+  // always the same four in order: Evidence of innocence, Newly discovered
+  // evidence, Due-process violations, Unreliable evidence.
+  innocenceClaim: jsonb("innocence_claim"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

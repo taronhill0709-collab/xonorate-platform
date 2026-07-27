@@ -15,6 +15,13 @@
       "when": 1785119991883,
       "tag": "0001_friendly_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785166263593,
+      "tag": "0002_solid_warbound",
+      "breakpoints": true
     }
   ]
 }

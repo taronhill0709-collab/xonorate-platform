@@ -1,4 +1,5 @@
 import { Field, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
+import { EVIDENCE_CATEGORY_FIELDS } from "@/lib/innocence-claim";
 import { createCase } from "../actions";
 
 export default async function NewCasePage({
@@ -66,6 +67,30 @@ export default async function NewCasePage({
         <Field label="Year exonerated" name="exonerationYear">
           <TextInput id="exonerationYear" name="exonerationYear" type="number" />
         </Field>
+
+        <h2 className="pt-2 font-serif text-lg text-foreground">
+          Full evidence dossier (optional — leave blank until attorney-confirmed detail exists)
+        </h2>
+        <Field label="Stat callouts — one per line, formatted &quot;value | label&quot;" name="stats">
+          <TextArea
+            id="stats"
+            name="stats"
+            rows={3}
+            placeholder={"1 | eyewitness — who later recanted\n3 | alibi witnesses at the scene"}
+          />
+        </Field>
+        <Field label="Pull quote" name="pullQuote">
+          <TextArea id="pullQuote" name="pullQuote" rows={2} />
+        </Field>
+        {EVIDENCE_CATEGORY_FIELDS.map((f) => (
+          <Field
+            key={f.name}
+            label={`${f.title} — one item per block: title line, then body, blank line between items`}
+            name={f.name}
+          >
+            <TextArea id={f.name} name={f.name} rows={5} />
+          </Field>
+        ))}
 
         <SubmitButton>Create case</SubmitButton>
       </form>

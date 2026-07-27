@@ -11,7 +11,13 @@ import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
+import type { InnocenceClaim } from "@/lib/innocence-claim";
 import { getOrigin } from "@/lib/request-ip";
+
+const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+function toRoman(n: number): string {
+  return ROMAN_NUMERALS[n - 1] ?? String(n);
+}
 
 // Case status/documents and the embedded petition's live count must always
 // be fresh — never statically prerendered.
@@ -110,7 +116,16 @@ export default async function CaseDetailPage({
 
   const conviction = caseRow.convictionDetails as ConvictionDetails;
   const exoneration = caseRow.exonerationDetails as ExonerationDetails;
+  const innocenceClaim = caseRow.innocenceClaim as InnocenceClaim | null;
+  const claimCategories = innocenceClaim?.categories ?? [];
   const origin = await getOrigin();
+
+  let sectionIndex = 0;
+  const convictionRoman = toRoman(++sectionIndex);
+  const exonerationRoman = exoneration ? toRoman(++sectionIndex) : null;
+  const categoryRomans = claimCategories.map(() => toRoman(++sectionIndex));
+  const documentsRoman = toRoman(++sectionIndex);
+  const takeActionRoman = toRoman(++sectionIndex);
 
   const session = await auth();
   let initiallySigned = false;
@@ -138,17 +153,34 @@ export default async function CaseDetailPage({
           <Image
             src={caseRow.photoUrl}
             alt={caseRow.clientName}
-            width={640}
-            height={400}
-            className="mt-6 w-full rounded-lg object-cover"
+            width={96}
+            height={96}
+            className="mt-6 h-24 w-24 rounded-full object-cover"
             unoptimized
           />
         )}
 
         <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>
 
+        {innocenceClaim && innocenceClaim.stats.length > 0 && (
+          <div className="mt-8 flex flex-wrap gap-8">
+            {innocenceClaim.stats.map((stat, i) => (
+              <div key={i}>
+                <p className="font-serif text-3xl text-brand">{stat.value}</p>
+                <p className="mt-1 max-w-32 text-xs text-muted">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {innocenceClaim?.pullQuote && (
+          <blockquote className="mt-8 border-l-2 border-accent pl-4 font-serif text-lg italic text-foreground">
+            &ldquo;{innocenceClaim.pullQuote}&rdquo;
+          </blockquote>
+        )}
+
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">I. The conviction</h2>
+          <h2 className="font-serif text-lg text-foreground">{convictionRoman}. The conviction</h2>
           <dl className="mt-3 space-y-2 text-sm">
             <div>
               <dt className="text-muted">Charge</dt>
@@ -177,7 +209,7 @@ export default async function CaseDetailPage({
 
         {exoneration && (
           <section className="mt-10">
-            <h2 className="font-serif text-lg text-foreground">II. Exoneration</h2>
+            <h2 className="font-serif text-lg text-foreground">{exonerationRoman}. Exoneration</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div>
                 <dt className="text-muted">Year exonerated</dt>
@@ -191,10 +223,26 @@ export default async function CaseDetailPage({
           </section>
         )}
 
+        {claimCategories.map((category, ci) => (
+          <section key={category.title} className="mt-10">
+            <h2 className="font-serif text-lg text-foreground">
+              {categoryRomans[ci]}. {category.title}
+            </h2>
+            <ol className="mt-4 space-y-5">
+              {category.items.map((item, i) => (
+                <li key={i}>
+                  <p className="font-medium text-foreground">
+                    {i + 1}. {item.title}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">{item.body}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">
-            {exoneration ? "III." : "II."} Documents
-          </h2>
+          <h2 className="font-serif text-lg text-foreground">{documentsRoman}. Documents</h2>
           {documents.length === 0 ? (
             <p className="mt-3 text-sm text-muted">No documents listed yet.</p>
           ) : (
@@ -230,9 +278,7 @@ export default async function CaseDetailPage({
         </section>
 
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">
-            {exoneration ? "IV." : "III."} Take action
-          </h2>
+          <h2 className="font-serif text-lg text-foreground">{takeActionRoman}. Take action</h2>
           {petition ? (
             <div className="mt-4 rounded-lg border border-border p-5">
               <p className="font-serif text-lg text-foreground">{petition.title}</p>

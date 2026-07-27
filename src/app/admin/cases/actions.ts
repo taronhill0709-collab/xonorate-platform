@@ -6,6 +6,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
 import { caseDocuments, caseStatusEnum, cases, documentStatusEnum } from "@/db/schema";
+import {
+  EVIDENCE_CATEGORY_TITLES,
+  parseCategoryItems,
+  parseStats,
+} from "@/lib/innocence-claim";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -23,6 +28,12 @@ const caseFormSchema = z.object({
   status: z.enum(caseStatusEnum.enumValues),
   state: z.string().min(1),
   photoUrl: z.string().url().optional().or(z.literal("")),
+  stats: z.string().optional(),
+  pullQuote: z.string().optional(),
+  evidenceOfInnocence: z.string().optional(),
+  newlyDiscoveredEvidence: z.string().optional(),
+  dueProcessViolations: z.string().optional(),
+  unreliableEvidence: z.string().optional(),
 });
 
 function parseCaseForm(formData: FormData) {
@@ -41,6 +52,24 @@ function parseCaseForm(formData: FormData) {
       ? { whatLedToExoneration: parsed.exonerationSummary, year: parsed.exonerationYear }
       : null;
 
+  const categoryInputs = [
+    parsed.evidenceOfInnocence,
+    parsed.newlyDiscoveredEvidence,
+    parsed.dueProcessViolations,
+    parsed.unreliableEvidence,
+  ];
+  const categories = EVIDENCE_CATEGORY_TITLES.map((title, i) => ({
+    title,
+    items: parseCategoryItems(categoryInputs[i] ?? ""),
+  })).filter((c) => c.items.length > 0);
+  const stats = parseStats(parsed.stats ?? "");
+  const pullQuote = parsed.pullQuote?.trim() || "";
+
+  const innocenceClaim =
+    stats.length > 0 || pullQuote || categories.length > 0
+      ? { stats, pullQuote, categories }
+      : null;
+
   return {
     clientName: parsed.clientName,
     slugInput: parsed.slug?.trim() || parsed.clientName,
@@ -51,6 +80,7 @@ function parseCaseForm(formData: FormData) {
     status: parsed.status,
     state: parsed.state,
     photoUrl: parsed.photoUrl || null,
+    innocenceClaim,
   };
 }
 
@@ -71,6 +101,7 @@ export async function createCase(formData: FormData) {
         status: data.status,
         state: data.state,
         photoUrl: data.photoUrl,
+        innocenceClaim: data.innocenceClaim,
       })
       .returning({ id: cases.id }),
   );
@@ -94,6 +125,7 @@ export async function updateCase(caseId: string, formData: FormData) {
       status: data.status,
       state: data.state,
       photoUrl: data.photoUrl,
+      innocenceClaim: data.innocenceClaim,
       updatedAt: new Date(),
     })
     .where(eq(cases.id, caseId));

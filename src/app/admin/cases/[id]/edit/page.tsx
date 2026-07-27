@@ -10,6 +10,12 @@ import {
   TextInput,
 } from "../../../_components/field";
 import {
+  EVIDENCE_CATEGORY_FIELDS,
+  serializeCategoryItems,
+  serializeStats,
+  type InnocenceClaim,
+} from "@/lib/innocence-claim";
+import {
   addDocument,
   deleteDocument,
   toggleDocumentStatus,
@@ -46,6 +52,11 @@ export default async function EditCasePage({
 
   const conviction = caseRow.convictionDetails as ConvictionDetails;
   const exoneration = caseRow.exonerationDetails as ExonerationDetails;
+  const innocenceClaim = caseRow.innocenceClaim as InnocenceClaim | null;
+  const categoryDefaults = EVIDENCE_CATEGORY_FIELDS.map((f) => {
+    const category = innocenceClaim?.categories.find((c) => c.title === f.title);
+    return category ? serializeCategoryItems(category.items) : "";
+  });
 
   const updateCaseWithId = updateCase.bind(null, id);
   const addDocumentWithId = addDocument.bind(null, id);
@@ -141,6 +152,35 @@ export default async function EditCasePage({
             defaultValue={exoneration?.year ?? ""}
           />
         </Field>
+
+        <h2 className="pt-2 font-serif text-lg text-foreground">
+          Full evidence dossier (optional — leave blank until attorney-confirmed detail exists)
+        </h2>
+        <Field label="Stat callouts — one per line, formatted &quot;value | label&quot;" name="stats">
+          <TextArea
+            id="stats"
+            name="stats"
+            rows={3}
+            defaultValue={innocenceClaim ? serializeStats(innocenceClaim.stats) : ""}
+          />
+        </Field>
+        <Field label="Pull quote" name="pullQuote">
+          <TextArea
+            id="pullQuote"
+            name="pullQuote"
+            rows={2}
+            defaultValue={innocenceClaim?.pullQuote ?? ""}
+          />
+        </Field>
+        {EVIDENCE_CATEGORY_FIELDS.map((f, i) => (
+          <Field
+            key={f.name}
+            label={`${f.title} — one item per block: title line, then body, blank line between items`}
+            name={f.name}
+          >
+            <TextArea id={f.name} name={f.name} rows={5} defaultValue={categoryDefaults[i]} />
+          </Field>
+        ))}
 
         <SubmitButton>Save changes</SubmitButton>
       </form>
