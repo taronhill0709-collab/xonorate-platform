@@ -32,6 +32,14 @@ export async function SiteHeader() {
               <Link href="/dashboard" className="text-muted transition hover:text-foreground">
                 Dashboard
               </Link>
+              {session.user.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="text-muted transition hover:text-foreground"
+                >
+                  Admin
+                </Link>
+              )}
               <SignOutButton />
             </>
           ) : (

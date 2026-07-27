@@ -46,9 +46,16 @@ export default async function DashboardPage() {
           <h1 className="font-serif text-3xl text-foreground">
             Welcome, {session.user.name ?? session.user.email}
           </h1>
-          <Link href="/dashboard/settings" className="text-sm text-brand underline">
-            Account settings
-          </Link>
+          <div className="flex items-center gap-4">
+            {session.user.role === "admin" && (
+              <Link href="/admin" className="text-sm text-brand underline">
+                Admin panel
+              </Link>
+            )}
+            <Link href="/dashboard/settings" className="text-sm text-brand underline">
+              Account settings
+            </Link>
+          </div>
         </div>
 
         <section className="mt-10">
