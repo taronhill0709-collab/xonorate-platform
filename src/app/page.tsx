@@ -108,7 +108,7 @@ export default async function Home() {
                       alt={row.clientName}
                       width={64}
                       height={64}
-                      className="h-16 w-16 shrink-0 rounded-md object-cover"
+                      className="h-16 w-16 shrink-0 rounded-full object-cover"
                       unoptimized
                     />
                   )}
