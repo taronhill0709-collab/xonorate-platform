@@ -1,14 +1,12 @@
+import type { Config } from "@netlify/functions";
+
 // Fires the daily-content-background function and returns immediately —
 // scheduled/regular functions have a 30s budget, background functions get
 // 15 minutes, which the research + writing pass needs.
 //
-// The `schedule` config below is intentionally commented out. Per the build
-// spec: don't auto-run this on a cron until output quality has been
-// verified for a few weeks. To activate, uncomment the `config` export
-// with a cron expression (UTC) — e.g. "0 12 * * *" for daily at noon UTC —
-// and set the DAILY_CONTENT_SECRET env var (also required right now for
-// manual invocation to work). Until then, trigger a run manually:
-//   curl -X POST https://<site>/.netlify/functions/daily-content-trigger
+// Runs daily at noon UTC (activated 2026-07-27 after a manual run was
+// reviewed and approved). Drafts still land in the pending queue for admin
+// review — this only automates generation, not publishing.
 async function handler(req: Request) {
   let nextRun: string | undefined;
   try {
@@ -34,7 +32,6 @@ async function handler(req: Request) {
 
 export default handler;
 
-// import type { Config } from "@netlify/functions";
-// export const config: Config = {
-//   schedule: "0 12 * * *",
-// };
+export const config: Config = {
+  schedule: "0 12 * * *",
+};
