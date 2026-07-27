@@ -1,8 +1,14 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, petitions, signatures } from "@/db/schema";
+
+export const metadata: Metadata = {
+  title: "Petitions",
+  description: "Sign a petition to push for review, reform, or justice for a specific case.",
+};
 
 // Signature counts must always be fresh — never statically prerendered.
 export const dynamic = "force-dynamic";

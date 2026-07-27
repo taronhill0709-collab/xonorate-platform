@@ -11,8 +11,14 @@ export async function SiteHeader() {
           Xonorate
         </Link>
         <nav className="flex items-center gap-5 text-sm">
+          <Link href="/cases" className="text-muted transition hover:text-foreground">
+            Cases
+          </Link>
           <Link href="/petitions" className="text-muted transition hover:text-foreground">
             Petitions
+          </Link>
+          <Link href="/posts" className="text-muted transition hover:text-foreground">
+            News
           </Link>
           <Link
             href="/submit-inquiry"

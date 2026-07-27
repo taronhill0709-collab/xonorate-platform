@@ -4,7 +4,7 @@ import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { cases, comments, petitions } from "@/db/schema";
+import { cases, comments, petitions, posts } from "@/db/schema";
 import { isCommentRateLimited } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
 
@@ -18,7 +18,7 @@ const commentSchema = z.object({
 });
 
 export async function submitComment(
-  targetType: "case" | "petition",
+  targetType: "case" | "petition" | "post",
   targetId: string,
   formData: FormData,
 ): Promise<{ success: true; published: boolean } | { success: false; error: string }> {
@@ -45,13 +45,21 @@ export async function submitComment(
     targetType === "case"
       ? (await db.select({ id: cases.id }).from(cases).where(eq(cases.id, targetId)).limit(1))
           .length > 0
-      : (
-          await db
-            .select({ id: petitions.id })
-            .from(petitions)
-            .where(eq(petitions.id, targetId))
-            .limit(1)
-        ).length > 0;
+      : targetType === "petition"
+        ? (
+            await db
+              .select({ id: petitions.id })
+              .from(petitions)
+              .where(eq(petitions.id, targetId))
+              .limit(1)
+          ).length > 0
+        : (
+            await db
+              .select({ id: posts.id })
+              .from(posts)
+              .where(and(eq(posts.id, targetId), eq(posts.status, "published")))
+              .limit(1)
+          ).length > 0;
   if (!targetExists) {
     return { success: false, error: "This item no longer exists." };
   }

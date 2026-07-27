@@ -1,4 +1,5 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -12,6 +13,41 @@ import { getOrigin } from "@/lib/request-ip";
 
 // Signature counts must always be fresh — never statically prerendered.
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const [petition] = await db
+    .select({ title: petitions.title, askText: petitions.askText })
+    .from(petitions)
+    .where(eq(petitions.slug, slug))
+    .limit(1);
+
+  if (!petition) return { title: "Petition not found" };
+
+  const origin = await getOrigin();
+  const url = `${origin}/petitions/${slug}`;
+
+  return {
+    title: petition.title,
+    description: petition.askText,
+    alternates: { canonical: url },
+    openGraph: {
+      title: petition.title,
+      description: petition.askText,
+      url,
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: petition.title,
+      description: petition.askText,
+    },
+  };
+}
 
 export default async function PetitionDetailPage({
   params,

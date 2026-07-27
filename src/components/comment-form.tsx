@@ -14,7 +14,7 @@ export function CommentForm({
   targetType,
   targetId,
 }: {
-  targetType: "case" | "petition";
+  targetType: "case" | "petition" | "post";
   targetId: string;
 }) {
   const router = useRouter();

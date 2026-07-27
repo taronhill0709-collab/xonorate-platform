@@ -77,6 +77,7 @@ Requirements:
 - Never invent a fact about the case itself; use only what's given.
 - Every claim about the state's compensation policy or general compensation statistics must be backed by a real source found via web_search.
 - Write in Markdown, roughly 500-900 words.
+- Open the body with 1-2 narrative sentences that tell the reader who this person is and what happened — this lead is used verbatim as the preview text on the homepage and post listings, so it must read as a sentence, not data. Do NOT start the body with a bolded fact line (e.g. "**State:** Ohio | **Charge:** ..."), a table, or a bare link — those can appear later in the piece, never first.
 - Populate "sources" with every real URL cited.
 - Set "state" to the case's state.`;
 

@@ -1,4 +1,5 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,17 +10,12 @@ import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
+import { CASE_STATUS_LABEL } from "@/lib/case-status";
 import { getOrigin } from "@/lib/request-ip";
 
 // Case status/documents and the embedded petition's live count must always
 // be fresh — never statically prerendered.
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  active_case: "Active case",
-  exonerated: "Exonerated",
-  awaiting_review: "Awaiting review",
-};
 
 type ConvictionDetails = {
   charge: string;
@@ -32,6 +28,50 @@ type ExonerationDetails = {
   whatLedToExoneration: string;
   year: number;
 } | null;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const [caseRow] = await db
+    .select({
+      clientName: cases.clientName,
+      summary: cases.summary,
+      status: cases.status,
+      state: cases.state,
+      photoUrl: cases.photoUrl,
+    })
+    .from(cases)
+    .where(eq(cases.slug, slug))
+    .limit(1);
+
+  if (!caseRow) return { title: "Case not found" };
+
+  const title = `${caseRow.clientName} — ${CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status}`;
+  const origin = await getOrigin();
+  const url = `${origin}/cases/${slug}`;
+
+  return {
+    title,
+    description: caseRow.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description: caseRow.summary,
+      url,
+      type: "article",
+      images: caseRow.photoUrl ? [caseRow.photoUrl] : undefined,
+    },
+    twitter: {
+      card: caseRow.photoUrl ? "summary_large_image" : "summary",
+      title,
+      description: caseRow.summary,
+      images: caseRow.photoUrl ? [caseRow.photoUrl] : undefined,
+    },
+  };
+}
 
 export default async function CaseDetailPage({
   params,
@@ -90,7 +130,7 @@ export default async function CaseDetailPage({
       <SiteHeader />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
         <p className="text-xs font-medium uppercase tracking-wide text-brand">
-          {STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
+          {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
         </p>
         <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
 

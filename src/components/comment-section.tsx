@@ -9,7 +9,7 @@ export async function CommentSection({
   targetType,
   targetId,
 }: {
-  targetType: "case" | "petition";
+  targetType: "case" | "petition" | "post";
   targetId: string;
 }) {
   const session = await auth();
