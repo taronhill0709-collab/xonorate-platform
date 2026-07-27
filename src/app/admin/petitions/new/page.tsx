@@ -35,6 +35,17 @@ export default async function NewPetitionPage() {
         <Field label="Signature goal" name="goalCount">
           <TextInput id="goalCount" name="goalCount" type="number" defaultValue={1000} required />
         </Field>
+        <Field
+          label="Starting signature count (optional — signatures carried over from a prior platform, added on top of what's collected here)"
+          name="startingSignatureCount"
+        >
+          <TextInput
+            id="startingSignatureCount"
+            name="startingSignatureCount"
+            type="number"
+            defaultValue={0}
+          />
+        </Field>
 
         <SubmitButton>Create petition</SubmitButton>
       </form>

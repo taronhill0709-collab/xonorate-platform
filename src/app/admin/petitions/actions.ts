@@ -14,6 +14,7 @@ const petitionFormSchema = z.object({
   slug: z.string().optional(),
   askText: z.string().min(1),
   goalCount: z.coerce.number().int().positive(),
+  startingSignatureCount: z.coerce.number().int().nonnegative().optional(),
   caseId: z.string().optional(),
 });
 
@@ -25,6 +26,7 @@ function parsePetitionForm(formData: FormData) {
     slugInput: parsed.slug?.trim() || parsed.title,
     askText: parsed.askText,
     goalCount: parsed.goalCount,
+    startingSignatureCount: parsed.startingSignatureCount ?? 0,
     caseId: parsed.caseId || null,
   };
 }
@@ -41,6 +43,7 @@ export async function createPetition(formData: FormData) {
         slug,
         askText: data.askText,
         goalCount: data.goalCount,
+        startingSignatureCount: data.startingSignatureCount,
         caseId: data.caseId,
       })
       .returning({ id: petitions.id }),
@@ -60,6 +63,7 @@ export async function updatePetition(petitionId: string, formData: FormData) {
       title: data.title,
       askText: data.askText,
       goalCount: data.goalCount,
+      startingSignatureCount: data.startingSignatureCount,
       caseId: data.caseId,
     })
     .where(eq(petitions.id, petitionId));

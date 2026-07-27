@@ -76,10 +76,11 @@ export default async function PetitionDetailPage({
       )[0]
     : null;
 
-  const [{ value: signatureCount }] = await db
+  const [{ value: verifiedOnPlatform }] = await db
     .select({ value: count() })
     .from(signatures)
     .where(and(eq(signatures.petitionId, petition.id), eq(signatures.verified, true)));
+  const signatureCount = verifiedOnPlatform + petition.startingSignatureCount;
 
   const recentSigners = await db
     .select({ displayName: signatures.displayName, comment: signatures.comment })

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { cases, petitions } from "@/db/schema";
+import { cases, petitions, signatures } from "@/db/schema";
 import {
   Field,
   Select,
@@ -29,6 +29,11 @@ export default async function EditPetitionPage({
     .select({ id: cases.id, clientName: cases.clientName })
     .from(cases)
     .orderBy(cases.clientName);
+
+  const [{ value: verifiedOnPlatform }] = await db
+    .select({ value: count() })
+    .from(signatures)
+    .where(and(eq(signatures.petitionId, id), eq(signatures.verified, true)));
 
   const updatePetitionWithId = updatePetition.bind(null, id);
 
@@ -69,6 +74,17 @@ export default async function EditPetitionPage({
             type="number"
             defaultValue={petition.goalCount}
             required
+          />
+        </Field>
+        <Field
+          label={`Starting signature count (optional — signatures carried over from a prior platform. ${verifiedOnPlatform} verified signature${verifiedOnPlatform === 1 ? "" : "s"} collected on this platform will be added on top of this number wherever the total is shown.)`}
+          name="startingSignatureCount"
+        >
+          <TextInput
+            id="startingSignatureCount"
+            name="startingSignatureCount"
+            type="number"
+            defaultValue={petition.startingSignatureCount}
           />
         </Field>
 

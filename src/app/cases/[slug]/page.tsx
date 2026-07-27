@@ -106,12 +106,12 @@ export default async function CaseDetailPage({
     .limit(1);
 
   const signatureCount = petition
-    ? (
+    ? ((
         await db
           .select({ value: count() })
           .from(signatures)
           .where(and(eq(signatures.petitionId, petition.id), eq(signatures.verified, true)))
-      )[0]?.value ?? 0
+      )[0]?.value ?? 0) + petition.startingSignatureCount
     : 0;
 
   const conviction = caseRow.convictionDetails as ConvictionDetails;

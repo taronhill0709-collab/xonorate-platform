@@ -160,6 +160,11 @@ export const petitions = pgTable("petitions", {
   slug: text("slug").notNull().unique(),
   askText: text("ask_text").notNull(),
   goalCount: integer("goal_count").notNull().default(1000),
+  // Signatures carried over from a prior campaign platform (not individual
+  // records here) — added on top of this platform's own verified signature
+  // count wherever a total is displayed, so migrated numbers and newly
+  // collected ones both count.
+  startingSignatureCount: integer("starting_signature_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -21,6 +21,7 @@ export default async function PetitionsIndexPage() {
       slug: petitions.slug,
       askText: petitions.askText,
       goalCount: petitions.goalCount,
+      startingSignatureCount: petitions.startingSignatureCount,
       caseClientName: cases.clientName,
     })
     .from(petitions)
@@ -51,7 +52,7 @@ export default async function PetitionsIndexPage() {
         ) : (
           <ul className="mt-8 space-y-6">
             {rows.map((row, i) => {
-              const signatureCount = counts[i] ?? 0;
+              const signatureCount = (counts[i] ?? 0) + row.startingSignatureCount;
               const pct = Math.min(100, Math.round((signatureCount / row.goalCount) * 100));
               return (
                 <li key={row.id} className="rounded-lg border border-border p-5">

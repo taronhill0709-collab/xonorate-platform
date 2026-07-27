@@ -34,6 +34,7 @@ export default async function Home() {
       title: petitions.title,
       slug: petitions.slug,
       goalCount: petitions.goalCount,
+      startingSignatureCount: petitions.startingSignatureCount,
       caseClientName: cases.clientName,
     })
     .from(petitions)
@@ -47,7 +48,7 @@ export default async function Home() {
         .select({ value: count() })
         .from(signatures)
         .where(and(eq(signatures.petitionId, p.id), eq(signatures.verified, true)))
-        .then(([r]) => r?.value ?? 0),
+        .then(([r]) => (r?.value ?? 0) + p.startingSignatureCount),
     ),
   );
 
