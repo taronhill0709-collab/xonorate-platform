@@ -49,7 +49,7 @@ export default async function CasesIndexPage() {
                     alt={row.clientName}
                     width={96}
                     height={96}
-                    className="h-24 w-24 shrink-0 rounded-md object-cover"
+                    className="h-24 w-24 shrink-0 rounded-full object-cover"
                     unoptimized
                   />
                 )}
