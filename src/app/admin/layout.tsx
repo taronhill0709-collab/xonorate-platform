@@ -32,24 +32,24 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-full flex-1">
-      <aside className="w-56 shrink-0 border-r border-border bg-muted-background">
+      <aside className="w-56 shrink-0 bg-brand">
         <div className="px-5 py-6">
-          <p className="font-serif text-lg text-foreground">Xonorate</p>
-          <p className="text-xs text-muted">Admin</p>
+          <p className="font-serif text-lg text-brand-foreground">Xonorate</p>
+          <p className="text-xs text-brand-foreground/60">Admin</p>
         </div>
         <nav className="flex flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-2 py-1.5 text-sm text-foreground transition hover:bg-brand-light"
+              className="rounded-md px-2 py-1.5 text-sm text-brand-foreground/90 transition hover:bg-white/10 hover:text-brand-foreground"
             >
               {item.label}
             </Link>
           ))}
         </nav>
       </aside>
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col bg-background">
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
           <p className="text-sm text-muted">Signed in as {session.user.email}</p>
           <div className="flex items-center gap-4">
@@ -59,7 +59,7 @@ export default async function AdminLayout({
             <SignOutButton />
           </div>
         </header>
-        <main className="flex-1 px-6 py-8">{children}</main>
+        <main className="flex-1 px-6 py-8 text-foreground">{children}</main>
       </div>
     </div>
   );

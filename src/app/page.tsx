@@ -108,7 +108,10 @@ export default async function Home() {
             </div>
             <ul className="mt-5 space-y-4">
               {recentCases.map((row) => (
-                <li key={row.id} className="flex gap-4 rounded-lg border border-border p-5">
+                <li
+                  key={row.id}
+                  className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                >
                   {row.photoUrl && (
                     <Image
                       src={row.photoUrl}
@@ -149,7 +152,10 @@ export default async function Home() {
                 const signatureCount = signatureCounts[i] ?? 0;
                 const pct = Math.min(100, Math.round((signatureCount / row.goalCount) * 100));
                 return (
-                  <li key={row.id} className="rounded-lg border border-border p-5">
+                  <li
+                    key={row.id}
+                    className="rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                  >
                     {row.caseClientName && (
                       <p className="text-xs font-medium uppercase tracking-wide text-brand">
                         For {row.caseClientName}
@@ -187,14 +193,17 @@ export default async function Home() {
             </div>
             <ul className="mt-5 space-y-4">
               {recentPosts.map((row) => (
-                <li key={row.id} className="flex gap-4 rounded-lg border border-border p-5">
+                <li
+                  key={row.id}
+                  className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                >
                   {row.imageUrl && (
                     <Image
                       src={row.imageUrl}
                       alt=""
                       width={112}
                       height={84}
-                      className="h-[84px] w-28 shrink-0 rounded-md object-cover"
+                      className="h-[84px] w-28 shrink-0 rounded-lg object-cover ring-1 ring-border/70"
                       unoptimized
                     />
                   )}

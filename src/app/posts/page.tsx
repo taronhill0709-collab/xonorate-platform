@@ -46,14 +46,17 @@ export default async function PostsIndexPage() {
         ) : (
           <ul className="mt-8 space-y-6">
             {rows.map((row) => (
-              <li key={row.id} className="flex gap-4 rounded-lg border border-border p-5">
+              <li
+                key={row.id}
+                className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+              >
                 {row.imageUrl && (
                   <Image
                     src={row.imageUrl}
                     alt=""
                     width={128}
                     height={96}
-                    className="h-24 w-32 shrink-0 rounded-md object-cover"
+                    className="h-24 w-32 shrink-0 rounded-lg object-cover ring-1 ring-border/70"
                     unoptimized
                   />
                 )}

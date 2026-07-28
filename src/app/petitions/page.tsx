@@ -55,7 +55,10 @@ export default async function PetitionsIndexPage() {
               const signatureCount = (counts[i] ?? 0) + row.startingSignatureCount;
               const pct = Math.min(100, Math.round((signatureCount / row.goalCount) * 100));
               return (
-                <li key={row.id} className="rounded-lg border border-border p-5">
+                <li
+                  key={row.id}
+                  className="rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                >
                   {row.caseClientName && (
                     <p className="text-xs font-medium uppercase tracking-wide text-brand">
                       For {row.caseClientName}

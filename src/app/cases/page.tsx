@@ -42,14 +42,17 @@ export default async function CasesIndexPage() {
         ) : (
           <ul className="mt-8 space-y-6">
             {rows.map((row) => (
-              <li key={row.id} className="flex gap-4 rounded-lg border border-border p-5">
+              <li
+                key={row.id}
+                className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+              >
                 {row.photoUrl && (
                   <Image
                     src={row.photoUrl}
                     alt={row.clientName}
                     width={96}
                     height={96}
-                    className="h-24 w-24 shrink-0 rounded-full object-cover"
+                    className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-border/70"
                     unoptimized
                   />
                 )}

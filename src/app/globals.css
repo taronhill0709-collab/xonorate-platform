@@ -1,16 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Brand palette matched to the live campaign template (richard.xonorate.com):
- * warm cream background, navy primary, gold accent for petition CTAs,
- * Playfair Display headings over Inter body/UI text.
+ * Brand palette: crisp white background, navy primary, gold accent for
+ * petition CTAs, Playfair Display headings over Inter body/UI text.
  */
 :root {
-  --background: #f7f4ef;
-  --foreground: #2a2a28;
-  --muted: #6b6b68;
-  --muted-background: #efeae0;
-  --border: #e2ddd3;
+  --background: #ffffff;
+  --foreground: #17171a;
+  --muted: #55555a;
+  --muted-background: #eef1f5;
+  --border: #e1e4ea;
   --brand: #1b2a4a;
   --brand-foreground: #ffffff;
   --brand-light: #e4e8f0;
