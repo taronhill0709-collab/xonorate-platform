@@ -144,7 +144,7 @@ export default async function CaseDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <p className="text-xs font-medium uppercase tracking-wide text-brand">
           {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
         </p>

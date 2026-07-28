@@ -146,7 +146,7 @@ export default async function PostDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <p className="text-xs font-medium uppercase tracking-wide text-brand">
           {POST_TYPE_LABEL[post.type] ?? post.type}
           {post.publishedAt && (
