@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { CopyCaptionButton } from "./copy-caption-button";
 import { setSocialPostsEnabled } from "./actions";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
+import { ShareButtons } from "@/components/share-buttons";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { getOrigin } from "@/lib/request-ip";
@@ -126,7 +127,7 @@ async function SocialPostList({ limit }: { limit: number }) {
                 rows={6}
                 className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
               />
-              <div className="mt-2 flex items-center gap-3">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 <CopyCaptionButton text={caption} />
                 {row.imageUrl && (
                   <a
@@ -138,6 +139,17 @@ async function SocialPostList({ limit }: { limit: number }) {
                     Open photo to save
                   </a>
                 )}
+              </div>
+              <div className="mt-3 border-t border-border pt-3">
+                <p className="mb-2 text-xs text-muted">
+                  Share the article link directly (Facebook/X show their own
+                  preview card — Instagram doesn&apos;t support link-sharing, so
+                  use the copied caption + saved photo there instead):
+                </p>
+                <ShareButtons
+                  url={`${origin}/posts/${row.slug}`}
+                  title={row.title}
+                />
               </div>
             </div>
           </div>
