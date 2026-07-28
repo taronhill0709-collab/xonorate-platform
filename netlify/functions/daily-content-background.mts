@@ -1,11 +1,10 @@
 import { generateDailyPost } from "../../src/lib/content-pipeline";
 
-// Number of independent draft candidates to generate per run, so the admin
-// has a few real options to choose from rather than one take-it-or-leave-it
-// draft. Each call re-queries spotlight eligibility fresh, so if a case
-// qualifies it's only spotlighted once per batch — later calls in the same
-// batch naturally fall back to roundups instead of repeating it.
-const CANDIDATES_PER_RUN = 3;
+// Number of independent draft candidates to generate per run. Each call
+// re-queries spotlight eligibility fresh, so if a case qualifies it's only
+// spotlighted once per batch — later calls in the same batch naturally fall
+// back to roundups instead of repeating it.
+const CANDIDATES_PER_RUN = 1;
 
 // Background function: 15-minute execution budget (vs 30s for regular/scheduled
 // functions), which the research + writing pass genuinely needs. Triggered by
