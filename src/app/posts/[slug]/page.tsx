@@ -29,16 +29,28 @@ function omitNode<T extends object>(props: WithNode<T>): T {
 
 const markdownComponents = {
   h1: (props: WithNode<React.ComponentProps<"h1">>) => (
-    <h2 className="mt-8 mb-2 font-serif text-xl text-foreground" {...omitNode(props)} />
+    <h2
+      className="mt-8 mb-2 text-center font-serif text-xl text-foreground"
+      {...omitNode(props)}
+    />
   ),
   h2: (props: WithNode<React.ComponentProps<"h2">>) => (
-    <h2 className="mt-8 mb-2 font-serif text-xl text-foreground" {...omitNode(props)} />
+    <h2
+      className="mt-8 mb-2 text-center font-serif text-xl text-foreground"
+      {...omitNode(props)}
+    />
   ),
   h3: (props: WithNode<React.ComponentProps<"h3">>) => (
-    <h3 className="mt-6 mb-2 font-serif text-lg text-foreground" {...omitNode(props)} />
+    <h3
+      className="mt-6 mb-2 text-center font-serif text-lg text-foreground"
+      {...omitNode(props)}
+    />
   ),
   p: (props: WithNode<React.ComponentProps<"p">>) => (
-    <p className="mt-4 leading-relaxed text-foreground" {...omitNode(props)} />
+    <p
+      className="mt-4 text-center leading-relaxed text-foreground"
+      {...omitNode(props)}
+    />
   ),
   a: (props: WithNode<React.ComponentProps<"a">>) => (
     <a
@@ -52,10 +64,16 @@ const markdownComponents = {
     <strong className="font-semibold text-foreground" {...omitNode(props)} />
   ),
   ul: (props: WithNode<React.ComponentProps<"ul">>) => (
-    <ul className="mt-4 list-disc space-y-1 pl-6 text-foreground" {...omitNode(props)} />
+    <ul
+      className="mt-4 list-disc space-y-1 pl-6 text-foreground"
+      {...omitNode(props)}
+    />
   ),
   ol: (props: WithNode<React.ComponentProps<"ol">>) => (
-    <ol className="mt-4 list-decimal space-y-1 pl-6 text-foreground" {...omitNode(props)} />
+    <ol
+      className="mt-4 list-decimal space-y-1 pl-6 text-foreground"
+      {...omitNode(props)}
+    />
   ),
   li: (props: WithNode<React.ComponentProps<"li">>) => (
     <li className="leading-relaxed" {...omitNode(props)} />
@@ -93,7 +111,8 @@ export async function generateMetadata({
   const description = excerptFromMarkdown(post.body);
   const origin = await getOrigin();
   const url = `${origin}/posts/${slug}`;
-  const shareImage = post.casePhotoUrl ?? post.imageUrl ?? `${origin}/opengraph-image`;
+  const shareImage =
+    post.casePhotoUrl ?? post.imageUrl ?? `${origin}/opengraph-image`;
 
   return {
     title: post.title,
@@ -147,7 +166,7 @@ export default async function PostDetailPage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <p className="text-xs font-medium uppercase tracking-wide text-brand">
+        <p className="text-center text-xs font-medium uppercase tracking-wide text-brand">
           {POST_TYPE_LABEL[post.type] ?? post.type}
           {post.publishedAt && (
             <>
@@ -160,12 +179,17 @@ export default async function PostDetailPage({
             </>
           )}
         </p>
-        <h1 className="mt-1 font-serif text-3xl text-foreground">{post.title}</h1>
+        <h1 className="mx-auto mt-1 max-w-2xl text-center font-serif text-3xl text-foreground">
+          {post.title}
+        </h1>
 
         {linkedCase && (
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-center text-sm text-muted">
             About:{" "}
-            <Link href={`/cases/${linkedCase.slug}`} className="text-brand underline">
+            <Link
+              href={`/cases/${linkedCase.slug}`}
+              className="text-brand underline"
+            >
               {linkedCase.clientName}
             </Link>
           </p>
@@ -183,12 +207,16 @@ export default async function PostDetailPage({
         )}
 
         <article>
-          <ReactMarkdown components={markdownComponents}>{post.body}</ReactMarkdown>
+          <ReactMarkdown components={markdownComponents}>
+            {post.body}
+          </ReactMarkdown>
         </article>
 
         {sources.length > 0 && (
           <section className="mt-10">
-            <h2 className="font-serif text-lg text-foreground">Sources</h2>
+            <h2 className="text-center font-serif text-lg text-foreground">
+              Sources
+            </h2>
             <ul className="mt-3 space-y-1 text-sm">
               {sources.map((s, i) => (
                 <li key={i}>

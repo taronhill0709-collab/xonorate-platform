@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: "/admin/inquiries", label: "Inquiries" },
   { href: "/admin/comments", label: "Comments" },
   { href: "/admin/posts", label: "Posts" },
+  { href: "/admin/social", label: "Social" },
 ];
 
 export default async function AdminLayout({
@@ -51,9 +52,14 @@ export default async function AdminLayout({
       </aside>
       <div className="flex flex-1 flex-col bg-background">
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
-          <p className="text-sm text-muted">Signed in as {session.user.email}</p>
+          <p className="text-sm text-muted">
+            Signed in as {session.user.email}
+          </p>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard/settings" className="text-sm text-brand underline">
+            <Link
+              href="/dashboard/settings"
+              className="text-sm text-brand underline"
+            >
               Account settings
             </Link>
             <SignOutButton />
