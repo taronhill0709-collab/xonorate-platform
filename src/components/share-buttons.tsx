@@ -14,6 +14,17 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
+  // Facebook's share dialog expects to run in a popup it opened itself — a
+  // plain new-tab link often just dumps the visitor on facebook.com instead
+  // of the composer, especially when they're not already logged in.
+  function openSharePopup(shareUrl: string) {
+    window.open(
+      shareUrl,
+      "share-popup",
+      "width=600,height=520,noopener,noreferrer",
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm">
       <button
@@ -22,22 +33,26 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
       >
         {copied ? "Copied!" : "Copy link"}
       </button>
-      <a
-        href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        onClick={() =>
+          openSharePopup(
+            `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+          )
+        }
         className="rounded-md border border-border px-3 py-1.5 text-foreground transition hover:bg-muted-background"
       >
         Share on X
-      </a>
-      <a
-        href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-        target="_blank"
-        rel="noopener noreferrer"
+      </button>
+      <button
+        onClick={() =>
+          openSharePopup(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+          )
+        }
         className="rounded-md border border-border px-3 py-1.5 text-foreground transition hover:bg-muted-background"
       >
         Share on Facebook
-      </a>
+      </button>
       <a
         href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`}
         className="rounded-md border border-border px-3 py-1.5 text-foreground transition hover:bg-muted-background"

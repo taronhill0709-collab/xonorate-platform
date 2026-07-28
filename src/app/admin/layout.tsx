@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/admin/comments", label: "Comments" },
   { href: "/admin/posts", label: "Posts" },
   { href: "/admin/social", label: "Social" },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
 export default async function AdminLayout({
