@@ -51,14 +51,16 @@ export default async function PostsIndexPage() {
                 className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
               >
                 {row.imageUrl && (
-                  <Image
-                    src={row.imageUrl}
-                    alt=""
-                    width={128}
-                    height={96}
-                    className="h-24 w-32 shrink-0 rounded-lg object-cover ring-1 ring-border/70"
-                    unoptimized
-                  />
+                  <div className="relative w-32 shrink-0 self-stretch overflow-hidden rounded-lg ring-1 ring-border/70">
+                    <Image
+                      src={row.imageUrl}
+                      alt=""
+                      fill
+                      sizes="128px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
                 )}
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-brand">
@@ -76,7 +78,7 @@ export default async function PostsIndexPage() {
                   </p>
                   <Link
                     href={`/posts/${row.slug}`}
-                    className="mt-1 block font-serif text-xl text-foreground hover:underline"
+                    className="mt-1 line-clamp-2 block font-serif text-xl text-foreground hover:underline"
                   >
                     {row.title}
                   </Link>
