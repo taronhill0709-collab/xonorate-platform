@@ -78,7 +78,7 @@ export default async function PostsIndexPage() {
                   </p>
                   <Link
                     href={`/posts/${row.slug}`}
-                    className="mt-1 line-clamp-2 block font-serif text-xl text-foreground hover:underline"
+                    className="mt-1 line-clamp-2 font-serif text-xl text-foreground hover:underline"
                   >
                     {row.title}
                   </Link>
