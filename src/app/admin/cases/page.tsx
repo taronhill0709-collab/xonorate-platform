@@ -1,9 +1,10 @@
 import { desc } from "drizzle-orm";
 import Link from "next/link";
-import { Badge } from "@/app/admin/_components/field";
+import { deleteCase } from "./actions";
+import { CaseStatusSelect } from "./case-status-select";
+import { DeleteCaseButton } from "./delete-case-button";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
-import { CASE_STATUS_LABEL } from "@/lib/case-status";
 
 export default async function AdminCasesPage() {
   const rows = await db.select().from(cases).orderBy(desc(cases.createdAt));
@@ -37,14 +38,23 @@ export default async function AdminCasesPage() {
                 <td className="py-2 text-foreground">{row.clientName}</td>
                 <td className="py-2 text-foreground">{row.state}</td>
                 <td className="py-2">
-                  <Badge tone={row.status === "exonerated" ? "brand" : "neutral"}>
-                    {CASE_STATUS_LABEL[row.status] ?? row.status}
-                  </Badge>
+                  <CaseStatusSelect caseId={row.id} status={row.status} />
                 </td>
                 <td className="py-2 text-right">
+                  <a
+                    href={`/cases/${row.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline"
+                  >
+                    View
+                  </a>{" "}
                   <Link href={`/admin/cases/${row.id}/edit`} className="text-brand underline">
                     Edit
-                  </Link>
+                  </Link>{" "}
+                  <form action={deleteCase.bind(null, row.id)} className="inline">
+                    <DeleteCaseButton />
+                  </form>
                 </td>
               </tr>
             ))}

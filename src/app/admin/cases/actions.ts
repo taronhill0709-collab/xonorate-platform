@@ -169,6 +169,38 @@ export async function deleteDocument(caseId: string, documentId: string) {
   revalidatePath(`/admin/cases/${caseId}/edit`);
 }
 
+export async function updateCaseStatus(
+  caseId: string,
+  status: (typeof caseStatusEnum.enumValues)[number],
+) {
+  await requireAdmin();
+
+  await db
+    .update(cases)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(cases.id, caseId));
+
+  const [row] = await db
+    .select({ slug: cases.slug })
+    .from(cases)
+    .where(eq(cases.id, caseId))
+    .limit(1);
+
+  revalidatePath("/admin/cases");
+  if (row) revalidatePath(`/cases/${row.slug}`);
+}
+
+/** Deletes a case and, via FK cascade, its documents. Any petitions or
+ * posts that referenced it are kept but unlinked (their caseId is set to
+ * null by the schema's onDelete rule) rather than deleted along with it. */
+export async function deleteCase(caseId: string) {
+  await requireAdmin();
+  await db.delete(cases).where(eq(cases.id, caseId));
+  revalidatePath("/admin/cases");
+  revalidatePath("/cases");
+  revalidatePath("/");
+}
+
 export async function toggleDocumentStatus(caseId: string, documentId: string) {
   await requireAdmin();
   const [doc] = await db
