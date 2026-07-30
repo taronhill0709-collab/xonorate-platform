@@ -23,7 +23,13 @@ async function handler(req: Request) {
         `[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) generated ${result.type} draft "${result.title}" (${result.id}) — pending admin review`,
       );
     } catch (err) {
-      console.error(`[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) generation failed`, err);
+      const message = err instanceof Error ? err.message : String(err);
+      // Idempotency errors are not failures — log them as info to avoid noise
+      if (message.includes("already generated today")) {
+        console.log(`[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) ${message}`);
+      } else {
+        console.error(`[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) generation failed`, err);
+      }
     }
   }
 }

@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import { CopyCaptionButton } from "./copy-caption-button";
+import { PostToSocialButton } from "./post-to-social-button";
 import { setSocialPostsEnabled } from "./actions";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
 import { ShareButtons } from "@/components/share-buttons";
@@ -139,6 +140,16 @@ async function SocialPostList({ limit }: { limit: number }) {
                     Open photo to save
                   </a>
                 )}
+              </div>
+              <div className="mt-3 border-t border-border pt-3">
+                <p className="mb-2 text-xs text-muted">
+                  Post directly through Buffer, or share manually:
+                </p>
+                <PostToSocialButton
+                  postId={row.id}
+                  alreadyPostedAt={row.postedToSocialAt?.toISOString() ?? null}
+                  disabledReason={row.imageUrl ? undefined : "No photo — can't post to Instagram"}
+                />
               </div>
               <div className="mt-3 border-t border-border pt-3">
                 <p className="mb-2 text-xs text-muted">

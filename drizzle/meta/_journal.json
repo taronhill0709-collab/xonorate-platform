@@ -43,6 +43,13 @@
       "when": 1785255169542,
       "tag": "0005_salty_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785444196138,
+      "tag": "0006_nifty_mockingbird",
+      "breakpoints": true
     }
   ]
 }

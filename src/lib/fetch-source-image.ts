@@ -8,10 +8,22 @@ const META_PATTERNS = (name: string) => [
   new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${name}["']`, "i"),
 ];
 
+// HTML attribute values escape & as &amp; per spec — every og:image URL with
+// a query string (?a=1&amp;b=2) needs this decoded, or the extra params get
+// mangled into the URL literally, breaking anything that fetches it later.
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
 function extractMetaContent(html: string, name: string): string | null {
   for (const pattern of META_PATTERNS(name)) {
     const match = html.match(pattern);
-    if (match) return match[1];
+    if (match) return decodeHtmlEntities(match[1]);
   }
   return null;
 }

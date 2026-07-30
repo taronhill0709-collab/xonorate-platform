@@ -1,0 +1,1 @@
+ALTER TABLE "posts" ADD COLUMN "posted_to_social_at" timestamp;
