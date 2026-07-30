@@ -1,5 +1,7 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import Link from "next/link";
+import { deletePetition } from "./actions";
+import { DeletePetitionButton } from "./delete-petition-button";
 import { db } from "@/db";
 import { petitions, signatures } from "@/db/schema";
 
@@ -51,7 +53,10 @@ export default async function AdminPetitionsPage() {
                 <td className="py-2 text-right">
                   <Link href={`/admin/petitions/${row.id}/edit`} className="text-brand underline">
                     Edit
-                  </Link>
+                  </Link>{" "}
+                  <form action={deletePetition.bind(null, row.id)} className="inline">
+                    <DeletePetitionButton />
+                  </form>
                 </td>
               </tr>
             ))}

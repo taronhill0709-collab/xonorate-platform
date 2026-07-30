@@ -42,7 +42,9 @@ export default async function AdminCommentsPage() {
                 <td className="py-2 text-muted">
                   {COMMENT_TARGET_LABEL[row.targetType] ?? row.targetType}
                 </td>
-                <td className="max-w-xs truncate py-2 text-foreground">{row.body}</td>
+                <td className="max-w-md whitespace-pre-wrap break-words py-2 text-foreground">
+                  {row.body}
+                </td>
                 <td className="py-2">
                   <Badge
                     tone={

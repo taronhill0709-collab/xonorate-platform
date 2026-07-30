@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { petitions } from "@/db/schema";
+import { cases, petitions } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -78,4 +78,35 @@ export async function updatePetition(petitionId: string, formData: FormData) {
   revalidatePath(`/admin/petitions/${petitionId}/edit`);
   if (row) revalidatePath(`/petitions/${row.slug}`);
   redirect(`/admin/petitions/${petitionId}/edit?saved=1`);
+}
+
+/** Permanently deletes a petition and, via the FK cascade, every signature
+ * on it — the confirm dialog on the delete button is the only guard against
+ * an accidental click, so this stays destructive on purpose rather than a
+ * soft-delete the schema doesn't otherwise support. */
+export async function deletePetition(petitionId: string) {
+  await requireAdmin();
+
+  const [row] = await db
+    .select({ slug: petitions.slug, caseId: petitions.caseId })
+    .from(petitions)
+    .where(eq(petitions.id, petitionId))
+    .limit(1);
+
+  await db.delete(petitions).where(eq(petitions.id, petitionId));
+
+  revalidatePath("/admin/petitions");
+  revalidatePath("/petitions");
+  revalidatePath("/");
+  if (row) {
+    revalidatePath(`/petitions/${row.slug}`);
+    if (row.caseId) {
+      const [caseRow] = await db
+        .select({ slug: cases.slug })
+        .from(cases)
+        .where(eq(cases.id, row.caseId))
+        .limit(1);
+      if (caseRow) revalidatePath(`/cases/${caseRow.slug}`);
+    }
+  }
 }
