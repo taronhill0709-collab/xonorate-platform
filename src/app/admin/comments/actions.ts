@@ -14,3 +14,11 @@ export async function setCommentStatus(
   await db.update(comments).set({ status }).where(eq(comments.id, commentId));
   revalidatePath("/admin/comments");
 }
+
+/** Permanently deletes a comment. Distinct from "Remove", which only sets
+ * status to hide it from the public site — the row otherwise stays forever. */
+export async function deleteComment(commentId: string) {
+  await requireAdmin();
+  await db.delete(comments).where(eq(comments.id, commentId));
+  revalidatePath("/admin/comments");
+}

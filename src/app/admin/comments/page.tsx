@@ -3,7 +3,8 @@ import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { comments, users } from "@/db/schema";
 import { COMMENT_STATUS_LABEL, COMMENT_TARGET_LABEL } from "@/lib/comment-status";
-import { setCommentStatus } from "./actions";
+import { deleteComment, setCommentStatus } from "./actions";
+import { DeleteCommentButton } from "./delete-comment-button";
 
 export default async function AdminCommentsPage() {
   const rows = await db
@@ -78,7 +79,10 @@ export default async function AdminCommentsPage() {
                         Remove
                       </button>
                     </form>
-                  )}
+                  )}{" "}
+                  <form action={deleteComment.bind(null, row.id)} className="inline">
+                    <DeleteCommentButton />
+                  </form>
                 </td>
               </tr>
             ))}
