@@ -6,25 +6,23 @@ import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
 
-/** Empty strings save as null so a blanked-out field actually clears the link. */
-function normalizeUrl(value: FormDataEntryValue | null): string | null {
+/** Empty strings save as null so a blanked-out field actually clears it. */
+function normalizeText(value: FormDataEntryValue | null): string | null {
   const trimmed = typeof value === "string" ? value.trim() : "";
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export async function saveSocialLinks(formData: FormData) {
+export async function saveSettings(formData: FormData) {
   await requireAdmin();
 
-  const facebookUrl = normalizeUrl(formData.get("facebookUrl"));
-  const instagramUrl = normalizeUrl(formData.get("instagramUrl"));
-  const socialViewsLabel = normalizeUrl(formData.get("socialViewsLabel"));
+  const socialViewsLabel = normalizeText(formData.get("socialViewsLabel"));
 
   await db
     .insert(siteSettings)
-    .values({ id: "singleton", facebookUrl, instagramUrl, socialViewsLabel })
+    .values({ id: "singleton", socialViewsLabel })
     .onConflictDoUpdate({
       target: siteSettings.id,
-      set: { facebookUrl, instagramUrl, socialViewsLabel },
+      set: { socialViewsLabel },
     });
 
   revalidatePath("/", "layout");
