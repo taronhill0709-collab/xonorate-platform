@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, petitions, petitionUpdates, signatures } from "@/db/schema";
 import { getOrigin } from "@/lib/request-ip";
+import { formatSignerName } from "@/lib/signer-name";
 
 // Signature counts must always be fresh — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -172,7 +173,7 @@ export default async function PetitionDetailPage({
         </div>
 
         <p className="mt-4 text-sm text-muted">
-          Organized by Xonorate Media Platform
+          Xonorate Media
           {linkedCase && <> on behalf of the {linkedCase.clientName} family</>}.
         </p>
 
@@ -241,7 +242,7 @@ export default async function PetitionDetailPage({
               {signersWithComments.map((s, i) => (
                 <li key={i} className="border-l-2 border-border pl-4 text-sm">
                   <p className="text-foreground">&ldquo;{s.comment}&rdquo;</p>
-                  <p className="mt-1 text-muted">— {s.displayName}</p>
+                  <p className="mt-1 text-muted">— {formatSignerName(s.displayName)}</p>
                 </li>
               ))}
             </ul>
