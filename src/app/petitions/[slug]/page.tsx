@@ -1,6 +1,5 @@
 import { and, count, desc, eq, gte } from "drizzle-orm";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -94,7 +93,7 @@ export default async function PetitionDetailPage({
   const linkedCase = petition.caseId
     ? (
         await db
-          .select({ slug: cases.slug, clientName: cases.clientName, photoUrl: cases.photoUrl })
+          .select({ slug: cases.slug, clientName: cases.clientName })
           .from(cases)
           .where(eq(cases.id, petition.caseId))
           .limit(1)
@@ -148,28 +147,16 @@ export default async function PetitionDetailPage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <div className="flex items-start gap-4">
-          {linkedCase?.photoUrl && (
-            <Image
-              src={linkedCase.photoUrl}
-              alt={linkedCase.clientName}
-              width={72}
-              height={72}
-              className="h-18 w-18 shrink-0 rounded-full object-cover ring-1 ring-border/70"
-              unoptimized
-            />
+        <div className="min-w-0">
+          {linkedCase && (
+            <Link
+              href={`/cases/${linkedCase.slug}`}
+              className="text-xs font-medium uppercase tracking-wide text-brand hover:underline"
+            >
+              For {linkedCase.clientName}
+            </Link>
           )}
-          <div className="min-w-0">
-            {linkedCase && (
-              <Link
-                href={`/cases/${linkedCase.slug}`}
-                className="text-xs font-medium uppercase tracking-wide text-brand hover:underline"
-              >
-                For {linkedCase.clientName}
-              </Link>
-            )}
-            <h1 className="mt-1 font-serif text-3xl text-foreground">{petition.title}</h1>
-          </div>
+          <h1 className="mt-1 font-serif text-3xl text-foreground">{petition.title}</h1>
         </div>
 
         <p className="mt-4 text-sm text-muted">
@@ -178,9 +165,9 @@ export default async function PetitionDetailPage({
         </p>
 
         {petition.recipientName && (
-          <p className="mt-4 rounded-md border border-border bg-muted-background px-4 py-2.5 text-sm text-foreground">
-            <span className="font-medium">Addressed to:</span> {petition.recipientName}
-          </p>
+          <span className="mt-4 inline-flex items-center rounded-full bg-brand-light px-3 py-1 text-sm text-brand">
+            Addressed to {petition.recipientName}
+          </span>
         )}
 
         <p className="mt-4 whitespace-pre-line text-foreground">{petition.askText}</p>
@@ -237,7 +224,12 @@ export default async function PetitionDetailPage({
 
         {signersWithComments.length > 0 && (
           <div className="mt-10">
-            <h2 className="font-serif text-lg text-foreground">Why people are signing</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-lg text-foreground">Why people are signing</h2>
+              <Link href={`/petitions/${slug}/comments`} className="text-sm text-brand underline">
+                View all comments
+              </Link>
+            </div>
             <ul className="mt-4 space-y-4">
               {signersWithComments.map((s, i) => (
                 <li key={i} className="border-l-2 border-border pl-4 text-sm">

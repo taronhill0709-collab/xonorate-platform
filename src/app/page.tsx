@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, gte } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { SealMark } from "@/components/seal-mark";
@@ -62,8 +62,8 @@ export default async function Home() {
       slug: petitions.slug,
       goalCount: petitions.goalCount,
       startingSignatureCount: petitions.startingSignatureCount,
+      recipientName: petitions.recipientName,
       caseClientName: cases.clientName,
-      casePhotoUrl: cases.photoUrl,
     })
     .from(petitions)
     .leftJoin(cases, eq(petitions.caseId, cases.id))
@@ -80,6 +80,23 @@ export default async function Home() {
           and(eq(signatures.petitionId, p.id), eq(signatures.verified, true)),
         )
         .then(([r]) => (r?.value ?? 0) + p.startingSignatureCount),
+    ),
+  );
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const signedThisWeekCounts = await Promise.all(
+    recentPetitions.map((p) =>
+      db
+        .select({ value: count() })
+        .from(signatures)
+        .where(
+          and(
+            eq(signatures.petitionId, p.id),
+            eq(signatures.verified, true),
+            gte(signatures.createdAt, sevenDaysAgo),
+          ),
+        )
+        .then(([r]) => r?.value ?? 0),
     ),
   );
 
@@ -323,21 +340,12 @@ export default async function Home() {
                     100,
                     Math.round((signatureCount / row.goalCount) * 100),
                   );
+                  const signedThisWeek = signedThisWeekCounts[i] ?? 0;
                   return (
                     <li
                       key={row.id}
-                      className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                      className="rounded-lg border border-border border-l-4 border-l-brand p-5 shadow-sm transition hover:shadow-md"
                     >
-                      {row.casePhotoUrl && (
-                        <Image
-                          src={row.casePhotoUrl}
-                          alt={row.caseClientName ?? ""}
-                          width={56}
-                          height={56}
-                          className="h-14 w-14 shrink-0 rounded-full object-cover"
-                          unoptimized
-                        />
-                      )}
                       <div className="min-w-0 flex-1">
                         {row.caseClientName && (
                           <p className="text-xs font-medium uppercase tracking-wide text-brand">
@@ -350,6 +358,11 @@ export default async function Home() {
                         >
                           {row.title}
                         </Link>
+                        {row.recipientName && (
+                          <span className="mt-2 inline-flex items-center rounded-full bg-brand-light px-2 py-0.5 text-xs text-brand">
+                            Addressed to {row.recipientName}
+                          </span>
+                        )}
                         <div className="mt-3">
                           <div className="h-2 rounded-full bg-muted-background">
                             <div
@@ -360,6 +373,14 @@ export default async function Home() {
                           <p className="mt-1 text-xs text-muted">
                             {signatureCount.toLocaleString()} of{" "}
                             {row.goalCount.toLocaleString()} signatures
+                            {signedThisWeek > 0 && (
+                              <>
+                                {" · "}
+                                <span className="text-brand">
+                                  {signedThisWeek.toLocaleString()} signed this week
+                                </span>
+                              </>
+                            )}
                           </p>
                         </div>
                       </div>

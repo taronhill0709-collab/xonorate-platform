@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/cases", label: "Cases" },
   { href: "/admin/petitions", label: "Petitions" },
+  { href: "/admin/supporters", label: "Supporters" },
   { href: "/admin/inquiries", label: "Inquiries" },
   { href: "/admin/comments", label: "Comments" },
   { href: "/admin/posts", label: "Posts" },

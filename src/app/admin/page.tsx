@@ -1,4 +1,5 @@
 import { and, count, eq, gte } from "drizzle-orm";
+import Link from "next/link";
 import { db } from "@/db";
 import {
   cases,
@@ -67,11 +68,19 @@ export default async function AdminDashboardPage() {
   const counts = await getCounts();
 
   const tiles = [
-    { label: "Cases", value: counts.cases },
-    { label: "Petitions", value: counts.petitions },
-    { label: "Confirmed signatures", value: counts.verifiedSignatures },
-    { label: "Supporter accounts", value: counts.supporters },
-    { label: "New sign-ups this week", value: counts.newSupportersThisWeek },
+    { label: "Cases", value: counts.cases, href: "/admin/cases" },
+    { label: "Petitions", value: counts.petitions, href: "/admin/petitions" },
+    {
+      label: "Confirmed signatures",
+      value: counts.verifiedSignatures,
+      href: "/admin/petitions",
+    },
+    { label: "Supporter accounts", value: counts.supporters, href: "/admin/supporters" },
+    {
+      label: "New sign-ups this week",
+      value: counts.newSupportersThisWeek,
+      href: "/admin/supporters",
+    },
     { label: "New inquiries", value: counts.newInquiries, href: "/admin/inquiries" },
     { label: "Comments to moderate", value: counts.pendingComments, href: "/admin/comments" },
     { label: "Posts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
@@ -81,17 +90,32 @@ export default async function AdminDashboardPage() {
     <div>
       <h1 className="font-serif text-2xl text-foreground">Dashboard</h1>
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {tiles.map((tile) => (
-          <div
-            key={tile.label}
-            className="rounded-lg border border-border bg-background p-4"
-          >
-            <p className="text-2xl font-semibold text-foreground">
-              {tile.value}
-            </p>
-            <p className="text-sm text-muted">{tile.label}</p>
-          </div>
-        ))}
+        {tiles.map((tile) => {
+          const content = (
+            <>
+              <p className="text-2xl font-semibold text-foreground">
+                {tile.value}
+              </p>
+              <p className="text-sm text-muted">{tile.label}</p>
+            </>
+          );
+          return tile.href ? (
+            <Link
+              key={tile.label}
+              href={tile.href}
+              className="rounded-lg border border-border bg-background p-4 transition hover:border-brand"
+            >
+              {content}
+            </Link>
+          ) : (
+            <div
+              key={tile.label}
+              className="rounded-lg border border-border bg-background p-4"
+            >
+              {content}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
