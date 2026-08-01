@@ -36,7 +36,12 @@ export default async function AdminLayout({
     <div className="flex min-h-full flex-1">
       <aside className="w-56 shrink-0 bg-brand">
         <div className="px-5 py-6">
-          <p className="font-serif text-lg text-brand-foreground">Xonorate</p>
+          <Link
+            href="/"
+            className="font-serif text-lg text-brand-foreground hover:underline"
+          >
+            Xonorate
+          </Link>
           <p className="text-xs text-brand-foreground/60">Admin</p>
         </div>
         <nav className="flex flex-col gap-1 px-3">

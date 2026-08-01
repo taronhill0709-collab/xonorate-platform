@@ -2,6 +2,7 @@ import { and, count, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { deletePetition } from "./actions";
 import { DeletePetitionButton } from "./delete-petition-button";
+import { PetitionStatusSelect } from "./petition-status-select";
 import { db } from "@/db";
 import { petitions, signatures } from "@/db/schema";
 
@@ -39,6 +40,7 @@ export default async function AdminPetitionsPage() {
           <thead className="text-muted">
             <tr className="border-b border-border">
               <th className="py-2 font-medium">Title</th>
+              <th className="py-2 font-medium">Status</th>
               <th className="py-2 font-medium">Signatures</th>
               <th className="py-2 font-medium">Goal</th>
               <th className="py-2 font-medium" />
@@ -48,9 +50,24 @@ export default async function AdminPetitionsPage() {
             {rows.map((row, i) => (
               <tr key={row.id} className="border-b border-border">
                 <td className="py-2 text-foreground">{row.title}</td>
+                <td className="py-2">
+                  <PetitionStatusSelect petitionId={row.id} status={row.status} />
+                </td>
                 <td className="py-2 text-foreground">{counts[i]}</td>
                 <td className="py-2 text-foreground">{row.goalCount}</td>
                 <td className="py-2 text-right">
+                  {row.status === "published" && (
+                    <>
+                      <a
+                        href={`/petitions/${row.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand underline"
+                      >
+                        View
+                      </a>{" "}
+                    </>
+                  )}
                   <Link href={`/admin/petitions/${row.id}/edit`} className="text-brand underline">
                     Edit
                   </Link>{" "}

@@ -1,9 +1,9 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, isNotNull } from "drizzle-orm";
 import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { comments, users } from "@/db/schema";
+import { comments, petitions, signatures, users } from "@/db/schema";
 import { COMMENT_STATUS_LABEL, COMMENT_TARGET_LABEL } from "@/lib/comment-status";
-import { deleteComment, setCommentStatus } from "./actions";
+import { clearSignatureComment, deleteComment, setCommentStatus } from "./actions";
 import { DeleteCommentButton } from "./delete-comment-button";
 
 export default async function AdminCommentsPage() {
@@ -19,6 +19,19 @@ export default async function AdminCommentsPage() {
     .from(comments)
     .innerJoin(users, eq(comments.userId, users.id))
     .orderBy(desc(comments.createdAt));
+
+  const signatureNotes = await db
+    .select({
+      id: signatures.id,
+      comment: signatures.comment,
+      displayName: signatures.displayName,
+      createdAt: signatures.createdAt,
+      petitionTitle: petitions.title,
+    })
+    .from(signatures)
+    .innerJoin(petitions, eq(signatures.petitionId, petitions.id))
+    .where(isNotNull(signatures.comment))
+    .orderBy(desc(signatures.createdAt));
 
   return (
     <div>
@@ -82,6 +95,45 @@ export default async function AdminCommentsPage() {
                   )}{" "}
                   <form action={deleteComment.bind(null, row.id)} className="inline">
                     <DeleteCommentButton />
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <h2 className="mt-10 font-serif text-lg text-foreground">Petition sign-up notes</h2>
+      <p className="mt-1 text-sm text-muted">
+        The optional note someone can leave when signing a petition — shown publicly under
+        &quot;Why people are signing&quot; immediately, with no approval step. Remove hides it
+        from the public page without deleting their signature.
+      </p>
+      {signatureNotes.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">No sign-up notes yet.</p>
+      ) : (
+        <table className="mt-4 w-full text-left text-sm">
+          <thead className="text-muted">
+            <tr className="border-b border-border">
+              <th className="py-2 font-medium">Signer</th>
+              <th className="py-2 font-medium">Petition</th>
+              <th className="py-2 font-medium">Note</th>
+              <th className="py-2 font-medium" />
+            </tr>
+          </thead>
+          <tbody>
+            {signatureNotes.map((row) => (
+              <tr key={row.id} className="border-b border-border">
+                <td className="py-2 text-foreground">{row.displayName}</td>
+                <td className="py-2 text-muted">{row.petitionTitle}</td>
+                <td className="max-w-md whitespace-pre-wrap break-words py-2 text-foreground">
+                  {row.comment}
+                </td>
+                <td className="py-2 text-right">
+                  <form action={clearSignatureComment.bind(null, row.id)} className="inline">
+                    <button type="submit" className="text-red-600 underline">
+                      Remove
+                    </button>
                   </form>
                 </td>
               </tr>

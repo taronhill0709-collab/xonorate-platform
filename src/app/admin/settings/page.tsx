@@ -50,6 +50,17 @@ export default async function AdminSettingsPage({
             defaultValue={settings?.instagramUrl ?? ""}
           />
         </Field>
+        <Field
+          label="Social media views/exposure — shown as-is in the homepage's &quot;Our impact so far&quot; section (leave blank to hide it)"
+          name="socialViewsLabel"
+        >
+          <TextInput
+            id="socialViewsLabel"
+            name="socialViewsLabel"
+            placeholder="6M+"
+            defaultValue={settings?.socialViewsLabel ?? ""}
+          />
+        </Field>
 
         <SubmitButton>Save changes</SubmitButton>
       </form>

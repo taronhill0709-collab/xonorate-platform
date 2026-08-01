@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import { updatePassword } from "./actions";
 
 type Status =
@@ -44,10 +45,9 @@ export function SettingsForm({ hasPassword }: { hasPassword: boolean }) {
           <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground">
             Current password
           </label>
-          <input
+          <PasswordInput
             id="currentPassword"
             name="currentPassword"
-            type="password"
             required
             className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
@@ -58,10 +58,9 @@ export function SettingsForm({ hasPassword }: { hasPassword: boolean }) {
         <label htmlFor="newPassword" className="block text-sm font-medium text-foreground">
           New password
         </label>
-        <input
+        <PasswordInput
           id="newPassword"
           name="newPassword"
-          type="password"
           required
           minLength={8}
           className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"

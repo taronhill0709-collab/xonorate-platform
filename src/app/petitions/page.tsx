@@ -1,5 +1,6 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -23,9 +24,11 @@ export default async function PetitionsIndexPage() {
       goalCount: petitions.goalCount,
       startingSignatureCount: petitions.startingSignatureCount,
       caseClientName: cases.clientName,
+      casePhotoUrl: cases.photoUrl,
     })
     .from(petitions)
     .leftJoin(cases, eq(petitions.caseId, cases.id))
+    .where(eq(petitions.status, "published"))
     .orderBy(desc(petitions.createdAt));
 
   const counts = await Promise.all(
@@ -57,31 +60,43 @@ export default async function PetitionsIndexPage() {
               return (
                 <li
                   key={row.id}
-                  className="rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                  className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
                 >
-                  {row.caseClientName && (
-                    <p className="text-xs font-medium uppercase tracking-wide text-brand">
-                      For {row.caseClientName}
-                    </p>
+                  {row.casePhotoUrl && (
+                    <Image
+                      src={row.casePhotoUrl}
+                      alt={row.caseClientName ?? ""}
+                      width={64}
+                      height={64}
+                      className="h-16 w-16 shrink-0 rounded-full object-cover"
+                      unoptimized
+                    />
                   )}
-                  <Link
-                    href={`/petitions/${row.slug}`}
-                    className="mt-1 block font-serif text-xl text-foreground hover:underline"
-                  >
-                    {row.title}
-                  </Link>
-                  <p className="mt-2 line-clamp-2 text-sm text-muted">{row.askText}</p>
-                  <div className="mt-4">
-                    <div className="h-2 rounded-full bg-muted-background">
-                      <div
-                        className="h-2 rounded-full bg-brand"
-                        style={{ width: `${pct}%` }}
-                      />
+                  <div className="min-w-0 flex-1">
+                    {row.caseClientName && (
+                      <p className="text-xs font-medium uppercase tracking-wide text-brand">
+                        For {row.caseClientName}
+                      </p>
+                    )}
+                    <Link
+                      href={`/petitions/${row.slug}`}
+                      className="mt-1 block font-serif text-xl text-foreground hover:underline"
+                    >
+                      {row.title}
+                    </Link>
+                    <p className="mt-2 line-clamp-2 text-sm text-muted">{row.askText}</p>
+                    <div className="mt-4">
+                      <div className="h-2 rounded-full bg-muted-background">
+                        <div
+                          className="h-2 rounded-full bg-brand"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-muted">
+                        {signatureCount.toLocaleString()} of {row.goalCount.toLocaleString()}{" "}
+                        signatures
+                      </p>
                     </div>
-                    <p className="mt-1 text-xs text-muted">
-                      {signatureCount.toLocaleString()} of {row.goalCount.toLocaleString()}{" "}
-                      signatures
-                    </p>
                   </div>
                 </li>
               );

@@ -7,7 +7,7 @@ import { submitComment } from "@/app/comments/actions";
 type Status =
   | { kind: "idle" }
   | { kind: "loading" }
-  | { kind: "posted"; published: boolean }
+  | { kind: "posted" }
   | { kind: "error"; message: string };
 
 export function CommentForm({
@@ -32,8 +32,8 @@ export function CommentForm({
       return;
     }
     form.reset();
-    setStatus({ kind: "posted", published: result.published });
-    if (result.published) router.refresh();
+    setStatus({ kind: "posted" });
+    router.refresh();
   }
 
   return (
@@ -46,13 +46,7 @@ export function CommentForm({
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
       />
       {status.kind === "error" && <p className="text-sm text-red-600">{status.message}</p>}
-      {status.kind === "posted" && (
-        <p className="text-sm text-muted">
-          {status.published
-            ? "Posted."
-            : "Thanks — your first few comments are reviewed before they appear publicly."}
-        </p>
-      )}
+      {status.kind === "posted" && <p className="text-sm text-muted">Posted.</p>}
       <button
         type="submit"
         disabled={status.kind === "loading"}

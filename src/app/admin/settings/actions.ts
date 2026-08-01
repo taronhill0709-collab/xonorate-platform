@@ -17,13 +17,14 @@ export async function saveSocialLinks(formData: FormData) {
 
   const facebookUrl = normalizeUrl(formData.get("facebookUrl"));
   const instagramUrl = normalizeUrl(formData.get("instagramUrl"));
+  const socialViewsLabel = normalizeUrl(formData.get("socialViewsLabel"));
 
   await db
     .insert(siteSettings)
-    .values({ id: "singleton", facebookUrl, instagramUrl })
+    .values({ id: "singleton", facebookUrl, instagramUrl, socialViewsLabel })
     .onConflictDoUpdate({
       target: siteSettings.id,
-      set: { facebookUrl, instagramUrl },
+      set: { facebookUrl, instagramUrl, socialViewsLabel },
     });
 
   revalidatePath("/", "layout");

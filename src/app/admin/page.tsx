@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
 import {
   cases,
@@ -7,9 +7,12 @@ import {
   petitions,
   posts,
   signatures,
+  users,
 } from "@/db/schema";
 
 async function getCounts() {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
   const [
     [caseCount],
     [petitionCount],
@@ -17,6 +20,8 @@ async function getCounts() {
     [newInquiryCount],
     [pendingCommentCount],
     [pendingPostCount],
+    [supporterCount],
+    [newSupporterCount],
   ] = await Promise.all([
     db.select({ value: count() }).from(cases),
     db.select({ value: count() }).from(petitions),
@@ -36,6 +41,14 @@ async function getCounts() {
       .select({ value: count() })
       .from(posts)
       .where(eq(posts.status, "pending")),
+    db
+      .select({ value: count() })
+      .from(users)
+      .where(eq(users.role, "supporter")),
+    db
+      .select({ value: count() })
+      .from(users)
+      .where(and(eq(users.role, "supporter"), gte(users.createdAt, sevenDaysAgo))),
   ]);
 
   return {
@@ -45,6 +58,8 @@ async function getCounts() {
     newInquiries: newInquiryCount.value,
     pendingComments: pendingCommentCount.value,
     pendingPosts: pendingPostCount.value,
+    supporters: supporterCount.value,
+    newSupportersThisWeek: newSupporterCount.value,
   };
 }
 
@@ -55,6 +70,8 @@ export default async function AdminDashboardPage() {
     { label: "Cases", value: counts.cases },
     { label: "Petitions", value: counts.petitions },
     { label: "Confirmed signatures", value: counts.verifiedSignatures },
+    { label: "Supporter accounts", value: counts.supporters },
+    { label: "New sign-ups this week", value: counts.newSupportersThisWeek },
     { label: "New inquiries", value: counts.newInquiries, href: "/admin/inquiries" },
     { label: "Comments to moderate", value: counts.pendingComments, href: "/admin/comments" },
     { label: "Posts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },

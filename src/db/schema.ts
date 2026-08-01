@@ -54,6 +54,8 @@ export const postTypeEnum = pgEnum("post_type", [
 
 export const postStatusEnum = pgEnum("post_status", ["pending", "published"]);
 
+export const petitionStatusEnum = pgEnum("petition_status", ["draft", "published"]);
+
 // --- Auth.js required tables (Drizzle adapter shape) ---
 
 export const users = pgTable("users", {
@@ -132,6 +134,15 @@ export const cases = pgTable("cases", {
   // always the same four in order: Evidence of innocence, Newly discovered
   // evidence, Due-process violations, Unreliable evidence.
   innocenceClaim: jsonb("innocence_claim"),
+  // The human cost beyond the conviction itself — what it did to this
+  // person's family and to the surrounding community. Null until that
+  // detail has been gathered for a case. Shape: { familyImpact: string,
+  // communityImpact: string, stats: [{ value, label }] }
+  impact: jsonb("impact"),
+  // Raw page-view counter for the public case page — incremented on every
+  // render, no dedup. Used to show the attention a case has gotten (we
+  // don't secure exonerations ourselves, so this stands in for that).
+  viewCount: integer("view_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -158,7 +169,16 @@ export const petitions = pgTable("petitions", {
   }),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
+  // Who this is addressed to — the specific person or body with power to
+  // act (e.g. "Governor Mike DeWine", "Ohio Board of Pardons and Parole").
+  // Null until staff fill it in; shown prominently when set so the ask
+  // reads as a real demand on a real decision-maker, not a form into the void.
+  recipientName: text("recipient_name"),
   askText: text("ask_text").notNull(),
+  // Defaults to "published" at the column level so existing live petitions
+  // aren't hidden by this migration — new petitions are created as "draft"
+  // explicitly by the admin form instead.
+  status: petitionStatusEnum("status").notNull().default("published"),
   goalCount: integer("goal_count").notNull().default(1000),
   // Signatures carried over from a prior campaign platform (not individual
   // records here) — added on top of this platform's own verified signature
@@ -167,6 +187,19 @@ export const petitions = pgTable("petitions", {
   startingSignatureCount: integer("starting_signature_count")
     .notNull()
     .default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Progress log shown on the public petition page — "we delivered signatures
+// to the DA's office," "we got a meeting," etc. This is what makes a
+// petition read as a live campaign rather than a static form.
+export const petitionUpdates = pgTable("petition_updates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  petitionId: uuid("petition_id")
+    .notNull()
+    .references(() => petitions.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -249,6 +282,14 @@ export const posts = pgTable("posts", {
   // Set once this post has been pushed to Instagram/Facebook via Buffer —
   // guards the share button against firing twice for the same post.
   postedToSocialAt: timestamp("posted_to_social_at"),
+  // Buffer's own ID for the update pushed to Instagram — needed to later ask
+  // Buffer for that post's performance metrics. Null until posted.
+  bufferPostId: text("buffer_post_id"),
+  // Cached impressions count from Buffer, refreshed via the admin "Refresh
+  // social metrics" action — Buffer's metrics only update ~daily on their
+  // end, so this is never fetched live on a page render.
+  socialViews: integer("social_views").notNull().default(0),
+  socialMetricsSyncedAt: timestamp("social_metrics_synced_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -258,4 +299,8 @@ export const siteSettings = pgTable("site_settings", {
   id: text("id").primaryKey().default("singleton"),
   facebookUrl: text("facebook_url"),
   instagramUrl: text("instagram_url"),
+  // Free text so it can read "6M+" or "6,000,000+" exactly as typed — the
+  // homepage's "our impact" tally shows this as-is, not a computed number.
+  // Null hides the stat entirely rather than showing a placeholder.
+  socialViewsLabel: text("social_views_label"),
 });

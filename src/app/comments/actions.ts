@@ -1,6 +1,6 @@
 "use server";
 
-import { and, count, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/db";
@@ -8,20 +8,18 @@ import { cases, comments, petitions, posts } from "@/db/schema";
 import { isCommentRateLimited } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
 
-// Supporters are auto-approved after this many previously published
-// comments — first-timers (and anyone below the threshold) go to the
-// moderation queue.
-const AUTO_APPROVE_AFTER_PUBLISHED_COMMENTS = 3;
-
 const commentSchema = z.object({
   body: z.string().trim().min(1).max(2000),
 });
 
+// Comments publish immediately — rate limiting is the spam defense, and
+// admins moderate reactively (Remove/Delete in /admin/comments) rather than
+// pre-approving everything, so the queue doesn't pile up with routine posts.
 export async function submitComment(
   targetType: "case" | "petition" | "post",
   targetId: string,
   formData: FormData,
-): Promise<{ success: true; published: boolean } | { success: false; error: string }> {
+): Promise<{ success: true } | { success: false; error: string }> {
   const session = await auth();
   if (!session?.user) {
     return { success: false, error: "Sign in to leave a comment." };
@@ -50,7 +48,7 @@ export async function submitComment(
             await db
               .select({ id: petitions.id })
               .from(petitions)
-              .where(eq(petitions.id, targetId))
+              .where(and(eq(petitions.id, targetId), eq(petitions.status, "published")))
               .limit(1)
           ).length > 0
         : (
@@ -64,20 +62,14 @@ export async function submitComment(
     return { success: false, error: "This item no longer exists." };
   }
 
-  const [{ value: publishedCount }] = await db
-    .select({ value: count() })
-    .from(comments)
-    .where(and(eq(comments.userId, session.user.id), eq(comments.status, "published")));
-  const autoApprove = publishedCount >= AUTO_APPROVE_AFTER_PUBLISHED_COMMENTS;
-
   await db.insert(comments).values({
     targetType,
     targetId,
     userId: session.user.id,
     body,
-    status: autoApprove ? "published" : "pending",
+    status: "published",
     ipAddress: ip,
   });
 
-  return { success: true, published: autoApprove };
+  return { success: true };
 }

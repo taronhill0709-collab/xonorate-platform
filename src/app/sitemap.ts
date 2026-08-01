@@ -14,7 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [caseRows, petitionRows, postRows] = await Promise.all([
     db.select({ slug: cases.slug, updatedAt: cases.updatedAt }).from(cases),
-    db.select({ slug: petitions.slug, createdAt: petitions.createdAt }).from(petitions),
+    db
+      .select({ slug: petitions.slug, createdAt: petitions.createdAt })
+      .from(petitions)
+      .where(eq(petitions.status, "published")),
     db
       .select({ slug: posts.slug, publishedAt: posts.publishedAt })
       .from(posts)

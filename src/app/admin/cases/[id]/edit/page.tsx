@@ -11,6 +11,12 @@ import {
   TextInput,
 } from "../../../_components/field";
 import {
+  EMPTY_IMPACT_FACTS,
+  serializeFactLines,
+  serializeImpactStats,
+  type CaseImpact,
+} from "@/lib/case-impact";
+import {
   EVIDENCE_CATEGORY_FIELDS,
   serializeCategoryItems,
   serializeStats,
@@ -19,6 +25,8 @@ import {
 import {
   addDocument,
   deleteDocument,
+  generateCaseImpact,
+  saveCaseImpact,
   toggleDocumentStatus,
   updateCase,
 } from "../../actions";
@@ -61,9 +69,13 @@ export default async function EditCasePage({
     const category = innocenceClaim?.categories.find((c) => c.title === f.title);
     return category ? serializeCategoryItems(category.items) : "";
   });
+  const impact = caseRow.impact as CaseImpact | null;
+  const facts = impact?.facts ?? EMPTY_IMPACT_FACTS;
 
   const updateCaseWithId = updateCase.bind(null, id);
   const addDocumentWithId = addDocument.bind(null, id);
+  const generateCaseImpactWithId = generateCaseImpact.bind(null, id);
+  const saveCaseImpactWithId = saveCaseImpact.bind(null, id);
 
   return (
     <div className="max-w-2xl">
@@ -189,6 +201,152 @@ export default async function EditCasePage({
         ))}
 
         <SubmitButton>Save changes</SubmitButton>
+      </form>
+
+      <h2 className="mt-10 font-serif text-lg text-foreground">Human impact</h2>
+      <p className="mt-1 text-sm text-muted">
+        Enter what&apos;s known below — the two paragraphs are generated from these facts, not
+        written by hand. Nothing is invented beyond what you enter here.
+      </p>
+
+      <form action={generateCaseImpactWithId} className="mt-6 space-y-4">
+        <h3 className="font-serif text-base text-foreground">Family facts</h3>
+        <Field label="Age at arrest" name="ageAtArrest">
+          <TextInput
+            id="ageAtArrest"
+            name="ageAtArrest"
+            type="number"
+            defaultValue={facts.ageAtArrest ?? ""}
+          />
+        </Field>
+        <Field label="Marital status at arrest" name="maritalStatus">
+          <Select id="maritalStatus" name="maritalStatus" defaultValue={facts.maritalStatus}>
+            <option value="">Unknown</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="divorced">Divorced</option>
+            <option value="widowed">Widowed</option>
+          </Select>
+        </Field>
+        <Field label="Number of children" name="numberOfChildren">
+          <TextInput
+            id="numberOfChildren"
+            name="numberOfChildren"
+            type="number"
+            defaultValue={facts.numberOfChildren ?? ""}
+          />
+        </Field>
+        <Field label="Children's ages at arrest" name="childrenAgesAtArrest">
+          <TextInput
+            id="childrenAgesAtArrest"
+            name="childrenAgesAtArrest"
+            defaultValue={facts.childrenAgesAtArrest}
+            placeholder="e.g. 3, 7, and 9"
+          />
+        </Field>
+        <div className="flex items-center gap-2">
+          <input
+            id="primaryCaregiver"
+            name="primaryCaregiver"
+            type="checkbox"
+            defaultChecked={facts.primaryCaregiver}
+            className="h-4 w-4 rounded border-border"
+          />
+          <label htmlFor="primaryCaregiver" className="text-sm text-foreground">
+            Was the primary income earner or caregiver for their family
+          </label>
+        </div>
+        <Field label="Occupation at arrest" name="occupationAtArrest">
+          <TextInput
+            id="occupationAtArrest"
+            name="occupationAtArrest"
+            defaultValue={facts.occupationAtArrest}
+          />
+        </Field>
+        <Field label="Other family facts — one per line" name="additionalFamilyFacts">
+          <TextArea
+            id="additionalFamilyFacts"
+            name="additionalFamilyFacts"
+            rows={3}
+            defaultValue={serializeFactLines(facts.additionalFamilyFacts)}
+            placeholder={"Wife left her nursing career to cover legal costs and visitation travel"}
+          />
+        </Field>
+
+        <h3 className="pt-2 font-serif text-base text-foreground">Community facts</h3>
+        <Field label="Role in the community before arrest" name="communityRole">
+          <TextInput
+            id="communityRole"
+            name="communityRole"
+            defaultValue={facts.communityRole}
+            placeholder="e.g. Little league coach, deacon at First Baptist"
+          />
+        </Field>
+        <Field label="What happened to the actual perpetrator" name="actualPerpetratorOutcome">
+          <TextInput
+            id="actualPerpetratorOutcome"
+            name="actualPerpetratorOutcome"
+            defaultValue={facts.actualPerpetratorOutcome}
+            placeholder="e.g. Never identified; later convicted of two more robberies nearby"
+          />
+        </Field>
+        <Field label="Other community facts — one per line" name="additionalCommunityFacts">
+          <TextArea
+            id="additionalCommunityFacts"
+            name="additionalCommunityFacts"
+            rows={3}
+            defaultValue={serializeFactLines(facts.additionalCommunityFacts)}
+          />
+        </Field>
+
+        <h3 className="pt-2 font-serif text-base text-foreground">Headline stats</h3>
+        <Field
+          label="Impact stat callouts — one per line, formatted &quot;value | label&quot;"
+          name="impactStats"
+        >
+          <TextArea
+            id="impactStats"
+            name="impactStats"
+            rows={3}
+            defaultValue={impact ? serializeImpactStats(impact.stats) : ""}
+            placeholder={"2 | children who grew up without their father\n$0 | compensation received to date"}
+          />
+        </Field>
+
+        <h3 className="pt-2 font-serif text-base text-foreground">Generated narrative</h3>
+        <p className="text-xs text-muted">
+          Written by Claude from the facts above. Edit only to fix a generation mistake — not to
+          add claims the facts above don&apos;t support.
+        </p>
+        <Field label="Impact on family" name="familyImpact">
+          <TextArea
+            id="familyImpact"
+            name="familyImpact"
+            rows={4}
+            defaultValue={impact?.familyImpact ?? ""}
+            placeholder="Not generated yet — fill in family facts above and click Generate."
+          />
+        </Field>
+        <Field label="Impact on community" name="communityImpact">
+          <TextArea
+            id="communityImpact"
+            name="communityImpact"
+            rows={4}
+            defaultValue={impact?.communityImpact ?? ""}
+            placeholder="Not generated yet — fill in community facts above and click Generate."
+          />
+        </Field>
+
+        <div className="flex gap-3">
+          <SubmitButton>Generate narrative from facts</SubmitButton>
+          <button
+            type="submit"
+            formAction={saveCaseImpactWithId}
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted-background"
+          >
+            Save without regenerating
+          </button>
+        </div>
       </form>
 
       <h2 className="mt-10 font-serif text-lg text-foreground">Documents</h2>

@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
 import { requireAdmin } from "@/lib/require-admin";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { getOrigin } from "@/lib/request-ip";
 import { buildSocialCaption } from "@/lib/social-caption";
-import { postToInstagram } from "@/lib/buffer";
+import { getPostMetrics, postToInstagram } from "@/lib/buffer";
 
 export async function setSocialPostsEnabled(enabled: boolean) {
   await requireAdmin();
@@ -82,6 +82,53 @@ export async function postToInstagramAndFacebook(
     return { ok: false, error: result.error };
   }
 
+  await db
+    .update(posts)
+    .set({ bufferPostId: result.bufferPostId })
+    .where(eq(posts.id, postId));
+
   revalidatePath("/admin/social");
   return { ok: true };
+}
+
+export type RefreshMetricsResult =
+  | { ok: true; refreshed: number; failed: number }
+  | { ok: false; error: string };
+
+/** Pulls fresh impression counts from Buffer for every post we've shared to
+ * social, and caches them on the post row. Buffer only updates these ~daily
+ * on their end, so there's no value in calling this more than occasionally. */
+export async function refreshSocialMetrics(): Promise<RefreshMetricsResult> {
+  await requireAdmin();
+
+  const withBufferId = await db
+    .select({ id: posts.id, bufferPostId: posts.bufferPostId })
+    .from(posts)
+    .where(isNotNull(posts.bufferPostId));
+
+  let refreshed = 0;
+  let failed = 0;
+
+  for (const row of withBufferId) {
+    if (!row.bufferPostId) continue;
+    const metrics = await getPostMetrics(row.bufferPostId);
+    if (!metrics.ok || metrics.impressions == null) {
+      failed += 1;
+      continue;
+    }
+    await db
+      .update(posts)
+      .set({
+        socialViews: metrics.impressions,
+        socialMetricsSyncedAt: new Date(),
+      })
+      .where(eq(posts.id, row.id));
+    refreshed += 1;
+  }
+
+  revalidatePath("/admin/social");
+  revalidatePath("/admin/cases");
+  revalidatePath("/");
+
+  return { ok: true, refreshed, failed };
 }

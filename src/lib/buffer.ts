@@ -103,3 +103,82 @@ export async function postToInstagram({
   }
   return { ok: true, bufferPostId: result.post.id };
 }
+
+const GET_POST_METRICS_QUERY = `
+  query GetPostMetrics($id: PostId!) {
+    post(input: { id: $id }) {
+      id
+      metrics {
+        type
+        name
+        value
+        unit
+      }
+      metricsUpdatedAt
+    }
+  }
+`;
+
+type PostMetric = { type: string; name: string; value: number; unit: string };
+type GetPostMetricsResponse = {
+  post: { id: string; metrics: PostMetric[]; metricsUpdatedAt: string | null } | null;
+};
+
+export type PostMetricsResult =
+  | { ok: true; impressions: number | null; metricsUpdatedAt: string | null }
+  | { ok: false; error: string };
+
+/**
+ * Fetches Buffer's normalized performance metrics for a single published
+ * post. Requires a *personal* Buffer API key — Buffer restricts metrics
+ * reads to personal workflows, unlike the team key that's enough to publish.
+ * Buffer only refreshes these from the network roughly once a day, so don't
+ * call this on every page render — cache the result (see socialViews on the
+ * posts table) and refresh it via an explicit admin action instead.
+ */
+export async function getPostMetrics(bufferPostId: string): Promise<PostMetricsResult> {
+  const apiKey = process.env.BUFFER_API_KEY;
+  if (!apiKey) {
+    return { ok: false, error: "Buffer is not configured (missing BUFFER_API_KEY)" };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(BUFFER_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: GET_POST_METRICS_QUERY,
+        variables: { id: bufferPostId },
+      }),
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      error: `Failed to reach Buffer: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  if (!res.ok) {
+    return { ok: false, error: `Buffer returned HTTP ${res.status}` };
+  }
+
+  const json = await res.json();
+  if (json.errors?.length) {
+    return {
+      ok: false,
+      error: json.errors.map((e: { message: string }) => e.message).join("; "),
+    };
+  }
+
+  const post = (json.data as GetPostMetricsResponse).post;
+  if (!post) {
+    return { ok: false, error: "Buffer has no record of this post" };
+  }
+
+  const impressions = post.metrics.find((m) => m.type === "impressions")?.value ?? null;
+  return { ok: true, impressions, metricsUpdatedAt: post.metricsUpdatedAt };
+}

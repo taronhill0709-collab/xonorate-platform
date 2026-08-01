@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { PasswordInput } from "@/components/password-input";
 
 /** Only allow same-origin relative paths — callbackUrl is attacker-controlled query input, and it's used directly as a redirect target. */
 function sanitizeCallbackUrl(raw: string | null): string {
@@ -101,9 +102,8 @@ function LoginForm() {
               >
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { petitions, signatures } from "@/db/schema";
+import { maybeEscalatePetitionGoal } from "@/lib/petition-goal";
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
       .update(signatures)
       .set({ verified: true, confirmToken: null, confirmTokenExpires: null })
       .where(eq(signatures.id, signature.id));
+    await maybeEscalatePetitionGoal(signature.petitionId);
   }
 
   const destination = petition ? `/petitions/${petition.slug}?confirmed=1` : "/petitions";

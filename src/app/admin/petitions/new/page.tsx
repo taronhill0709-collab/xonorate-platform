@@ -19,6 +19,12 @@ export default async function NewPetitionPage() {
         <Field label="Slug (optional — generated from title if left blank)" name="slug">
           <TextInput id="slug" name="slug" />
         </Field>
+        <Field label="Status" name="status">
+          <Select id="status" name="status" defaultValue="draft" required>
+            <option value="draft">Draft — hidden from the public site</option>
+            <option value="published">Published — live on the public site</option>
+          </Select>
+        </Field>
         <Field label="Linked case (optional — leave blank for a general policy petition)" name="caseId">
           <Select id="caseId" name="caseId" defaultValue="">
             <option value="">None</option>
@@ -28,6 +34,12 @@ export default async function NewPetitionPage() {
               </option>
             ))}
           </Select>
+        </Field>
+        <Field
+          label="Addressed to (optional — the specific person or body with power to act, e.g. &quot;Governor Mike DeWine&quot;)"
+          name="recipientName"
+        >
+          <TextInput id="recipientName" name="recipientName" placeholder="Governor Mike DeWine" />
         </Field>
         <Field label="Ask" name="askText">
           <TextArea id="askText" name="askText" rows={4} required />

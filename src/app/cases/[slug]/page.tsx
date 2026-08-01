@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
+import type { CaseImpact } from "@/lib/case-impact";
 import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
@@ -93,6 +94,13 @@ export default async function CaseDetailPage({
   const [caseRow] = await db.select().from(cases).where(eq(cases.slug, slug)).limit(1);
   if (!caseRow) notFound();
 
+  // Fire-and-forget: a raw view counter (no dedup) showing the attention
+  // this case has gotten — never blocks the page render on it.
+  db.update(cases)
+    .set({ viewCount: sql`${cases.viewCount} + 1` })
+    .where(eq(cases.id, caseRow.id))
+    .catch(() => {});
+
   const documents = await db
     .select()
     .from(caseDocuments)
@@ -102,7 +110,7 @@ export default async function CaseDetailPage({
   const [petition] = await db
     .select()
     .from(petitions)
-    .where(eq(petitions.caseId, caseRow.id))
+    .where(and(eq(petitions.caseId, caseRow.id), eq(petitions.status, "published")))
     .orderBy(desc(petitions.createdAt))
     .limit(1);
 
@@ -119,11 +127,16 @@ export default async function CaseDetailPage({
   const exoneration = caseRow.exonerationDetails as ExonerationDetails;
   const innocenceClaim = caseRow.innocenceClaim as InnocenceClaim | null;
   const claimCategories = innocenceClaim?.categories ?? [];
+  const impact = caseRow.impact as CaseImpact | null;
+  const hasImpact = Boolean(
+    impact && (impact.familyImpact || impact.communityImpact || impact.stats.length > 0),
+  );
   const origin = await getOrigin();
 
   let sectionIndex = 0;
   const convictionRoman = toRoman(++sectionIndex);
   const exonerationRoman = exoneration ? toRoman(++sectionIndex) : null;
+  const impactRoman = hasImpact ? toRoman(++sectionIndex) : null;
   const categoryRomans = claimCategories.map(() => toRoman(++sectionIndex));
   const documentsRoman = toRoman(++sectionIndex);
   const takeActionRoman = toRoman(++sectionIndex);
@@ -221,6 +234,38 @@ export default async function CaseDetailPage({
                 <dd className="text-foreground">{exoneration.whatLedToExoneration}</dd>
               </div>
             </dl>
+          </section>
+        )}
+
+        {hasImpact && impact && (
+          <section className="mt-10">
+            <h2 className="font-serif text-lg text-foreground">{impactRoman}. The cost</h2>
+            {impact.stats.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-8">
+                {impact.stats.map((stat, i) => (
+                  <div key={i}>
+                    <p className="font-serif text-3xl text-brand">{stat.value}</p>
+                    <p className="mt-1 max-w-32 text-xs text-muted">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {impact.familyImpact && (
+              <div className="mt-5">
+                <h3 className="text-sm font-medium text-foreground">Impact on family</h3>
+                <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+                  {impact.familyImpact}
+                </p>
+              </div>
+            )}
+            {impact.communityImpact && (
+              <div className="mt-5">
+                <h3 className="text-sm font-medium text-foreground">Impact on community</h3>
+                <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+                  {impact.communityImpact}
+                </p>
+              </div>
+            )}
           </section>
         )}
 

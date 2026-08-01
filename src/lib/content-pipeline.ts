@@ -115,7 +115,7 @@ async function draftSpotlight(caseRow: typeof cases.$inferSelect): Promise<PostD
   const [linkedPetition] = await db
     .select({ slug: petitions.slug, title: petitions.title })
     .from(petitions)
-    .where(eq(petitions.caseId, caseRow.id))
+    .where(and(eq(petitions.caseId, caseRow.id), eq(petitions.status, "published")))
     .orderBy(desc(petitions.createdAt))
     .limit(1);
 
@@ -144,6 +144,7 @@ async function draftRoundup(): Promise<PostDraft> {
   const activePetitions = await db
     .select({ title: petitions.title, slug: petitions.slug, askText: petitions.askText })
     .from(petitions)
+    .where(eq(petitions.status, "published"))
     .orderBy(desc(petitions.createdAt))
     .limit(5);
 

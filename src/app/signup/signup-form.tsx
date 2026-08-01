@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import { createSupporter } from "./actions";
 
 type Status =
@@ -76,9 +77,8 @@ export function SignupForm() {
         <label htmlFor="password" className="block text-sm font-medium text-foreground">
           Password
         </label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           required
           minLength={8}
           value={password}

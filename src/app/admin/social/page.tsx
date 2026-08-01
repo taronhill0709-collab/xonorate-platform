@@ -3,6 +3,7 @@ import Image from "next/image";
 import { cookies } from "next/headers";
 import { CopyCaptionButton } from "./copy-caption-button";
 import { PostToSocialButton } from "./post-to-social-button";
+import { RefreshMetricsButton } from "./refresh-metrics-button";
 import { setSocialPostsEnabled } from "./actions";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
 import { ShareButtons } from "@/components/share-buttons";
@@ -43,7 +44,10 @@ export default async function AdminSocialPage() {
             published updates. Save the photo, copy the caption, post.
           </p>
         </div>
-        {toggle}
+        <div className="flex items-start gap-3">
+          <RefreshMetricsButton />
+          {toggle}
+        </div>
       </div>
 
       {!enabled ? (
@@ -150,6 +154,17 @@ async function SocialPostList({ limit }: { limit: number }) {
                   alreadyPostedAt={row.postedToSocialAt?.toISOString() ?? null}
                   disabledReason={row.imageUrl ? undefined : "No photo — can't post to Instagram"}
                 />
+                {row.bufferPostId && (
+                  <p className="mt-2 text-xs text-muted">
+                    {row.socialViews.toLocaleString()} view
+                    {row.socialViews === 1 ? "" : "s"} on Instagram
+                    {row.socialMetricsSyncedAt &&
+                      ` · synced ${row.socialMetricsSyncedAt.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}`}
+                  </p>
+                )}
               </div>
               <div className="mt-3 border-t border-border pt-3">
                 <p className="mb-2 text-xs text-muted">

@@ -29,6 +29,7 @@ export default async function AdminCasesPage() {
               <th className="py-2 font-medium">Client</th>
               <th className="py-2 font-medium">State</th>
               <th className="py-2 font-medium">Status</th>
+              <th className="py-2 font-medium">Views</th>
               <th className="py-2 font-medium" />
             </tr>
           </thead>
@@ -40,6 +41,7 @@ export default async function AdminCasesPage() {
                 <td className="py-2">
                   <CaseStatusSelect caseId={row.id} status={row.status} />
                 </td>
+                <td className="py-2 text-foreground">{row.viewCount.toLocaleString()}</td>
                 <td className="py-2 text-right">
                   <a
                     href={`/cases/${row.slug}`}

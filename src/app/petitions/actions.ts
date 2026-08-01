@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { petitions, signatures } from "@/db/schema";
 import { sendMail } from "@/lib/email";
+import { maybeEscalatePetitionGoal } from "@/lib/petition-goal";
 import { isSignatureRateLimited } from "@/lib/rate-limit";
 import { getClientIp, getOrigin } from "@/lib/request-ip";
 
@@ -47,7 +48,7 @@ export async function signPetition(
   const [petition] = await db
     .select({ id: petitions.id, title: petitions.title })
     .from(petitions)
-    .where(eq(petitions.id, petitionId))
+    .where(and(eq(petitions.id, petitionId), eq(petitions.status, "published")))
     .limit(1);
   if (!petition) {
     return { success: false, error: "This petition no longer exists." };
@@ -87,6 +88,7 @@ export async function signPetition(
         },
       });
 
+    await maybeEscalatePetitionGoal(petitionId);
     return { success: true, alreadyVerified: true };
   }
 

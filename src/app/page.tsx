@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { cases, petitions, posts, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
 import { excerptFromMarkdown } from "@/lib/markdown";
+import { getPlatformStats } from "@/lib/platform-stats";
 import { POST_TYPE_LABEL } from "@/lib/post-type";
 
 const FEED_LIMIT = 3;
@@ -62,9 +63,11 @@ export default async function Home() {
       goalCount: petitions.goalCount,
       startingSignatureCount: petitions.startingSignatureCount,
       caseClientName: cases.clientName,
+      casePhotoUrl: cases.photoUrl,
     })
     .from(petitions)
     .leftJoin(cases, eq(petitions.caseId, cases.id))
+    .where(eq(petitions.status, "published"))
     .orderBy(desc(petitions.createdAt))
     .limit(FEED_LIMIT);
 
@@ -94,6 +97,8 @@ export default async function Home() {
     .where(eq(posts.status, "published"))
     .orderBy(desc(posts.publishedAt))
     .limit(FEED_LIMIT);
+
+  const platformStats = await getPlatformStats();
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -225,6 +230,37 @@ export default async function Home() {
         </section>
 
         <div className="mx-auto w-full max-w-3xl px-6 pt-14 pb-16">
+          {platformStats.length > 0 && (
+            <section>
+              <h2 className="font-serif text-xl text-foreground">Our impact so far</h2>
+              <p className="mt-1 text-sm text-muted">
+                Counted live from our own case files — not a national estimate.
+              </p>
+              <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {platformStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-lg border border-border p-5 text-center shadow-sm"
+                  >
+                    <dt className="sr-only">{stat.label}</dt>
+                    <dd
+                      className={`font-serif text-brand ${
+                        stat.value.length > 10
+                          ? "text-xl"
+                          : stat.value.length > 6
+                            ? "text-2xl"
+                            : "text-3xl"
+                      }`}
+                    >
+                      {stat.value}
+                    </dd>
+                    <p className="mt-1.5 text-xs text-muted">{stat.label}</p>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
           {recentCases.length > 0 && (
             <section className="mt-20">
               <div className="flex items-center justify-between">
@@ -290,30 +326,42 @@ export default async function Home() {
                   return (
                     <li
                       key={row.id}
-                      className="rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                      className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
                     >
-                      {row.caseClientName && (
-                        <p className="text-xs font-medium uppercase tracking-wide text-brand">
-                          For {row.caseClientName}
-                        </p>
+                      {row.casePhotoUrl && (
+                        <Image
+                          src={row.casePhotoUrl}
+                          alt={row.caseClientName ?? ""}
+                          width={56}
+                          height={56}
+                          className="h-14 w-14 shrink-0 rounded-full object-cover"
+                          unoptimized
+                        />
                       )}
-                      <Link
-                        href={`/petitions/${row.slug}`}
-                        className="mt-1 block font-serif text-lg text-foreground hover:underline"
-                      >
-                        {row.title}
-                      </Link>
-                      <div className="mt-3">
-                        <div className="h-2 rounded-full bg-muted-background">
-                          <div
-                            className="h-2 rounded-full bg-brand"
-                            style={{ width: `${pct}%` }}
-                          />
+                      <div className="min-w-0 flex-1">
+                        {row.caseClientName && (
+                          <p className="text-xs font-medium uppercase tracking-wide text-brand">
+                            For {row.caseClientName}
+                          </p>
+                        )}
+                        <Link
+                          href={`/petitions/${row.slug}`}
+                          className="mt-1 block font-serif text-lg text-foreground hover:underline"
+                        >
+                          {row.title}
+                        </Link>
+                        <div className="mt-3">
+                          <div className="h-2 rounded-full bg-muted-background">
+                            <div
+                              className="h-2 rounded-full bg-brand"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 text-xs text-muted">
+                            {signatureCount.toLocaleString()} of{" "}
+                            {row.goalCount.toLocaleString()} signatures
+                          </p>
                         </div>
-                        <p className="mt-1 text-xs text-muted">
-                          {signatureCount.toLocaleString()} of{" "}
-                          {row.goalCount.toLocaleString()} signatures
-                        </p>
                       </div>
                     </li>
                   );
