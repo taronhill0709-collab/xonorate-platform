@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/sign-out-button";
+import { SavedToast } from "./_components/saved-toast";
 
 // Every /admin/* route is a per-request authenticated view over live data —
 // never statically prerendered, so build-time page-data collection doesn't
@@ -74,6 +76,9 @@ export default async function AdminLayout({
         </header>
         <main className="flex-1 px-6 py-8 text-foreground">{children}</main>
       </div>
+      <Suspense fallback={null}>
+        <SavedToast />
+      </Suspense>
     </div>
   );
 }

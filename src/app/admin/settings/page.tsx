@@ -1,21 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
-import {
-  Field,
-  SavedBanner,
-  SubmitButton,
-  TextInput,
-} from "../_components/field";
+import { Field, SubmitButton, TextInput } from "../_components/field";
 import { saveSettings } from "./actions";
 
-export default async function AdminSettingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ saved?: string }>;
-}) {
-  const { saved } = await searchParams;
-
+export default async function AdminSettingsPage() {
   const [settings] = await db
     .select()
     .from(siteSettings)
@@ -28,8 +17,6 @@ export default async function AdminSettingsPage({
       <p className="mt-1 mb-6 text-sm text-muted">
         Site-wide values that aren&apos;t tied to a single case, petition, or post.
       </p>
-
-      {saved === "1" && <SavedBanner />}
 
       <form action={saveSettings} className="mt-6 space-y-4">
         <Field

@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { comments, petitions, signatures } from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
@@ -13,6 +14,7 @@ export async function setCommentStatus(
   await requireAdmin();
   await db.update(comments).set({ status }).where(eq(comments.id, commentId));
   revalidatePath("/admin/comments");
+  redirect("/admin/comments?saved=1");
 }
 
 /** Permanently deletes a comment. Distinct from "Remove", which only sets
@@ -21,6 +23,7 @@ export async function deleteComment(commentId: string) {
   await requireAdmin();
   await db.delete(comments).where(eq(comments.id, commentId));
   revalidatePath("/admin/comments");
+  redirect("/admin/comments?saved=deleted");
 }
 
 /** Signing a petition can include a freeform note, shown publicly under
@@ -48,4 +51,5 @@ export async function clearSignatureComment(signatureId: string) {
       .limit(1);
     if (petition) revalidatePath(`/petitions/${petition.slug}`);
   }
+  redirect("/admin/comments?saved=1");
 }

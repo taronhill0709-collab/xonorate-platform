@@ -52,14 +52,6 @@ export function FileInput(
   );
 }
 
-export function SavedBanner() {
-  return (
-    <div className="mb-6 rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-brand">
-      Saved.
-    </div>
-  );
-}
-
 const BADGE_TONES = {
   brand: "bg-brand-light text-brand",
   neutral: "border border-border text-muted",

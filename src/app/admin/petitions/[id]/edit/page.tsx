@@ -4,7 +4,6 @@ import { db } from "@/db";
 import { cases, petitions, petitionUpdates, signatures } from "@/db/schema";
 import {
   Field,
-  SavedBanner,
   Select,
   SubmitButton,
   TextArea,
@@ -17,10 +16,10 @@ export default async function EditPetitionPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; notified?: string }>;
+  searchParams: Promise<{ notified?: string }>;
 }) {
   const { id } = await params;
-  const { saved, notified } = await searchParams;
+  const { notified } = await searchParams;
 
   const [petition] = await db
     .select()
@@ -58,7 +57,6 @@ export default async function EditPetitionPage({
         </a>
       </p>
 
-      {saved === "1" && <SavedBanner />}
       {notified !== undefined && (
         <div className="mb-6 rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-brand">
           Update posted. Notified {notified} signer{notified === "1" ? "" : "s"} by email.
