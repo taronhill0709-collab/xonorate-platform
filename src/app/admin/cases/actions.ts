@@ -20,10 +20,11 @@ import {
 } from "@/lib/innocence-claim";
 import { InvalidCasePhotoError, uploadCasePhoto } from "@/lib/case-photo-storage";
 import {
-  extractCaseOverview,
-  InvalidCaseDocumentError,
-  type CaseOverviewDraft,
-} from "@/lib/case-overview-extraction";
+  getCaseOverviewJobStatus,
+  setCaseOverviewJobStatus,
+  storeCaseOverviewUpload,
+  type CaseOverviewJobStatus,
+} from "@/lib/case-overview-jobs";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -136,16 +137,24 @@ export async function createCase(formData: FormData) {
   redirect(`/admin/cases/${row.id}/edit`);
 }
 
-export type ExtractCaseOverviewResult =
-  | { ok: true; data: CaseOverviewDraft }
+export type StartCaseOverviewExtractionResult =
+  | { ok: true; jobId: string }
   | { ok: false; error: string };
 
-/** Drafts the New Case form fields from an uploaded attorney case overview
- * PDF via Claude. Returns the draft to the client to review and edit —
- * nothing is saved here, so a bad extraction never reaches the database. */
-export async function extractCaseOverviewAction(
+/** Kicks off a background job that drafts the New Case form fields from an
+ * uploaded attorney case overview PDF via Claude. A full-document
+ * extraction reliably takes 30-45+ seconds, well past what a regular
+ * Server Action can run inline before Netlify kills the request — same
+ * class of problem daily-content-background already exists to solve, so
+ * this stores the upload and fires a background function the same way,
+ * rather than awaiting Claude here. See
+ * case-overview-extract-background.mts for the actual extraction and
+ * getCaseOverviewExtractionStatus below for polling the result. Nothing is
+ * saved to the database by either step — only the client's form is filled,
+ * for the admin to review before saving. */
+export async function startCaseOverviewExtraction(
   formData: FormData,
-): Promise<ExtractCaseOverviewResult> {
+): Promise<StartCaseOverviewExtractionResult> {
   await requireAdmin();
 
   const file = formData.get("overview");
@@ -153,16 +162,34 @@ export async function extractCaseOverviewAction(
     return { ok: false, error: "Choose a PDF to upload first." };
   }
 
-  try {
-    const data = await extractCaseOverview(file);
-    return { ok: true, data };
-  } catch (err) {
-    if (err instanceof InvalidCaseDocumentError) {
-      return { ok: false, error: err.message };
-    }
-    console.error("extractCaseOverviewAction failed:", err);
-    return { ok: false, error: "Something went wrong reading that document. Try again." };
+  const jobId = crypto.randomUUID();
+  await storeCaseOverviewUpload(jobId, file);
+  await setCaseOverviewJobStatus(jobId, { status: "pending" });
+
+  const origin = process.env.URL ?? process.env.DEPLOY_PRIME_URL;
+  const secret = process.env.DAILY_CONTENT_SECRET;
+  if (!origin || !secret) {
+    console.error("startCaseOverviewExtraction: missing URL or DAILY_CONTENT_SECRET env var");
+    return { ok: false, error: "Import isn't configured on this deploy yet." };
   }
+
+  try {
+    await fetch(`${origin}/.netlify/functions/case-overview-extract-background`, {
+      method: "POST",
+      headers: { "x-internal-job-secret": secret, "content-type": "application/json" },
+      body: JSON.stringify({ jobId }),
+    });
+  } catch (err) {
+    console.error("startCaseOverviewExtraction: failed to dispatch background job", err);
+    return { ok: false, error: "Couldn't start reading that document. Try again." };
+  }
+
+  return { ok: true, jobId };
+}
+
+export async function getCaseOverviewExtractionStatus(jobId: string): Promise<CaseOverviewJobStatus> {
+  await requireAdmin();
+  return getCaseOverviewJobStatus(jobId);
 }
 
 export async function updateCase(caseId: string, formData: FormData) {

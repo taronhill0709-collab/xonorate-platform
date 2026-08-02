@@ -92,7 +92,7 @@ export async function extractCaseOverview(file: File): Promise<CaseOverviewDraft
   const client = new Anthropic();
   const response = await client.messages.parse({
     model: "claude-opus-5",
-    max_tokens: 4000,
+    max_tokens: 8000,
     system: SYSTEM,
     output_config: {
       effort: "medium",
