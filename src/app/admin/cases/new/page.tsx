@@ -1,6 +1,7 @@
 import { Field, FileInput, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
 import { EVIDENCE_CATEGORY_FIELDS } from "@/lib/innocence-claim";
 import { createCase } from "../actions";
+import { ImportOverviewForm } from "../import-overview-form";
 
 export default async function NewCasePage({
   searchParams,
@@ -17,7 +18,12 @@ export default async function NewCasePage({
           {prefill.photoError}
         </p>
       )}
-      <form action={createCase} className="mt-6 space-y-4">
+
+      <div className="mt-6">
+        <ImportOverviewForm />
+      </div>
+
+      <form action={createCase} className="space-y-4">
         <Field label="Client name" name="clientName">
           <TextInput
             id="clientName"

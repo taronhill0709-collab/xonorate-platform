@@ -3,11 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     // Server Actions default to a 1MB request body, well under the case
-    // photo upload's own 5MB limit (case-photo-storage.ts) — almost any
-    // real phone photo blew past 1MB and got silently rejected before our
-    // code ever ran. 6mb leaves room for multipart boundary overhead.
+    // photo upload's 5MB limit (case-photo-storage.ts) or the attorney
+    // case-overview PDF's 15MB limit (case-overview-extraction.ts) — either
+    // upload would get silently rejected before our code ever ran. 16mb
+    // leaves room for multipart boundary overhead.
     serverActions: {
-      bodySizeLimit: "6mb",
+      bodySizeLimit: "16mb",
     },
   },
 };

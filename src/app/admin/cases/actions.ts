@@ -19,6 +19,11 @@ import {
   parseStats,
 } from "@/lib/innocence-claim";
 import { InvalidCasePhotoError, uploadCasePhoto } from "@/lib/case-photo-storage";
+import {
+  extractCaseOverview,
+  InvalidCaseDocumentError,
+  type CaseOverviewDraft,
+} from "@/lib/case-overview-extraction";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -129,6 +134,35 @@ export async function createCase(formData: FormData) {
 
   revalidatePath("/admin/cases");
   redirect(`/admin/cases/${row.id}/edit`);
+}
+
+export type ExtractCaseOverviewResult =
+  | { ok: true; data: CaseOverviewDraft }
+  | { ok: false; error: string };
+
+/** Drafts the New Case form fields from an uploaded attorney case overview
+ * PDF via Claude. Returns the draft to the client to review and edit —
+ * nothing is saved here, so a bad extraction never reaches the database. */
+export async function extractCaseOverviewAction(
+  formData: FormData,
+): Promise<ExtractCaseOverviewResult> {
+  await requireAdmin();
+
+  const file = formData.get("overview");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Choose a PDF to upload first." };
+  }
+
+  try {
+    const data = await extractCaseOverview(file);
+    return { ok: true, data };
+  } catch (err) {
+    if (err instanceof InvalidCaseDocumentError) {
+      return { ok: false, error: err.message };
+    }
+    console.error("extractCaseOverviewAction failed:", err);
+    return { ok: false, error: "Something went wrong reading that document. Try again." };
+  }
 }
 
 export async function updateCase(caseId: string, formData: FormData) {
