@@ -18,7 +18,7 @@ import {
   parseCategoryItems,
   parseStats,
 } from "@/lib/innocence-claim";
-import { uploadCasePhoto } from "@/lib/case-photo-storage";
+import { InvalidCasePhotoError, uploadCasePhoto } from "@/lib/case-photo-storage";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -102,7 +102,12 @@ async function parseCaseForm(formData: FormData) {
 
 export async function createCase(formData: FormData) {
   await requireAdmin();
-  const data = await parseCaseForm(formData);
+  const data = await parseCaseForm(formData).catch((err) => {
+    if (err instanceof InvalidCasePhotoError) {
+      redirect(`/admin/cases/new?photoError=${encodeURIComponent(err.message)}`);
+    }
+    throw err;
+  });
 
   const row = await insertWithUniqueSlug(data.slugInput, (slug) =>
     db
@@ -128,7 +133,12 @@ export async function createCase(formData: FormData) {
 
 export async function updateCase(caseId: string, formData: FormData) {
   await requireAdmin();
-  const data = await parseCaseForm(formData);
+  const data = await parseCaseForm(formData).catch((err) => {
+    if (err instanceof InvalidCasePhotoError) {
+      redirect(`/admin/cases/${caseId}/edit?photoError=${encodeURIComponent(err.message)}`);
+    }
+    throw err;
+  });
 
   await db
     .update(cases)
@@ -300,12 +310,14 @@ export async function addDocument(caseId: string, formData: FormData) {
   });
 
   revalidatePath(`/admin/cases/${caseId}/edit`);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }
 
 export async function deleteDocument(caseId: string, documentId: string) {
   await requireAdmin();
   await db.delete(caseDocuments).where(eq(caseDocuments.id, documentId));
   revalidatePath(`/admin/cases/${caseId}/edit`);
+  redirect(`/admin/cases/${caseId}/edit?saved=deleted`);
 }
 
 export async function updateCaseStatus(
@@ -327,6 +339,7 @@ export async function updateCaseStatus(
 
   revalidatePath("/admin/cases");
   if (row) revalidatePath(`/cases/${row.slug}`);
+  redirect("/admin/cases?saved=1");
 }
 
 /** Deletes a case and, via FK cascade, its documents. Any petitions or
@@ -338,6 +351,7 @@ export async function deleteCase(caseId: string) {
   revalidatePath("/admin/cases");
   revalidatePath("/cases");
   revalidatePath("/");
+  redirect("/admin/cases?saved=deleted");
 }
 
 export async function toggleDocumentStatus(caseId: string, documentId: string) {
@@ -355,4 +369,5 @@ export async function toggleDocumentStatus(caseId: string, documentId: string) {
     .where(eq(caseDocuments.id, documentId));
 
   revalidatePath(`/admin/cases/${caseId}/edit`);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }

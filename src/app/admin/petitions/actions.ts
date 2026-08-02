@@ -118,6 +118,7 @@ export async function updatePetitionStatus(
       if (caseRow) revalidatePath(`/cases/${caseRow.slug}`);
     }
   }
+  redirect("/admin/petitions?saved=1");
 }
 
 /** Permanently deletes a petition and, via the FK cascade, every signature
@@ -149,6 +150,7 @@ export async function deletePetition(petitionId: string) {
       if (caseRow) revalidatePath(`/cases/${caseRow.slug}`);
     }
   }
+  redirect("/admin/petitions?saved=deleted");
 }
 
 const updateFormSchema = z.object({
@@ -219,4 +221,5 @@ export async function deletePetitionUpdate(petitionId: string, updateId: string)
 
   revalidatePath(`/admin/petitions/${petitionId}/edit`);
   if (row) revalidatePath(`/petitions/${row.slug}`);
+  redirect(`/admin/petitions/${petitionId}/edit?saved=deleted`);
 }

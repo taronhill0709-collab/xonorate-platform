@@ -46,10 +46,13 @@ type ExonerationDetails = {
 
 export default async function EditCasePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photoError?: string }>;
 }) {
   const { id } = await params;
+  const { photoError } = await searchParams;
 
   const [caseRow] = await db.select().from(cases).where(eq(cases.id, id)).limit(1);
   if (!caseRow) notFound();
@@ -86,6 +89,12 @@ export default async function EditCasePage({
           /cases/{caseRow.slug}
         </a>
       </p>
+
+      {photoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {photoError}
+        </p>
+      )}
 
       <form action={updateCaseWithId} className="mt-6 space-y-4">
         <Field label="Client name" name="clientName">

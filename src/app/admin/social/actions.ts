@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
@@ -21,6 +22,7 @@ export async function setSocialPostsEnabled(enabled: boolean) {
     path: "/admin",
   });
   revalidatePath("/admin/social");
+  redirect("/admin/social?saved=1");
 }
 
 export type PostToSocialResult = { ok: true } | { ok: false; error: string };

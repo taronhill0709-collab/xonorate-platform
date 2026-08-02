@@ -15,11 +15,12 @@ export async function approvePost(postId: string) {
     .where(eq(posts.id, postId));
   revalidatePath("/admin/posts");
   revalidatePath(`/admin/posts/${postId}`);
+  redirect(`/admin/posts/${postId}?saved=1`);
 }
 
 export async function deletePost(postId: string) {
   await requireAdmin();
   await db.delete(posts).where(eq(posts.id, postId));
   revalidatePath("/admin/posts");
-  redirect("/admin/posts");
+  redirect("/admin/posts?saved=deleted");
 }

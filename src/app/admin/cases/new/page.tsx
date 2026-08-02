@@ -5,13 +5,18 @@ import { createCase } from "../actions";
 export default async function NewCasePage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientName?: string; state?: string; summary?: string }>;
+  searchParams: Promise<{ clientName?: string; state?: string; summary?: string; photoError?: string }>;
 }) {
   const prefill = await searchParams;
 
   return (
     <div className="max-w-2xl">
       <h1 className="font-serif text-2xl text-foreground">New case</h1>
+      {prefill.photoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {prefill.photoError}
+        </p>
+      )}
       <form action={createCase} className="mt-6 space-y-4">
         <Field label="Client name" name="clientName">
           <TextInput
