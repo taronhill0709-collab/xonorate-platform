@@ -9,6 +9,7 @@ import {
   TextArea,
   TextInput,
 } from "../../../_components/field";
+import { NumberInput } from "../../../_components/number-input";
 import { addPetitionUpdate, deletePetitionUpdate, updatePetition } from "../../actions";
 
 export default async function EditPetitionPage({
@@ -101,22 +102,15 @@ export default async function EditPetitionPage({
           <TextArea id="askText" name="askText" rows={4} defaultValue={petition.askText} required />
         </Field>
         <Field label="Signature goal" name="goalCount">
-          <TextInput
-            id="goalCount"
-            name="goalCount"
-            type="number"
-            defaultValue={petition.goalCount}
-            required
-          />
+          <NumberInput id="goalCount" name="goalCount" defaultValue={petition.goalCount} required />
         </Field>
         <Field
           label={`Starting signature count (optional — signatures carried over from a prior platform. ${verifiedOnPlatform} verified signature${verifiedOnPlatform === 1 ? "" : "s"} collected on this platform will be added on top of this number wherever the total is shown.)`}
           name="startingSignatureCount"
         >
-          <TextInput
+          <NumberInput
             id="startingSignatureCount"
             name="startingSignatureCount"
-            type="number"
             defaultValue={petition.startingSignatureCount}
           />
         </Field>

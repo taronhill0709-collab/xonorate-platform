@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-const inputClass =
+export const inputClass =
   "mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
 
 export function Field({

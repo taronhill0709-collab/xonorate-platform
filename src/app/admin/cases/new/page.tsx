@@ -1,4 +1,5 @@
 import { Field, FileInput, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
+import { NumberInput } from "../../_components/number-input";
 import { EVIDENCE_CATEGORY_FIELDS } from "@/lib/innocence-claim";
 import { createCase } from "../actions";
 import { ImportOverviewForm } from "../import-overview-form";
@@ -61,7 +62,7 @@ export default async function NewCasePage({
           <TextInput id="charge" name="charge" required />
         </Field>
         <Field label="Year convicted" name="year">
-          <TextInput id="year" name="year" type="number" required />
+          <NumberInput id="year" name="year" required />
         </Field>
         <Field label="Sentence" name="sentence">
           <TextInput id="sentence" name="sentence" required />
@@ -80,7 +81,7 @@ export default async function NewCasePage({
           <TextArea id="exonerationSummary" name="exonerationSummary" rows={3} />
         </Field>
         <Field label="Year exonerated" name="exonerationYear">
-          <TextInput id="exonerationYear" name="exonerationYear" type="number" />
+          <NumberInput id="exonerationYear" name="exonerationYear" />
         </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">

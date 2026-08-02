@@ -11,6 +11,7 @@ import {
   TextArea,
   TextInput,
 } from "../../../_components/field";
+import { NumberInput } from "../../../_components/number-input";
 import {
   EMPTY_IMPACT_FACTS,
   serializeFactLines,
@@ -142,13 +143,7 @@ export default async function EditCasePage({
           <TextInput id="charge" name="charge" defaultValue={conviction.charge} required />
         </Field>
         <Field label="Year convicted" name="year">
-          <TextInput
-            id="year"
-            name="year"
-            type="number"
-            defaultValue={conviction.year}
-            required
-          />
+          <NumberInput id="year" name="year" defaultValue={conviction.year} required />
         </Field>
         <Field label="Sentence" name="sentence">
           <TextInput id="sentence" name="sentence" defaultValue={conviction.sentence} required />
@@ -178,12 +173,7 @@ export default async function EditCasePage({
           />
         </Field>
         <Field label="Year exonerated" name="exonerationYear">
-          <TextInput
-            id="exonerationYear"
-            name="exonerationYear"
-            type="number"
-            defaultValue={exoneration?.year ?? ""}
-          />
+          <NumberInput id="exonerationYear" name="exonerationYear" defaultValue={exoneration?.year ?? ""} />
         </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">
@@ -227,12 +217,7 @@ export default async function EditCasePage({
       <form action={generateCaseImpactWithId} className="mt-6 space-y-4">
         <h3 className="font-serif text-base text-foreground">Family facts</h3>
         <Field label="Age at arrest" name="ageAtArrest">
-          <TextInput
-            id="ageAtArrest"
-            name="ageAtArrest"
-            type="number"
-            defaultValue={facts.ageAtArrest ?? ""}
-          />
+          <NumberInput id="ageAtArrest" name="ageAtArrest" defaultValue={facts.ageAtArrest ?? ""} />
         </Field>
         <Field label="Marital status at arrest" name="maritalStatus">
           <Select id="maritalStatus" name="maritalStatus" defaultValue={facts.maritalStatus}>
@@ -244,10 +229,9 @@ export default async function EditCasePage({
           </Select>
         </Field>
         <Field label="Number of children" name="numberOfChildren">
-          <TextInput
+          <NumberInput
             id="numberOfChildren"
             name="numberOfChildren"
-            type="number"
             defaultValue={facts.numberOfChildren ?? ""}
           />
         </Field>
