@@ -40,6 +40,18 @@ export function Select(
   return <select {...props} className={inputClass} />;
 }
 
+export function FileInput(
+  props: React.InputHTMLAttributes<HTMLInputElement>,
+) {
+  return (
+    <input
+      type="file"
+      {...props}
+      className="mt-1 block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-foreground file:transition hover:file:opacity-90"
+    />
+  );
+}
+
 export function SavedBanner() {
   return (
     <div className="mb-6 rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-brand">
@@ -51,7 +63,7 @@ export function SavedBanner() {
 const BADGE_TONES = {
   brand: "bg-brand-light text-brand",
   neutral: "border border-border text-muted",
-  danger: "bg-red-50 text-red-700",
+  danger: "bg-red-500/15 text-red-300",
 } as const;
 
 export function Badge({

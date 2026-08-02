@@ -1,4 +1,4 @@
-import { Field, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
+import { Field, FileInput, Select, SubmitButton, TextArea, TextInput } from "../../_components/field";
 import { EVIDENCE_CATEGORY_FIELDS } from "@/lib/innocence-claim";
 import { createCase } from "../actions";
 
@@ -37,8 +37,12 @@ export default async function NewCasePage({
         <Field label="Summary" name="summary">
           <TextArea id="summary" name="summary" rows={4} defaultValue={prefill.summary} required />
         </Field>
-        <Field label="Photo URL (optional)" name="photoUrl">
-          <TextInput id="photoUrl" name="photoUrl" type="url" />
+        <Field label="Photo (optional)" name="photo">
+          <FileInput
+            id="photo"
+            name="photo"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+          />
         </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">Conviction</h2>

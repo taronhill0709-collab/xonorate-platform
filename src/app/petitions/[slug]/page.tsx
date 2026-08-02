@@ -9,7 +9,7 @@ import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, petitions, petitionUpdates, signatures } from "@/db/schema";
-import { getOrigin } from "@/lib/request-ip";
+import { getOrigin, resolveShareImage } from "@/lib/request-ip";
 import { formatSignerName } from "@/lib/signer-name";
 
 // Signature counts must always be fresh — never statically prerendered.
@@ -51,7 +51,11 @@ export async function generateMetadata({
 
   const origin = await getOrigin();
   const url = `${origin}/petitions/${slug}`;
-  const shareImage = petition.casePhotoUrl ?? `${origin}/opengraph-image`;
+  const shareImage = resolveShareImage(
+    petition.casePhotoUrl,
+    origin,
+    `${origin}/opengraph-image`,
+  );
 
   return {
     title: petition.title,

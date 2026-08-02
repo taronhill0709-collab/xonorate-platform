@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { caseDocuments, cases } from "@/db/schema";
 import {
   Field,
+  FileInput,
   SavedBanner,
   Select,
   SubmitButton,
@@ -113,13 +115,23 @@ export default async function EditCasePage({
         <Field label="Summary" name="summary">
           <TextArea id="summary" name="summary" rows={4} defaultValue={caseRow.summary} required />
         </Field>
-        <Field label="Photo URL (optional)" name="photoUrl">
-          <TextInput
-            id="photoUrl"
-            name="photoUrl"
-            type="url"
-            defaultValue={caseRow.photoUrl ?? ""}
+        <Field label="Photo (optional)" name="photo">
+          {caseRow.photoUrl && (
+            <Image
+              src={caseRow.photoUrl}
+              alt=""
+              width={96}
+              height={96}
+              className="mb-2 h-24 w-24 rounded-md object-cover"
+              unoptimized
+            />
+          )}
+          <FileInput
+            id="photo"
+            name="photo"
+            accept="image/jpeg,image/png,image/webp,image/avif"
           />
+          <input type="hidden" name="photoUrl" value={caseRow.photoUrl ?? ""} />
         </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">Conviction</h2>

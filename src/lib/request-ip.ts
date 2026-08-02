@@ -19,3 +19,15 @@ export async function getOrigin(): Promise<string> {
   const protocol = host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https";
   return `${protocol}://${host}`;
 }
+
+/** og:image/twitter:image require an absolute URL — uploaded photos are
+ * stored as site-relative paths (e.g. /api/case-photos/xxx), while legacy
+ * rows may still hold an absolute URL pasted in directly. Resolves either
+ * against origin without double-prefixing the already-absolute case. */
+export function resolveShareImage(
+  url: string | null | undefined,
+  origin: string,
+  fallback: string,
+): string {
+  return url ? new URL(url, origin).toString() : fallback;
+}

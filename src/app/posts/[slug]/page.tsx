@@ -11,7 +11,7 @@ import { db } from "@/db";
 import { cases, posts } from "@/db/schema";
 import { excerptFromMarkdown } from "@/lib/markdown";
 import { POST_TYPE_LABEL } from "@/lib/post-type";
-import { getOrigin } from "@/lib/request-ip";
+import { getOrigin, resolveShareImage } from "@/lib/request-ip";
 
 // New posts publish throughout the day — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -111,8 +111,11 @@ export async function generateMetadata({
   const description = excerptFromMarkdown(post.body);
   const origin = await getOrigin();
   const url = `${origin}/posts/${slug}`;
-  const shareImage =
-    post.casePhotoUrl ?? post.imageUrl ?? `${origin}/opengraph-image`;
+  const shareImage = resolveShareImage(
+    post.casePhotoUrl ?? post.imageUrl,
+    origin,
+    `${origin}/opengraph-image`,
+  );
 
   return {
     title: post.title,

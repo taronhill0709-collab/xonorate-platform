@@ -18,6 +18,7 @@ import {
   parseCategoryItems,
   parseStats,
 } from "@/lib/innocence-claim";
+import { uploadCasePhoto } from "@/lib/case-photo-storage";
 import { requireAdmin } from "@/lib/require-admin";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
@@ -34,7 +35,7 @@ const caseFormSchema = z.object({
   exonerationYear: z.coerce.number().int().optional(),
   status: z.enum(caseStatusEnum.enumValues),
   state: z.string().min(1),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: z.string().optional().or(z.literal("")),
   stats: z.string().optional(),
   pullQuote: z.string().optional(),
   evidenceOfInnocence: z.string().optional(),
@@ -43,7 +44,7 @@ const caseFormSchema = z.object({
   unreliableEvidence: z.string().optional(),
 });
 
-function parseCaseForm(formData: FormData) {
+async function parseCaseForm(formData: FormData) {
   const raw = Object.fromEntries(formData.entries());
   const parsed = caseFormSchema.parse(raw);
 
@@ -77,6 +78,14 @@ function parseCaseForm(formData: FormData) {
       ? { stats, pullQuote, categories }
       : null;
 
+  // A newly uploaded file replaces the photo; otherwise the hidden
+  // `photoUrl` field carries forward whatever the case already had.
+  const photoFile = formData.get("photo");
+  const photoUrl =
+    photoFile instanceof File && photoFile.size > 0
+      ? await uploadCasePhoto(photoFile)
+      : parsed.photoUrl || null;
+
   return {
     clientName: parsed.clientName,
     slugInput: parsed.slug?.trim() || parsed.clientName,
@@ -86,14 +95,14 @@ function parseCaseForm(formData: FormData) {
     exonerationDetails,
     status: parsed.status,
     state: parsed.state,
-    photoUrl: parsed.photoUrl || null,
+    photoUrl,
     innocenceClaim,
   };
 }
 
 export async function createCase(formData: FormData) {
   await requireAdmin();
-  const data = parseCaseForm(formData);
+  const data = await parseCaseForm(formData);
 
   const row = await insertWithUniqueSlug(data.slugInput, (slug) =>
     db
@@ -119,7 +128,7 @@ export async function createCase(formData: FormData) {
 
 export async function updateCase(caseId: string, formData: FormData) {
   await requireAdmin();
-  const data = parseCaseForm(formData);
+  const data = await parseCaseForm(formData);
 
   await db
     .update(cases)

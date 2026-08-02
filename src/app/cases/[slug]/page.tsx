@@ -13,7 +13,7 @@ import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
 import type { InnocenceClaim } from "@/lib/innocence-claim";
-import { getOrigin } from "@/lib/request-ip";
+import { getOrigin, resolveShareImage } from "@/lib/request-ip";
 
 const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 function toRoman(n: number): string {
@@ -59,7 +59,11 @@ export async function generateMetadata({
   const title = `${caseRow.clientName} — ${CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status}`;
   const origin = await getOrigin();
   const url = `${origin}/cases/${slug}`;
-  const shareImage = caseRow.photoUrl ?? `${origin}/opengraph-image`;
+  const shareImage = resolveShareImage(
+    caseRow.photoUrl,
+    origin,
+    `${origin}/opengraph-image`,
+  );
 
   return {
     title,
