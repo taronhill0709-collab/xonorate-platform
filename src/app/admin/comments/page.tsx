@@ -3,7 +3,7 @@ import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { comments, petitions, signatures, users } from "@/db/schema";
 import { COMMENT_STATUS_LABEL, COMMENT_TARGET_LABEL } from "@/lib/comment-status";
-import { clearSignatureComment, deleteComment, setCommentStatus } from "./actions";
+import { clearSignatureComment, deleteComment, setCommentStatus, toggleCommentPin } from "./actions";
 import { DeleteCommentButton } from "./delete-comment-button";
 
 export default async function AdminCommentsPage() {
@@ -13,12 +13,13 @@ export default async function AdminCommentsPage() {
       targetType: comments.targetType,
       body: comments.body,
       status: comments.status,
+      pinned: comments.pinned,
       authorName: users.name,
       authorEmail: users.email,
     })
     .from(comments)
     .innerJoin(users, eq(comments.userId, users.id))
-    .orderBy(desc(comments.createdAt));
+    .orderBy(desc(comments.pinned), desc(comments.createdAt));
 
   const signatureNotes = await db
     .select({
@@ -70,9 +71,15 @@ export default async function AdminCommentsPage() {
                     }
                   >
                     {COMMENT_STATUS_LABEL[row.status] ?? row.status}
-                  </Badge>
+                  </Badge>{" "}
+                  {row.pinned && <Badge tone="brand">Pinned</Badge>}
                 </td>
                 <td className="py-2 text-right">
+                  <form action={toggleCommentPin.bind(null, row.id, !row.pinned)} className="inline">
+                    <button type="submit" className="text-brand underline">
+                      {row.pinned ? "Unpin" : "Pin"}
+                    </button>
+                  </form>{" "}
                   {row.status !== "published" && (
                     <form
                       action={setCommentStatus.bind(null, row.id, "published")}

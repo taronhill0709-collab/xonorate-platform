@@ -26,6 +26,13 @@ export async function deleteComment(commentId: string) {
   redirect("/admin/comments?saved=deleted");
 }
 
+export async function toggleCommentPin(commentId: string, pinned: boolean) {
+  await requireAdmin();
+  await db.update(comments).set({ pinned }).where(eq(comments.id, commentId));
+  revalidatePath("/admin/comments");
+  redirect("/admin/comments?saved=1");
+}
+
 /** Signing a petition can include a freeform note, shown publicly under
  * "Why people are signing" — unlike comments, this was never moderated or
  * even visible in admin. Clearing it (rather than deleting the signature)

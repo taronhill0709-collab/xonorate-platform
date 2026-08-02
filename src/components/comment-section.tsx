@@ -19,6 +19,7 @@ export async function CommentSection({
       id: comments.id,
       body: comments.body,
       createdAt: comments.createdAt,
+      pinned: comments.pinned,
       authorName: users.name,
       authorEmail: users.email,
     })
@@ -31,7 +32,7 @@ export async function CommentSection({
         eq(comments.status, "published"),
       ),
     )
-    .orderBy(desc(comments.createdAt))
+    .orderBy(desc(comments.pinned), desc(comments.createdAt))
     .limit(50);
 
   return (
@@ -54,7 +55,19 @@ export async function CommentSection({
       {publishedComments.length > 0 && (
         <ul className="mt-6 space-y-4">
           {publishedComments.map((c) => (
-            <li key={c.id} className="border-l-2 border-border pl-4 text-sm">
+            <li
+              key={c.id}
+              className={
+                c.pinned
+                  ? "border-l-2 border-brand bg-brand-light/40 py-2 pl-4 text-sm"
+                  : "border-l-2 border-border pl-4 text-sm"
+              }
+            >
+              {c.pinned && (
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand">
+                  Pinned
+                </p>
+              )}
               <p className="text-foreground">{c.body}</p>
               <p className="mt-1 text-muted">— {c.authorName ?? c.authorEmail}</p>
             </li>
