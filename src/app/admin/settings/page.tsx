@@ -44,6 +44,32 @@ export default async function AdminSettingsPage({
           />
         </Field>
 
+        <Field
+          label="Facebook URL — shown as a footer icon (leave blank to hide it)"
+          name="facebookUrl"
+        >
+          <TextInput
+            id="facebookUrl"
+            name="facebookUrl"
+            type="url"
+            placeholder="https://facebook.com/xonorate"
+            defaultValue={settings?.facebookUrl ?? ""}
+          />
+        </Field>
+
+        <Field
+          label="Instagram URL — shown as a footer icon (leave blank to hide it)"
+          name="instagramUrl"
+        >
+          <TextInput
+            id="instagramUrl"
+            name="instagramUrl"
+            type="url"
+            placeholder="https://instagram.com/xonorate"
+            defaultValue={settings?.instagramUrl ?? ""}
+          />
+        </Field>
+
         <SubmitButton>Save changes</SubmitButton>
       </form>
     </div>

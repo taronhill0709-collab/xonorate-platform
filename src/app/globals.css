@@ -1,20 +1,28 @@
 @import "tailwindcss";
 
 /*
- * Brand palette: crisp white background, navy primary, gold accent for
- * petition CTAs, Playfair Display headings over Inter body/UI text.
+ * Brand palette: permanent dark navy background, periwinkle primary for
+ * buttons/links, gold accent for petition CTAs, Playfair Display headings
+ * over Inter body/UI text. One fixed theme — no light/dark OS switching.
  */
 :root {
-  --background: #ffffff;
-  --foreground: #17171a;
-  --muted: #55555a;
-  --muted-background: #eef1f5;
-  --border: #e1e4ea;
-  --brand: #1b2a4a;
-  --brand-foreground: #ffffff;
-  --brand-light: #e4e8f0;
-  --accent: #b8860b;
-  --accent-foreground: #ffffff;
+  --background: #0d1220;
+  --foreground: #f2f4f8;
+  --muted: #96a3c4;
+  --muted-background: #161d30;
+  --border: #2a3350;
+  --brand: #7b93c2;
+  --brand-foreground: #12172a;
+  --brand-light: #202a44;
+  --accent: #d4a12e;
+  --accent-foreground: #14181f;
+  --header-background: #0a0e18;
+  --header-foreground: #f5f6fa;
+  --header-muted: #9aa8cc;
+  --header-border: #262c40;
+  --band-background: #1b2a4a;
+  --band-foreground: #f5f6fa;
+  --band-accent: #d4a12e;
 }
 
 @theme inline {
@@ -28,24 +36,17 @@
   --color-brand-light: var(--brand-light);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-header-background: var(--header-background);
+  --color-header-foreground: var(--header-foreground);
+  --color-header-muted: var(--header-muted);
+  --color-header-border: var(--header-border);
+  --color-band-background: var(--band-background);
+  --color-band-foreground: var(--band-foreground);
+  --color-band-accent: var(--band-accent);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #17191c;
-    --foreground: #ede9e0;
-    --muted: #9a988f;
-    --muted-background: #1f2226;
-    --border: #33363a;
-    --brand: #7b93c2;
-    --brand-foreground: #14181f;
-    --brand-light: #232a3a;
-    --accent: #d4a12e;
-    --accent-foreground: #14181f;
-  }
+  --font-display: var(--font-cinzel);
 }
 
 body {

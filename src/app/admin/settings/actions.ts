@@ -16,13 +16,15 @@ export async function saveSettings(formData: FormData) {
   await requireAdmin();
 
   const socialViewsLabel = normalizeText(formData.get("socialViewsLabel"));
+  const facebookUrl = normalizeText(formData.get("facebookUrl"));
+  const instagramUrl = normalizeText(formData.get("instagramUrl"));
 
   await db
     .insert(siteSettings)
-    .values({ id: "singleton", socialViewsLabel })
+    .values({ id: "singleton", socialViewsLabel, facebookUrl, instagramUrl })
     .onConflictDoUpdate({
       target: siteSettings.id,
-      set: { socialViewsLabel },
+      set: { socialViewsLabel, facebookUrl, instagramUrl },
     });
 
   revalidatePath("/", "layout");

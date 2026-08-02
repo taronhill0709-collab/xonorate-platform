@@ -35,22 +35,22 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-full flex-1">
-      <aside className="w-56 shrink-0 bg-brand">
+      <aside className="w-56 shrink-0 bg-header-background">
         <div className="px-5 py-6">
           <Link
             href="/"
-            className="font-serif text-lg text-brand-foreground hover:underline"
+            className="font-serif text-lg text-header-foreground hover:underline"
           >
             Xonorate
           </Link>
-          <p className="text-xs text-brand-foreground/60">Admin</p>
+          <p className="text-xs text-header-muted">Admin</p>
         </div>
         <nav className="flex flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-2 py-1.5 text-sm text-brand-foreground/90 transition hover:bg-white/10 hover:text-brand-foreground"
+              className="rounded-md px-2 py-1.5 text-sm text-header-muted transition hover:bg-white/10 hover:text-header-foreground"
             >
               {item.label}
             </Link>

@@ -304,3 +304,11 @@ export const siteSettings = pgTable("site_settings", {
   // Null hides the stat entirely rather than showing a placeholder.
   socialViewsLabel: text("social_views_label"),
 });
+
+// --- Newsletter ---
+
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

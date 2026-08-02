@@ -1,8 +1,16 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const alt = "Xonorate Media Platform — advocating for the wrongfully convicted";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const markSvg = readFileSync(
+  join(process.cwd(), "public/xonorate-mark.svg"),
+  "utf-8",
+);
+const markDataUri = `data:image/svg+xml;base64,${Buffer.from(markSvg).toString("base64")}`;
 
 export default function Image() {
   return new ImageResponse(
@@ -21,15 +29,12 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div
-            style={{
-              display: "flex",
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              border: "3px solid #d4a12e",
-              marginRight: 20,
-            }}
+          <img
+            src={markDataUri}
+            alt=""
+            width={64}
+            height={64}
+            style={{ marginRight: 20 }}
           />
           <div
             style={{
