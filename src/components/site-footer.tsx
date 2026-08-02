@@ -146,9 +146,17 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <p className="mt-10 border-t border-header-border pt-6 text-xs text-header-muted">
-          © {year} Xonorate Media Platform. All rights reserved.
-        </p>
+        <div className="mt-10 border-t border-header-border pt-6">
+          <p className="text-xs text-header-muted">
+            Xonorate does not adjudicate guilt or innocence — that evaluation
+            belongs to the attorneys and innocence organizations we work
+            with, based on the evidence in each case. No claim of innocence
+            made here is a guarantee.
+          </p>
+          <p className="mt-3 text-xs text-header-muted">
+            © {year} Xonorate Media Platform. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

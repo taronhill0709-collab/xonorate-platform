@@ -148,10 +148,11 @@ export default async function Home() {
               Wrongful conviction isn&apos;t rare. It&apos;s systemic.
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-center text-sm text-band-foreground/75">
-              Every case below is a person who already served time for something
-              they didn&apos;t do. That&apos;s exactly why Xonorate exists — to
-              put a name and a face on the numbers, and keep pushing until the
-              record is corrected.
+              Every case below is a person convicted — many still incarcerated
+              today — on evidence that doesn&apos;t hold up to serious
+              scrutiny. That&apos;s exactly why Xonorate exists: to put a name
+              and a face on the numbers, and keep pushing until each case gets
+              the review it deserves.
             </p>
 
             <dl className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
