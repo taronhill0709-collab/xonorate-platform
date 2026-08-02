@@ -79,7 +79,7 @@ export async function SiteFooter() {
               </span>
             </Link>
             <p className="mt-2 text-sm text-header-muted">
-              Giving the innocent a voice.
+              Giving a Voice to the Voiceless.
             </p>
             {(settings?.facebookUrl || settings?.instagramUrl) && (
               <div className="mt-4 flex gap-3">
