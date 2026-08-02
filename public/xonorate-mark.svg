@@ -43,8 +43,8 @@
   </g>
 
   <!-- inner X: shares the exact same centerline as the outer X above, so
-       it's mathematically concentric -- carries the gold glow, which the
-       outer dark stroke does not -->
+       it's mathematically concentric. Carries the gold glow, which the
+       outer dark stroke does not. -->
   <g stroke-linecap="square" filter="url(#goldGlow)">
     <g stroke="url(#silver)" stroke-width="5.5">
       <line x1="23" y1="30" x2="41" y2="48" />
