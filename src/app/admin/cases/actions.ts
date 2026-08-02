@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -374,6 +374,32 @@ export async function updateCaseStatus(
   revalidatePath("/admin/cases");
   if (row) revalidatePath(`/cases/${row.slug}`);
   redirect("/admin/cases?saved=1");
+}
+
+/** Moves a case one spot up or down in the admin/public display order.
+ * Rewrites sortOrder for every case as its index in the new order rather
+ * than swapping the two raw values, since most rows share the same
+ * default (0) until the first reorder happens — a plain swap between two
+ * equal values would silently do nothing. */
+export async function moveCase(caseId: string, direction: "up" | "down") {
+  await requireAdmin();
+
+  const rows = await db
+    .select({ id: cases.id })
+    .from(cases)
+    .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
+  const ids = rows.map((r) => r.id);
+
+  const index = ids.indexOf(caseId);
+  const swapWith = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || swapWith < 0 || swapWith >= ids.length) return;
+
+  [ids[index], ids[swapWith]] = [ids[swapWith], ids[index]];
+  await Promise.all(ids.map((id, i) => db.update(cases).set({ sortOrder: i }).where(eq(cases.id, id))));
+
+  revalidatePath("/admin/cases");
+  revalidatePath("/cases");
+  revalidatePath("/");
 }
 
 /** Deletes a case and, via FK cascade, its documents. Any petitions or

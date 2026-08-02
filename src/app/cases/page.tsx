@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +28,7 @@ export default async function CasesIndexPage() {
       photoUrl: cases.photoUrl,
     })
     .from(cases)
-    .orderBy(desc(cases.createdAt));
+    .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
 
   return (
     <>

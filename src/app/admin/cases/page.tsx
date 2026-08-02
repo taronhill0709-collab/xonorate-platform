@@ -1,13 +1,17 @@
-import { desc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import Link from "next/link";
 import { deleteCase } from "./actions";
+import { CaseReorderButtons } from "./case-reorder-buttons";
 import { CaseStatusSelect } from "./case-status-select";
 import { DeleteCaseButton } from "./delete-case-button";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
 
 export default async function AdminCasesPage() {
-  const rows = await db.select().from(cases).orderBy(desc(cases.createdAt));
+  const rows = await db
+    .select()
+    .from(cases)
+    .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
 
   return (
     <div>
@@ -26,6 +30,7 @@ export default async function AdminCasesPage() {
         <table className="mt-6 w-full text-left text-sm">
           <thead className="text-muted">
             <tr className="border-b border-border">
+              <th className="py-2 font-medium" />
               <th className="py-2 font-medium">Client</th>
               <th className="py-2 font-medium">State</th>
               <th className="py-2 font-medium">Status</th>
@@ -34,8 +39,15 @@ export default async function AdminCasesPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {rows.map((row, i) => (
               <tr key={row.id} className="border-b border-border">
+                <td className="py-2">
+                  <CaseReorderButtons
+                    caseId={row.id}
+                    isFirst={i === 0}
+                    isLast={i === rows.length - 1}
+                  />
+                </td>
                 <td className="py-2 text-foreground">{row.clientName}</td>
                 <td className="py-2 text-foreground">{row.state}</td>
                 <td className="py-2">

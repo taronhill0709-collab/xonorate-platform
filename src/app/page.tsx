@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { ArrowRight, Calendar, FileSignature, Scale, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,7 +63,7 @@ export default async function Home() {
       timeServed: cases.timeServed,
     })
     .from(cases)
-    .orderBy(desc(cases.createdAt))
+    .orderBy(asc(cases.sortOrder), desc(cases.createdAt))
     .limit(5);
 
   const featuredCases = recentCases.map((c) => ({

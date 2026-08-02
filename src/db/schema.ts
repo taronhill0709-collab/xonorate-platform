@@ -143,6 +143,10 @@ export const cases = pgTable("cases", {
   // render, no dedup. Used to show the attention a case has gotten (we
   // don't secure exonerations ourselves, so this stands in for that).
   viewCount: integer("view_count").notNull().default(0),
+  // Admin-controlled display order (ascending) for the cases list and the
+  // homepage's featured cases — lower sorts first. Ties (the common case,
+  // since every row defaults to 0 until reordered) fall back to createdAt.
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
