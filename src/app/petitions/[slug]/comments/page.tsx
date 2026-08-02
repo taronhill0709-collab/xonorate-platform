@@ -41,7 +41,12 @@ export default async function PetitionCommentsPage({
   if (!petition) notFound();
 
   const signers = await db
-    .select({ displayName: signatures.displayName, comment: signatures.comment, createdAt: signatures.createdAt })
+    .select({
+      displayName: signatures.displayName,
+      comment: signatures.comment,
+      pinned: signatures.commentPinned,
+      createdAt: signatures.createdAt,
+    })
     .from(signatures)
     .where(
       and(
@@ -50,7 +55,7 @@ export default async function PetitionCommentsPage({
         isNotNull(signatures.comment),
       ),
     )
-    .orderBy(desc(signatures.createdAt));
+    .orderBy(desc(signatures.commentPinned), desc(signatures.createdAt));
 
   return (
     <>
@@ -69,7 +74,19 @@ export default async function PetitionCommentsPage({
         ) : (
           <ul className="mt-8 space-y-4">
             {signers.map((s, i) => (
-              <li key={i} className="border-l-2 border-border pl-4 text-sm">
+              <li
+                key={i}
+                className={
+                  s.pinned
+                    ? "border-l-2 border-brand bg-brand-light/40 py-2 pl-4 text-sm"
+                    : "border-l-2 border-border pl-4 text-sm"
+                }
+              >
+                {s.pinned && (
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand">
+                    Pinned
+                  </p>
+                )}
                 <p className="text-foreground">&ldquo;{s.comment}&rdquo;</p>
                 <p className="mt-1 text-muted">
                   — {formatSignerName(s.displayName)} ·{" "}

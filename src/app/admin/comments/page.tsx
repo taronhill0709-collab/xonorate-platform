@@ -3,7 +3,13 @@ import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { comments, petitions, signatures, users } from "@/db/schema";
 import { COMMENT_STATUS_LABEL, COMMENT_TARGET_LABEL } from "@/lib/comment-status";
-import { clearSignatureComment, deleteComment, setCommentStatus, toggleCommentPin } from "./actions";
+import {
+  clearSignatureComment,
+  deleteComment,
+  setCommentStatus,
+  toggleCommentPin,
+  toggleSignatureCommentPin,
+} from "./actions";
 import { DeleteCommentButton } from "./delete-comment-button";
 
 export default async function AdminCommentsPage() {
@@ -25,6 +31,7 @@ export default async function AdminCommentsPage() {
     .select({
       id: signatures.id,
       comment: signatures.comment,
+      pinned: signatures.commentPinned,
       displayName: signatures.displayName,
       createdAt: signatures.createdAt,
       petitionTitle: petitions.title,
@@ -32,7 +39,7 @@ export default async function AdminCommentsPage() {
     .from(signatures)
     .innerJoin(petitions, eq(signatures.petitionId, petitions.id))
     .where(isNotNull(signatures.comment))
-    .orderBy(desc(signatures.createdAt));
+    .orderBy(desc(signatures.commentPinned), desc(signatures.createdAt));
 
   return (
     <div>
@@ -126,6 +133,7 @@ export default async function AdminCommentsPage() {
               <th className="py-2 font-medium">Petition</th>
               <th className="py-2 font-medium">Note</th>
               <th className="py-2 font-medium" />
+              <th className="py-2 font-medium" />
             </tr>
           </thead>
           <tbody>
@@ -136,7 +144,16 @@ export default async function AdminCommentsPage() {
                 <td className="max-w-md whitespace-pre-wrap break-words py-2 text-foreground">
                   {row.comment}
                 </td>
+                <td className="py-2">{row.pinned && <Badge tone="brand">Pinned</Badge>}</td>
                 <td className="py-2 text-right">
+                  <form
+                    action={toggleSignatureCommentPin.bind(null, row.id, !row.pinned)}
+                    className="inline"
+                  >
+                    <button type="submit" className="text-brand underline">
+                      {row.pinned ? "Unpin" : "Pin"}
+                    </button>
+                  </form>{" "}
                   <form action={clearSignatureComment.bind(null, row.id)} className="inline">
                     <button type="submit" className="text-red-600 underline">
                       Remove

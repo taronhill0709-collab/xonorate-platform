@@ -220,6 +220,9 @@ export const signatures = pgTable(
     email: text("email").notNull(),
     displayName: text("display_name").notNull(),
     comment: text("comment"),
+    // Admin-highlighted sign-up notes show first under "Why people are
+    // signing", ahead of normal recency order.
+    commentPinned: boolean("comment_pinned").notNull().default(false),
     // double opt-in: signature doesn't count toward the public total until confirmed
     verified: boolean("verified").notNull().default(false),
     confirmToken: text("confirm_token"),

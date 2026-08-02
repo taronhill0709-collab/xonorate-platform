@@ -1,0 +1,1 @@
+ALTER TABLE "signatures" ADD COLUMN "comment_pinned" boolean DEFAULT false NOT NULL;

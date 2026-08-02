@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNotNull } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -112,11 +112,21 @@ export default async function PetitionDetailPage({
 
   const signedThisWeek = await countSignedThisWeek(petition.id);
 
-  const recentSigners = await db
-    .select({ displayName: signatures.displayName, comment: signatures.comment })
+  const signersWithComments = await db
+    .select({
+      displayName: signatures.displayName,
+      comment: signatures.comment,
+      pinned: signatures.commentPinned,
+    })
     .from(signatures)
-    .where(and(eq(signatures.petitionId, petition.id), eq(signatures.verified, true)))
-    .orderBy(desc(signatures.createdAt))
+    .where(
+      and(
+        eq(signatures.petitionId, petition.id),
+        eq(signatures.verified, true),
+        isNotNull(signatures.comment),
+      ),
+    )
+    .orderBy(desc(signatures.commentPinned), desc(signatures.createdAt))
     .limit(20);
 
   const updates = await db
@@ -130,7 +140,6 @@ export default async function PetitionDetailPage({
     .where(eq(petitionUpdates.petitionId, petition.id))
     .orderBy(desc(petitionUpdates.createdAt));
 
-  const signersWithComments = recentSigners.filter((s) => s.comment);
   const pct = Math.min(100, Math.round((signatureCount / petition.goalCount) * 100));
   const origin = await getOrigin();
 
@@ -236,7 +245,19 @@ export default async function PetitionDetailPage({
             </div>
             <ul className="mt-4 space-y-4">
               {signersWithComments.map((s, i) => (
-                <li key={i} className="border-l-2 border-border pl-4 text-sm">
+                <li
+                  key={i}
+                  className={
+                    s.pinned
+                      ? "border-l-2 border-brand bg-brand-light/40 py-2 pl-4 text-sm"
+                      : "border-l-2 border-border pl-4 text-sm"
+                  }
+                >
+                  {s.pinned && (
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand">
+                      Pinned
+                    </p>
+                  )}
                   <p className="text-foreground">&ldquo;{s.comment}&rdquo;</p>
                   <p className="mt-1 text-muted">— {formatSignerName(s.displayName)}</p>
                 </li>

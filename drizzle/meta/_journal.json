@@ -120,6 +120,13 @@
       "when": 1785684591232,
       "tag": "0016_add-comments-pinned",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785686116736,
+      "tag": "0017_add-signatures-comment-pinned",
+      "breakpoints": true
     }
   ]
 }
