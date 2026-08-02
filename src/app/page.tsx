@@ -89,7 +89,7 @@ export default async function Home() {
     })
     .from(posts)
     .where(eq(posts.status, "published"))
-    .orderBy(desc(posts.publishedAt))
+    .orderBy(asc(posts.sortOrder), desc(posts.publishedAt))
     .limit(FEED_LIMIT);
 
   const platformStats = await getPlatformStats();
@@ -105,7 +105,7 @@ export default async function Home() {
               alt=""
               width={280}
               height={280}
-              className="h-40 w-40 shrink-0 opacity-30 sm:h-64 sm:w-64"
+              className="h-40 w-40 shrink-0 opacity-60 sm:h-64 sm:w-64"
             />
             <div className="text-center sm:text-left">
               <h1 className="font-serif text-4xl text-header-foreground">
