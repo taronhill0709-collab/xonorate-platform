@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +30,7 @@ export default async function PostsIndexPage() {
     })
     .from(posts)
     .where(eq(posts.status, "published"))
-    .orderBy(desc(posts.publishedAt));
+    .orderBy(asc(posts.sortOrder), desc(posts.publishedAt));
 
   return (
     <>

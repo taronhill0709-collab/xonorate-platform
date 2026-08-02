@@ -245,6 +245,8 @@ export const comments = pgTable("comments", {
   body: text("body").notNull(),
   status: commentStatusEnum("status").notNull().default("pending"),
   ipAddress: text("ip_address"),
+  // Admin-highlighted comments show first, ahead of normal recency order.
+  pinned: boolean("pinned").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -294,6 +296,10 @@ export const posts = pgTable("posts", {
   // end, so this is never fetched live on a page render.
   socialViews: integer("social_views").notNull().default(0),
   socialMetricsSyncedAt: timestamp("social_metrics_synced_at"),
+  // Admin-controlled display order (ascending) for the homepage and /posts
+  // list — lower sorts first. Ties (the common case, since every row
+  // defaults to 0 until reordered) fall back to publishedAt/createdAt.
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

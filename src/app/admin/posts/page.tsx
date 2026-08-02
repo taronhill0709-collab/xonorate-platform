@@ -1,12 +1,16 @@
-import { desc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import Link from "next/link";
 import { Badge } from "@/app/admin/_components/field";
+import { PostReorderButtons } from "./post-reorder-buttons";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { POST_STATUS_LABEL, POST_TYPE_LABEL } from "@/lib/post-type";
 
 export default async function AdminPostsPage() {
-  const rows = await db.select().from(posts).orderBy(desc(posts.createdAt));
+  const rows = await db
+    .select()
+    .from(posts)
+    .orderBy(asc(posts.sortOrder), desc(posts.createdAt));
 
   return (
     <div>
@@ -19,6 +23,7 @@ export default async function AdminPostsPage() {
         <table className="mt-6 w-full text-left text-sm">
           <thead className="text-muted">
             <tr className="border-b border-border">
+              <th className="py-2 font-medium" />
               <th className="py-2 font-medium">Title</th>
               <th className="py-2 font-medium">Type</th>
               <th className="py-2 font-medium">Status</th>
@@ -26,8 +31,11 @@ export default async function AdminPostsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {rows.map((row, i) => (
               <tr key={row.id} className="border-b border-border">
+                <td className="py-2">
+                  <PostReorderButtons postId={row.id} isFirst={i === 0} isLast={i === rows.length - 1} />
+                </td>
                 <td className="py-2 text-foreground">
                   <Link href={`/admin/posts/${row.id}`} className="underline">
                     {row.title}
