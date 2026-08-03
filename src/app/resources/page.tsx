@@ -6,6 +6,47 @@ export const metadata = {
     "Resources for people navigating a wrongful conviction, their families, and anyone who wants to understand or push for reform.",
 };
 
+function ResourceCard({
+  name,
+  description,
+  href,
+  meta,
+  tone = "default",
+}: {
+  name: string;
+  description: string;
+  href: string;
+  meta?: string;
+  tone?: "default" | "crisis";
+}) {
+  const isExternal = href.startsWith("http");
+  return (
+    <a
+      href={href}
+      {...(isExternal
+        ? { target: "_blank", rel: "noopener noreferrer" }
+        : {})}
+      className={
+        tone === "crisis"
+          ? "block rounded-lg border border-accent bg-accent/10 p-5 shadow-sm transition hover:shadow-md"
+          : "block rounded-lg border border-border p-5 shadow-sm transition hover:border-brand hover:shadow-md"
+      }
+    >
+      <p className="font-serif text-lg text-foreground">{name}</p>
+      <p className="mt-1 text-sm text-muted">{description}</p>
+      <p
+        className={
+          tone === "crisis"
+            ? "mt-2 text-xs font-semibold uppercase tracking-wide text-accent"
+            : "mt-2 text-xs font-medium uppercase tracking-wide text-brand"
+        }
+      >
+        {meta ?? href.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+      </p>
+    </a>
+  );
+}
+
 const SECTIONS = [
   {
     id: "know-your-rights",
@@ -13,28 +54,82 @@ const SECTIONS = [
     body: (
       <>
         <p>
-          The right to remain silent and the right to an attorney apply from
-          the first interaction with police — not just at trial or after an
-          arrest. Asking for a lawyer before answering any questions is not
-          an admission of guilt, and it is the single most protective step
-          available in the moment. Once you&apos;ve asked for a lawyer,
-          police are required to stop questioning until one is present.
+          A large share of documented wrongful convictions trace back to what
+          happened in the first few minutes of a police encounter — before a
+          lawyer was ever in the room. These rights apply to everyone in the
+          United States, in every state, regardless of immigration or
+          citizenship status.
         </p>
-        <p>
-          A high percentage of documented wrongful convictions involve a
-          false confession or a guilty plea entered under pressure —
-          often from a suspect who believed cooperating, or pleading to a
-          lesser charge, was the fastest way out of a frightening situation.
-          It rarely is. Never waive the right to counsel to &quot;just
-          explain what happened.&quot;
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <strong className="text-foreground">
+              You have the right to remain silent, and the right to an
+              attorney.
+            </strong>{" "}
+            Say it out loud — clearly and calmly: &quot;I am going to remain
+            silent. I want a lawyer.&quot; Once you&apos;ve invoked these
+            rights, officers are required to stop questioning until counsel
+            is present. Simply staying quiet is not always enough; stating
+            it removes any ambiguity.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              You can refuse a search of your person, car, or home.
+            </strong>{" "}
+            Without a warrant, your consent, or an emergency the law
+            recognizes, officers generally cannot search you or your
+            property. Say &quot;I do not consent to a search&quot; clearly —
+            you can say this even if they search anyway; it preserves the
+            issue for later. Do not physically resist.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              If you&apos;re not under arrest, you can ask &quot;Am I free to
+              leave?&quot;
+            </strong>{" "}
+            If the answer is yes, you may calmly walk away. If the answer is
+            no, you are being detained or arrested, and the rights above
+            still apply.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              You have the right to record police in public.
+            </strong>{" "}
+            Recording officers performing their duties in a public place is
+            constitutionally protected in every state, as long as you
+            don&apos;t physically interfere with their activity.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              These rights do not depend on immigration or citizenship
+              status.
+            </strong>{" "}
+            Everyone physically present in the U.S. — citizen or not — has
+            the right to remain silent and the right to refuse to sign
+            anything without speaking to a lawyer first.
+          </li>
+        </ul>
+
+        <ResourceCard
+          name="ACLU — Know Your Rights"
+          description="The national hub covering police encounters, protests, immigration status, and more — and the place to start for finding your state ACLU affiliate's own guidance."
+          href="https://www.aclu.org/know-your-rights"
+        />
+
+        <p className="text-sm">
+          Many state ACLU affiliates publish free, printable, foldable
+          &quot;Know Your Rights&quot; cards in multiple languages sized to
+          keep in a wallet. The national hub above routes to each state
+          affiliate&apos;s version — start there rather than searching for a
+          specific state&apos;s card directly.
         </p>
-        <p>
-          Post-conviction, every state has different — and often short —
-          deadlines for direct appeals, new-evidence motions, and
-          post-conviction DNA testing requests. Missing a deadline can close
-          off relief permanently, so contacting a public defender&apos;s
-          office or an innocence organization (below) as early as possible
-          matters even if a case feels hopeless.
+
+        <p className="rounded-md border border-border bg-muted-background p-4 text-sm text-muted">
+          This section is general public education, not legal advice, and it
+          is not a substitute for talking to a lawyer about a specific
+          situation. If you or someone you know is currently involved in a
+          police encounter or facing charges, contact an attorney or a
+          public defender&apos;s office as soon as possible.
         </p>
       </>
     ),
@@ -90,15 +185,6 @@ const SECTIONS = [
         <p>
           The{" "}
           <a
-            href="https://innocenceproject.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            Innocence Project
-          </a>{" "}
-          and the{" "}
-          <a
             href="https://innocencenetwork.org/"
             target="_blank"
             rel="noopener noreferrer"
@@ -106,13 +192,55 @@ const SECTIONS = [
           >
             Innocence Network
           </a>{" "}
-          — an association of more than 65 member organizations across the
-          U.S. and abroad — connect people with regional organizations that
-          investigate innocence claims and pursue exoneration case by case,
-          usually at no cost to the client. The Network&apos;s site has a
-          map for finding the member organization that covers a specific
-          state.
+          is the single best starting point: an association of more than 65
+          member organizations across the U.S. and abroad that investigate
+          innocence claims and pursue exoneration case by case, usually at
+          no cost to the client. Its member map routes you directly to the
+          organization that covers a specific state.
         </p>
+
+        <ResourceCard
+          name="Innocence Network — Find a Member Organization"
+          description="Directory of 65+ regional innocence organizations. Start here to find the group that covers the state where the conviction happened."
+          href="https://innocencenetwork.org/network-members/"
+        />
+
+        <div className="rounded-md border border-border p-4">
+          <p className="text-sm font-medium text-foreground">
+            Do you qualify for help from an innocence organization?
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Intake criteria differ by organization, but most Innocence
+            Network members generally look for:
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+            <li>
+              A claim of <em>actual</em> innocence — not just a procedural or
+              sentencing error in an otherwise valid conviction.
+            </li>
+            <li>
+              A completed conviction. Most organizations don&apos;t take
+              cases that are still pretrial or on direct appeal with a public
+              defender already assigned.
+            </li>
+            <li>
+              Some avenue of case-specific evidence left to investigate —
+              untested DNA, forensic re-analysis, a recanting witness, or
+              newly discovered evidence — since these organizations
+              investigate, not just advocate.
+            </li>
+            <li>
+              Because caseloads are large and resources limited, cases with
+              more time remaining on the sentence are often prioritized,
+              though this varies by organization.
+            </li>
+          </ul>
+          <p className="mt-2 text-sm text-muted">
+            Every member organization has its own intake form on its
+            website, reached through the Innocence Network directory above.
+          </p>
+        </div>
+
         <p>
           <a
             href="https://centurion.org/"
@@ -153,6 +281,15 @@ const SECTIONS = [
           factors, time served — and is the source for the exoneration
           statistics cited across this site.
         </p>
+        <p className="text-sm text-muted">
+          If a case doesn&apos;t fit an innocence organization&apos;s intake
+          criteria, or needs representation for something other than an
+          innocence claim, see{" "}
+          <a href="#legal-resources" className="text-brand underline">
+            Legal Resources
+          </a>{" "}
+          below for public defender and lawyer-referral options.
+        </p>
       </>
     ),
   },
@@ -163,52 +300,49 @@ const SECTIONS = [
       <>
         <p>
           Every state has a public defender or indigent-defense system for
-          people who can&apos;t afford an attorney. The{" "}
-          <a
-            href="https://www.americanbar.org/groups/legal_services/flh-home/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            American Bar Association&apos;s Find Legal Help
-          </a>{" "}
-          service and most state bar associations run a lawyer-referral
-          directory for locating post-conviction and appellate counsel.
+          people who can&apos;t afford an attorney, and most state bar
+          associations run a lawyer-referral directory. Search &quot;[state]
+          bar association lawyer referral service&quot; to find the one for
+          a specific state, or start with a post-conviction unit inside the
+          state public defender&apos;s office where one exists.
         </p>
-        <p>
-          The{" "}
-          <a
-            href="https://www.nacdl.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            National Association of Criminal Defense Lawyers
-          </a>{" "}
-          maintains resources on defense strategy and appellate practice,
-          including a dedicated{" "}
-          <a
-            href="https://www.nacdl.org/Landing/EyewitnessID"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            eyewitness identification
-          </a>{" "}
-          resource hub — one of the leading contributing factors in wrongful
-          convictions. The{" "}
-          <a
-            href="https://www.nlada.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            National Legal Aid &amp; Defender Association
-          </a>{" "}
-          works to expand access to public defense nationally and can point
-          to state-level resources. State innocence organizations (above)
-          typically maintain their own intake process for reviewing a
-          case&apos;s eligibility for their help.
+
+        <ResourceCard
+          name="Restoration of Rights Project"
+          description="Collateral Consequences Resource Center's free, state-by-state guide to expungement, record sealing, pardons, and restoring professional licenses after a conviction — the best resource for 'how do I get my license back.'"
+          href="https://ccresourcecenter.org/"
+        />
+
+        <ResourceCard
+          name="National Association of Criminal Defense Lawyers (NACDL)"
+          description="Attorney referrals and post-conviction resources, including a dedicated eyewitness identification hub — one of the leading contributing factors in wrongful convictions."
+          href="https://www.nacdl.org/"
+        />
+
+        <ResourceCard
+          name="National Registry of Exonerations"
+          description="Research database tracking exonerations nationwide, including a state-by-state guide to wrongful-conviction compensation laws — use it to see what compensation, if any, a given state provides."
+          href="https://www.law.umich.edu/special/exoneration/Pages/about.aspx"
+        />
+
+        <ResourceCard
+          name="ABA Find Legal Help"
+          description="The American Bar Association's directory for locating legal aid and lawyer-referral services by state."
+          href="https://www.americanbar.org/groups/legal_services/flh-home/"
+        />
+
+        <ResourceCard
+          name="National Legal Aid & Defender Association (NLADA)"
+          description="Works to expand access to public defense nationally and can point to state-level public defender and legal aid resources."
+          href="https://www.nlada.org/"
+        />
+
+        <p className="text-sm text-muted">
+          State public defender post-conviction units and state bar
+          lawyer-referral services vary widely — there&apos;s no single
+          national directory, so the fastest path is usually searching
+          &quot;[state] bar association lawyer referral service&quot; or
+          &quot;[state] public defender post-conviction unit&quot; directly.
         </p>
       </>
     ),
@@ -220,63 +354,47 @@ const SECTIONS = [
       <>
         <p>
           Wrongful convictions recur because of identifiable, fixable
-          failures. The evidence points to a consistent set of causes across
-          thousands of documented cases:
+          failures — eyewitness misidentification, unvalidated forensic
+          science, false confessions, informant testimony, and official
+          misconduct chief among them. For anyone who wants to work on the
+          system itself rather than an individual case, these organizations
+          lead on research, litigation, and policy:
         </p>
-        <ul className="list-disc space-y-1 pl-5">
-          <li>
-            Eyewitness misidentification — the leading contributing factor
-            in DNA-exoneration cases, worsened by suggestive lineup and
-            photo-array procedures.
-          </li>
-          <li>
-            Forensic science that was never scientifically validated (bite
-            marks, hair microscopy, arson indicators long since discredited)
-            but was presented to juries as certain.
-          </li>
-          <li>
-            False confessions, often from minors, people with cognitive
-            disabilities, or anyone worn down by long interrogations without
-            counsel present.
-          </li>
-          <li>
-            Jailhouse informant and incentivized-witness testimony, given in
-            exchange for reduced charges or other benefits the jury is
-            never told about.
-          </li>
-          <li>
-            Official misconduct — withheld exculpatory evidence
-            (a <em>Brady</em> violation), coached witnesses, or an
-            investigation that stopped once a suspect was in hand.
-          </li>
-        </ul>
-        <p>
-          Concrete reforms exist for each of these: sequential,
-          double-blind eyewitness identification procedures; mandatory
-          recording of interrogations; independent forensic oversight;
-          restrictions on uncorroborated informant testimony; and
-          conviction integrity units empowered to reopen questionable
-          cases. The{" "}
-          <a
-            href="https://www.ncsl.org/civil-and-criminal-justice"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            National Conference of State Legislatures
-          </a>{" "}
-          tracks which states have passed which reforms, and{" "}
-          <a
-            href="https://www.sentencingproject.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            The Sentencing Project
-          </a>{" "}
-          publishes research on sentencing and broader criminal justice
-          policy. Contacting state legislators about these specific reforms
-          — by name, not in the abstract — is one of the most direct ways an
+
+        <ResourceCard
+          name="The Sentencing Project"
+          description="Research and advocacy on sentencing policy and state-level incarceration data."
+          href="https://www.sentencingproject.org/"
+        />
+        <ResourceCard
+          name="Prison Policy Initiative"
+          description="Independent research exposing the scale and harms of mass incarceration nationwide."
+          href="https://www.prisonpolicy.org/"
+        />
+        <ResourceCard
+          name="Brennan Center for Justice"
+          description="Legal and policy work on prosecutorial accountability and systemic criminal justice reform."
+          href="https://www.brennancenter.org/"
+        />
+        <ResourceCard
+          name="Equal Justice Initiative"
+          description="Litigation and advocacy on prosecutorial and police misconduct, unreliable forensic evidence, and indigent defense."
+          href="https://eji.org/"
+        />
+        <ResourceCard
+          name="ACLU Campaign for Smart Justice"
+          description="Focused campaign work on prosecutorial accountability and district attorney elections."
+          href="https://www.aclu.org/issues/smart-justice"
+        />
+        <ResourceCard
+          name="The Marshall Project"
+          description="Nonprofit journalism covering the criminal justice system in depth."
+          href="https://www.themarshallproject.org/"
+        />
+
+        <p className="text-sm text-muted">
+          Contacting state legislators about specific reforms — by name, not
+          in the abstract — remains one of the most direct ways an
           individual can reduce future wrongful convictions.
         </p>
       </>
@@ -287,24 +405,77 @@ const SECTIONS = [
     title: "Support Services",
     body: (
       <>
-        <p>
-          Exoneration doesn&apos;t automatically come with support for
-          rebuilding a life. As of now, most — but not all — states have a
-          compensation statute for the wrongly convicted, and the amount,
-          eligibility rules, and whether time is even a factor vary
-          enormously by jurisdiction; a small number of states offer no
-          compensation at all. The Innocence Project maintains an
-          up-to-date, state-by-state compensation law guide on its site
-          (linked above), since these rules change as legislatures act.
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          In crisis right now?
         </p>
-        <p>
-          Reentry needs — housing, employment, healthcare, restoring a
-          driver&apos;s license or professional credentials, and processing
-          the psychological toll of wrongful incarceration — are usually
-          best coordinated through the innocence organization or legal team
-          that handled the exoneration, since they know the specific
-          jurisdiction&apos;s programs and can make direct referrals rather
-          than a general search turning one up.
+        <ResourceCard
+          tone="crisis"
+          name="988 Suicide & Crisis Lifeline"
+          description="Free and confidential support for anyone in crisis, available around the clock."
+          href="https://988lifeline.org/"
+          meta="Call or text 988 — 24/7"
+        />
+
+        <p className="mt-6 font-serif text-lg text-foreground">
+          Mental health &amp; trauma
+        </p>
+        <ResourceCard
+          name="SAMHSA National Helpline"
+          description="Free, confidential treatment referral and information service for mental health and substance use, 24/7."
+          href="https://www.samhsa.gov/find-help/national-helpline"
+          meta="1-800-662-4357 · 24/7"
+        />
+        <ResourceCard
+          name="Healing Justice"
+          description="Restorative justice and trauma-informed support built specifically for exonerees and their families."
+          href="https://healingjustice.org/"
+        />
+
+        <p className="mt-6 font-serif text-lg text-foreground">
+          Reentry, housing &amp; employment
+        </p>
+        <ResourceCard
+          name="211"
+          description="The national helpline connecting anyone to local housing, food, healthcare, and financial assistance by zip code — the best single starting point if you don't know where to look locally."
+          href="https://www.211.org/"
+          meta="Call 211 or visit 211.org"
+        />
+        <ResourceCard
+          name="After Innocence"
+          description="Case management connecting exonerees to healthcare, benefits, social services, and legal assistance during reentry."
+          href="https://after-innocence.org/"
+        />
+        <ResourceCard
+          name="National Reentry Resource Center"
+          description="Directories of housing and employment reentry programs, run by the Council of State Governments Justice Center."
+          href="https://csgjusticecenter.org/"
+        />
+
+        <p className="mt-6 font-serif text-lg text-foreground">
+          Restoring licenses &amp; credentials
+        </p>
+        <ResourceCard
+          name="Restoration of Rights Project"
+          description="The same free, state-by-state guide referenced under Legal Resources — restoring a professional license or occupational credential after a conviction is as much a support-services need as a legal one."
+          href="https://ccresourcecenter.org/"
+        />
+
+        <p className="mt-6 font-serif text-lg text-foreground">
+          Death row exonerees
+        </p>
+        <ResourceCard
+          name="Witness to Innocence"
+          description="Peer support and public advocacy run by exonerees themselves, including former death row survivors."
+          href="https://www.witnesstoinnocence.org/"
+        />
+
+        <p className="mt-2 text-sm text-muted">
+          Compensation for the wrongly convicted is not automatic. Most, but
+          not all, states have a compensation statute, and the amount,
+          eligibility rules, and whether time served is even a factor vary
+          enormously by jurisdiction — see the National Registry of
+          Exonerations link under Legal Resources above for a state-by-state
+          breakdown.
         </p>
       </>
     ),
@@ -341,6 +512,13 @@ export default function ResourcesPage() {
             </section>
           ))}
         </div>
+
+        <p className="mt-16 border-t border-border pt-6 text-sm text-muted">
+          This page provides general guidance on where to seek help. It is
+          not legal or medical advice, and it isn&apos;t a substitute for
+          consulting a licensed attorney or medical professional about a
+          specific situation.
+        </p>
       </main>
     </>
   );
