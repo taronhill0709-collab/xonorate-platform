@@ -282,6 +282,8 @@ export const generalInquiries = pgTable("general_inquiries", {
   email: text("email").notNull(),
   message: text("message").notNull(),
   status: generalInquiryStatusEnum("status").notNull().default("new"),
+  adminReply: text("admin_reply"),
+  respondedAt: timestamp("responded_at"),
   ipAddress: text("ip_address"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -3,7 +3,7 @@ import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { generalInquiries } from "@/db/schema";
 import { GENERAL_INQUIRY_STATUS_LABEL } from "@/lib/general-inquiry-status";
-import { setGeneralInquiryStatus } from "./actions";
+import { replyToGeneralInquiry } from "./actions";
 
 export default async function AdminInquiriesPage() {
   const rows = await db.select().from(generalInquiries).orderBy(desc(generalInquiries.createdAt));
@@ -16,7 +16,7 @@ export default async function AdminInquiriesPage() {
         <a href="/admin/case-submissions" className="text-brand underline">
           Case submissions
         </a>{" "}
-        for those.
+        for those. Replying below emails the sender directly at the address they submitted.
       </p>
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">No inquiries yet.</p>
@@ -32,15 +32,36 @@ export default async function AdminInquiriesPage() {
               </div>
               <p className="mt-1 text-muted">{row.email}</p>
               <p className="mt-2 whitespace-pre-line text-foreground">{row.message}</p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                {row.status === "new" && (
-                  <form action={setGeneralInquiryStatus.bind(null, row.id, "responded")}>
-                    <button type="submit" className="text-brand underline">
-                      Mark as responded
-                    </button>
-                  </form>
-                )}
-              </div>
+
+              {row.adminReply && (
+                <div className="mt-3 rounded-md border border-border bg-muted-background p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                    Your reply
+                    {row.respondedAt &&
+                      ` — sent ${row.respondedAt.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}`}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-foreground">{row.adminReply}</p>
+                </div>
+              )}
+
+              <form action={replyToGeneralInquiry.bind(null, row.id)} className="mt-3 space-y-2">
+                <textarea
+                  name="reply"
+                  rows={3}
+                  required
+                  placeholder={
+                    row.status === "responded" ? "Send a follow-up reply…" : "Write a reply…"
+                  }
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+                <button type="submit" className="text-brand underline">
+                  {row.status === "responded" ? "Send follow-up" : "Send reply"}
+                </button>
+              </form>
             </div>
           ))}
         </div>
