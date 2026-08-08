@@ -33,6 +33,7 @@ const MENU_LINKS = [
 ];
 
 const GET_INVOLVED_LINKS = [
+  { href: "/submit-case", label: "Submit a case" },
   { href: "/submit-inquiry", label: "Submit an inquiry" },
   { href: "/login", label: "Sign in" },
 ];

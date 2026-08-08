@@ -60,6 +60,12 @@ export async function SiteHeader() {
         About
       </Link>
       <Link
+        href="/submit-case"
+        className="text-header-muted transition hover:text-header-foreground"
+      >
+        Submit a case
+      </Link>
+      <Link
         href="/submit-inquiry"
         className="text-header-muted transition hover:text-header-foreground"
       >

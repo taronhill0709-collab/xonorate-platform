@@ -127,6 +127,20 @@
       "when": 1785686116736,
       "tag": "0017_add-signatures-comment-pinned",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786197636120,
+      "tag": "0018_sturdy_kate_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786198640624,
+      "tag": "0019_known_expediter",
+      "breakpoints": true
     }
   ]
 }

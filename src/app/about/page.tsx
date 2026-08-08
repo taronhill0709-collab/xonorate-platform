@@ -120,10 +120,10 @@ export default function AboutPage() {
           our team reviews every submission privately.
         </p>
         <Link
-          href="/submit-inquiry"
+          href="/submit-case"
           className="mt-4 inline-block rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
         >
-          Submit an inquiry
+          Submit a case
         </Link>
       </main>
     </>

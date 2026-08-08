@@ -21,7 +21,14 @@ export function MobileNav({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-x-0 top-full z-20 border-b border-header-border bg-header-background px-6 py-4 shadow-sm">
           <nav
             className="flex flex-col gap-4 text-sm"
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              // Only close on an actual link click — otherwise this fires on
+              // the Resources <summary> toggle too and closes the whole menu
+              // before its <details> panel ever gets a chance to open.
+              if (e.target instanceof Element && e.target.closest("a")) {
+                setOpen(false);
+              }
+            }}
           >
             {children}
           </nav>

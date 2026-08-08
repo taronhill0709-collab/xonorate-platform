@@ -1,6 +1,6 @@
 import { and, count, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
-import { comments, inquiries, signatures } from "@/db/schema";
+import { comments, generalInquiries, inquiries, signatures } from "@/db/schema";
 
 const WINDOW_MS = 15 * 60 * 1000;
 
@@ -39,5 +39,15 @@ export async function isInquiryRateLimited(ip: string | null): Promise<boolean> 
     .select({ value: count() })
     .from(inquiries)
     .where(and(eq(inquiries.ipAddress, ip), gte(inquiries.createdAt, since)));
+  return (row?.value ?? 0) >= 5;
+}
+
+export async function isGeneralInquiryRateLimited(ip: string | null): Promise<boolean> {
+  if (!ip) return false;
+  const since = new Date(Date.now() - WINDOW_MS);
+  const [row] = await db
+    .select({ value: count() })
+    .from(generalInquiries)
+    .where(and(eq(generalInquiries.ipAddress, ip), gte(generalInquiries.createdAt, since)));
   return (row?.value ?? 0) >= 5;
 }
