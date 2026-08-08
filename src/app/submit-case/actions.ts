@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { inquiries } from "@/db/schema";
+import { notifyAdminOfCaseSubmission } from "@/lib/admin-notify";
 import { isInquiryRateLimited } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
 
@@ -32,6 +33,14 @@ export async function submitCaseSubmission(
   }
 
   await db.insert(inquiries).values({ ...parsed.data, ipAddress: ip });
+
+  await notifyAdminOfCaseSubmission({
+    personName: parsed.data.personName,
+    submitterName: parsed.data.submitterName,
+    submitterEmail: parsed.data.submitterEmail,
+    state: parsed.data.state,
+    caseSummary: parsed.data.caseSummary,
+  });
 
   return { success: true };
 }

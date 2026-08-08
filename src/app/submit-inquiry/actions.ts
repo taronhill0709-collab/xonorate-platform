@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { generalInquiries } from "@/db/schema";
+import { notifyAdminOfGeneralInquiry } from "@/lib/admin-notify";
 import { isGeneralInquiryRateLimited } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
 
@@ -29,6 +30,8 @@ export async function submitGeneralInquiry(
   }
 
   await db.insert(generalInquiries).values({ ...parsed.data, ipAddress: ip });
+
+  await notifyAdminOfGeneralInquiry(parsed.data);
 
   return { success: true };
 }
