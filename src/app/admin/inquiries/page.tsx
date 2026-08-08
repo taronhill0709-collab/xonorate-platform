@@ -1,17 +1,23 @@
 import { desc } from "drizzle-orm";
-import Link from "next/link";
 import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { inquiries } from "@/db/schema";
-import { INQUIRY_STATUS_LABEL } from "@/lib/inquiry-status";
-import { setInquiryStatus } from "./actions";
+import { generalInquiries } from "@/db/schema";
+import { GENERAL_INQUIRY_STATUS_LABEL } from "@/lib/general-inquiry-status";
+import { setGeneralInquiryStatus } from "./actions";
 
 export default async function AdminInquiriesPage() {
-  const rows = await db.select().from(inquiries).orderBy(desc(inquiries.createdAt));
+  const rows = await db.select().from(generalInquiries).orderBy(desc(generalInquiries.createdAt));
 
   return (
     <div>
       <h1 className="font-serif text-2xl text-foreground">Inquiries</h1>
+      <p className="mt-1 text-sm text-muted">
+        General questions and messages — not full case submissions. See{" "}
+        <a href="/admin/case-submissions" className="text-brand underline">
+          Case submissions
+        </a>{" "}
+        for those.
+      </p>
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">No inquiries yet.</p>
       ) : (
@@ -19,62 +25,20 @@ export default async function AdminInquiriesPage() {
           {rows.map((row) => (
             <div key={row.id} className="rounded-lg border border-border p-4 text-sm">
               <div className="flex items-center justify-between">
-                <p className="font-medium text-foreground">
-                  {row.personName} <span className="text-muted">· {row.state}</span>
-                </p>
-                <Badge
-                  tone={
-                    row.status === "accepted"
-                      ? "brand"
-                      : row.status === "declined"
-                        ? "danger"
-                        : "neutral"
-                  }
-                >
-                  {INQUIRY_STATUS_LABEL[row.status] ?? row.status}
+                <p className="font-medium text-foreground">{row.name}</p>
+                <Badge tone={row.status === "responded" ? "brand" : "neutral"}>
+                  {GENERAL_INQUIRY_STATUS_LABEL[row.status] ?? row.status}
                 </Badge>
               </div>
-              <p className="mt-1 text-muted">
-                Submitted by {row.submitterName} ({row.submitterEmail}) —{" "}
-                {row.relationshipToPerson}
-              </p>
-              <p className="mt-2 whitespace-pre-line text-foreground">{row.caseSummary}</p>
+              <p className="mt-1 text-muted">{row.email}</p>
+              <p className="mt-2 whitespace-pre-line text-foreground">{row.message}</p>
               <div className="mt-3 flex flex-wrap gap-3">
                 {row.status === "new" && (
-                  <form action={setInquiryStatus.bind(null, row.id, "reviewing")}>
+                  <form action={setGeneralInquiryStatus.bind(null, row.id, "responded")}>
                     <button type="submit" className="text-brand underline">
-                      Start review
+                      Mark as responded
                     </button>
                   </form>
-                )}
-                {row.status === "reviewing" && (
-                  <form action={setInquiryStatus.bind(null, row.id, "accepted")}>
-                    <button type="submit" className="text-brand underline">
-                      Accept
-                    </button>
-                  </form>
-                )}
-                {(row.status === "new" || row.status === "reviewing") && (
-                  <form action={setInquiryStatus.bind(null, row.id, "declined")}>
-                    <button type="submit" className="text-red-600 underline">
-                      Decline
-                    </button>
-                  </form>
-                )}
-                {row.status === "accepted" && (
-                  <Link
-                    href={{
-                      pathname: "/admin/cases/new",
-                      query: {
-                        clientName: row.personName,
-                        state: row.state,
-                        summary: row.caseSummary,
-                      },
-                    }}
-                    className="text-brand underline"
-                  >
-                    Create case from this inquiry
-                  </Link>
                 )}
               </div>
             </div>

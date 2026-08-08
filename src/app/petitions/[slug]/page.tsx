@@ -202,7 +202,7 @@ export default async function PetitionDetailPage({
           </p>
         </div>
 
-        <div className="mt-8 rounded-lg border border-border p-5">
+        <div id="sign" className="mt-8 scroll-mt-20 rounded-lg border border-border p-5">
           <PetitionSignForm
             petitionId={petition.id}
             alreadyConfirmed={confirmed === "1"}
