@@ -15,6 +15,7 @@ export async function sendMail(options: {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
 
@@ -32,6 +33,7 @@ export async function sendMail(options: {
     subject: options.subject,
     html: options.html,
     text: options.text,
+    replyTo: options.replyTo,
   });
 
   if (error) {

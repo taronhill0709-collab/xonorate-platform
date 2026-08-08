@@ -15,5 +15,8 @@ export async function sendGeneralInquiryReplyEmail(options: {
     subject: "Re: Your message to Xonorate",
     text: `Hi ${name},\n\n${reply}\n\n---\nYour original message:\n${originalMessage}`,
     html: `<p>Hi ${name},</p><p>${reply}</p><hr /><p style="color:#666;font-size:12px;">Your original message:</p><p style="color:#666;font-size:12px;">${originalMessage}</p>`,
+    // Sent from the no-reply platform address, but a reply from the
+    // recipient should land in the admin's actual inbox, not vanish.
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
   });
 }
