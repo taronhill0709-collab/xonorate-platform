@@ -1,6 +1,6 @@
 {
-  "id": "84f8d20d-f7c3-4cc3-b03d-c0660ae953a3",
-  "prevId": "a381462f-9b79-46ba-971e-df3080518207",
+  "id": "595bfdce-3ab2-40f4-999c-19fcd2ddd88e",
+  "prevId": "d840a62b-10b2-43fe-8c18-b666214e0d20",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -427,6 +427,18 @@
           "notNull": true,
           "default": "'new'"
         },
+        "admin_reply": {
+          "name": "admin_reply",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "responded_at": {
+          "name": "responded_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "ip_address": {
           "name": "ip_address",
           "type": "text",
@@ -504,6 +516,25 @@
           "notNull": true,
           "default": "'new'"
         },
+        "info_requested_at": {
+          "name": "info_requested_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "follow_up_token": {
+          "name": "follow_up_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criteria_checklist": {
+          "name": "criteria_checklist",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
         "ip_address": {
           "name": "ip_address",
           "type": "text",
@@ -520,6 +551,212 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inquiries_follow_up_token_unique": {
+          "name": "inquiries_follow_up_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "follow_up_token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inquiry_decision_logs": {
+      "name": "inquiry_decision_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inquiry_id": {
+          "name": "inquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inquiry_decision_logs_inquiry_id_inquiries_id_fk": {
+          "name": "inquiry_decision_logs_inquiry_id_inquiries_id_fk",
+          "tableFrom": "inquiry_decision_logs",
+          "tableTo": "inquiries",
+          "columnsFrom": [
+            "inquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inquiry_follow_ups": {
+      "name": "inquiry_follow_ups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inquiry_id": {
+          "name": "inquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "responses": {
+          "name": "responses",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inquiry_follow_ups_inquiry_id_inquiries_id_fk": {
+          "name": "inquiry_follow_ups_inquiry_id_inquiries_id_fk",
+          "tableFrom": "inquiry_follow_ups",
+          "tableTo": "inquiries",
+          "columnsFrom": [
+            "inquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "inquiry_follow_ups_request_id_inquiry_info_requests_id_fk": {
+          "name": "inquiry_follow_ups_request_id_inquiry_info_requests_id_fk",
+          "tableFrom": "inquiry_follow_ups",
+          "tableTo": "inquiry_info_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.inquiry_info_requests": {
+      "name": "inquiry_info_requests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inquiry_id": {
+          "name": "inquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_items": {
+          "name": "requested_items",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "requested_note": {
+          "name": "requested_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inquiry_info_requests_inquiry_id_inquiries_id_fk": {
+          "name": "inquiry_info_requests_inquiry_id_inquiries_id_fk",
+          "tableFrom": "inquiry_info_requests",
+          "tableTo": "inquiries",
+          "columnsFrom": [
+            "inquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1262,7 +1499,8 @@
       "schema": "public",
       "values": [
         "new",
-        "reviewing",
+        "needs_more_info",
+        "under_review",
         "declined",
         "accepted"
       ]

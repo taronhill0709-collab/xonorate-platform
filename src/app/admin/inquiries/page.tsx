@@ -1,105 +1,68 @@
-import { and, desc, eq, lte } from "drizzle-orm";
-import Link from "next/link";
+import { desc } from "drizzle-orm";
 import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { inquiries, inquiryStatusEnum } from "@/db/schema";
-import { INQUIRY_STATUS_LABEL } from "@/lib/inquiry-status";
+import { generalInquiries } from "@/db/schema";
+import { GENERAL_INQUIRY_STATUS_LABEL } from "@/lib/general-inquiry-status";
+import { replyToGeneralInquiry } from "./actions";
 
-const FOLLOW_UP_DEADLINE_DAYS = 14;
-
-const TABS = [
-  { key: "all", label: "All" },
-  { key: "new", label: "New" },
-  { key: "needs_more_info", label: "Needs more info" },
-  { key: "needs_follow_up", label: `Needs follow-up (${FOLLOW_UP_DEADLINE_DAYS}+ days)` },
-  { key: "under_review", label: "Under review" },
-  { key: "accepted", label: "Accepted" },
-  { key: "declined", label: "Declined" },
-] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
-
-function badgeTone(status: string): "brand" | "danger" | "neutral" {
-  if (status === "accepted") return "brand";
-  if (status === "declined") return "danger";
-  return "neutral";
-}
-
-function followUpDeadline(): Date {
-  return new Date(Date.now() - FOLLOW_UP_DEADLINE_DAYS * 24 * 60 * 60 * 1000);
-}
-
-export default async function AdminInquiriesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const { status: statusParam } = await searchParams;
-  const activeTab: TabKey = TABS.some((t) => t.key === statusParam)
-    ? (statusParam as TabKey)
-    : "all";
-
-  const deadline = followUpDeadline();
-
-  const where =
-    activeTab === "all"
-      ? undefined
-      : activeTab === "needs_follow_up"
-        ? and(eq(inquiries.status, "needs_more_info"), lte(inquiries.infoRequestedAt, deadline))
-        : eq(inquiries.status, activeTab as (typeof inquiryStatusEnum.enumValues)[number]);
-
-  const rows = await db
-    .select()
-    .from(inquiries)
-    .where(where)
-    .orderBy(desc(inquiries.createdAt));
+export default async function AdminInquiriesPage() {
+  const rows = await db.select().from(generalInquiries).orderBy(desc(generalInquiries.createdAt));
 
   return (
     <div>
       <h1 className="font-serif text-2xl text-foreground">Inquiries</h1>
-
-      <div className="mt-4 flex flex-wrap gap-2 border-b border-border pb-3">
-        {TABS.map((tab) => (
-          <Link
-            key={tab.key}
-            href={tab.key === "all" ? "/admin/inquiries" : `/admin/inquiries?status=${tab.key}`}
-            className={`rounded-full px-3 py-1 text-sm transition ${
-              activeTab === tab.key
-                ? "bg-brand text-brand-foreground"
-                : "border border-border text-muted hover:text-foreground"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </div>
-
+      <p className="mt-1 text-sm text-muted">
+        General questions and messages — not full case submissions. See{" "}
+        <a href="/admin/case-submissions" className="text-brand underline">
+          Case submissions
+        </a>{" "}
+        for those. Replying below emails the sender directly at the address they submitted.
+      </p>
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">No inquiries here.</p>
+        <p className="mt-6 text-sm text-muted">No inquiries yet.</p>
       ) : (
         <div className="mt-6 space-y-4">
           {rows.map((row) => (
-            <Link
-              key={row.id}
-              href={`/admin/inquiries/${row.id}`}
-              className="block rounded-lg border border-border p-4 text-sm transition hover:border-brand"
-            >
+            <div key={row.id} className="rounded-lg border border-border p-4 text-sm">
               <div className="flex items-center justify-between">
-                <p className="font-medium text-foreground">
-                  {row.personName} <span className="text-muted">· {row.state}</span>
-                </p>
-                <Badge tone={badgeTone(row.status)}>
-                  {INQUIRY_STATUS_LABEL[row.status] ?? row.status}
+                <p className="font-medium text-foreground">{row.name}</p>
+                <Badge tone={row.status === "responded" ? "brand" : "neutral"}>
+                  {GENERAL_INQUIRY_STATUS_LABEL[row.status] ?? row.status}
                 </Badge>
               </div>
-              <p className="mt-1 text-muted">
-                Submitted by {row.submitterName} ({row.submitterEmail}) —{" "}
-                {row.relationshipToPerson}
-              </p>
-              <p className="mt-2 line-clamp-2 whitespace-pre-line text-foreground">
-                {row.caseSummary}
-              </p>
-            </Link>
+              <p className="mt-1 text-muted">{row.email}</p>
+              <p className="mt-2 whitespace-pre-line text-foreground">{row.message}</p>
+
+              {row.adminReply && (
+                <div className="mt-3 rounded-md border border-border bg-muted-background p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                    Your reply
+                    {row.respondedAt &&
+                      ` — sent ${row.respondedAt.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}`}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-foreground">{row.adminReply}</p>
+                </div>
+              )}
+
+              <form action={replyToGeneralInquiry.bind(null, row.id)} className="mt-3 space-y-2">
+                <textarea
+                  name="reply"
+                  rows={3}
+                  required
+                  placeholder={
+                    row.status === "responded" ? "Send a follow-up reply…" : "Write a reply…"
+                  }
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+                <button type="submit" className="text-brand underline">
+                  {row.status === "responded" ? "Send follow-up" : "Send reply"}
+                </button>
+              </form>
+            </div>
           ))}
         </div>
       )}

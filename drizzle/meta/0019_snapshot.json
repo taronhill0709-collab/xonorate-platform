@@ -1,6 +1,6 @@
 {
-  "id": "84f8d20d-f7c3-4cc3-b03d-c0660ae953a3",
-  "prevId": "a381462f-9b79-46ba-971e-df3080518207",
+  "id": "d840a62b-10b2-43fe-8c18-b666214e0d20",
+  "prevId": "84f8d20d-f7c3-4cc3-b03d-c0660ae953a3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -426,6 +426,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'new'"
+        },
+        "admin_reply": {
+          "name": "admin_reply",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "responded_at": {
+          "name": "responded_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "ip_address": {
           "name": "ip_address",

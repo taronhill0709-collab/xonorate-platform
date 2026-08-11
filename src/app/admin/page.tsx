@@ -4,6 +4,7 @@ import { db } from "@/db";
 import {
   cases,
   comments,
+  generalInquiries,
   inquiries,
   petitions,
   posts,
@@ -18,7 +19,8 @@ async function getCounts() {
     [caseCount],
     [petitionCount],
     [verifiedSignatureCount],
-    [newInquiryCount],
+    [newCaseSubmissionCount],
+    [newGeneralInquiryCount],
     [pendingCommentCount],
     [pendingPostCount],
     [supporterCount],
@@ -34,6 +36,10 @@ async function getCounts() {
       .select({ value: count() })
       .from(inquiries)
       .where(eq(inquiries.status, "new")),
+    db
+      .select({ value: count() })
+      .from(generalInquiries)
+      .where(eq(generalInquiries.status, "new")),
     db
       .select({ value: count() })
       .from(comments)
@@ -56,7 +62,8 @@ async function getCounts() {
     cases: caseCount.value,
     petitions: petitionCount.value,
     verifiedSignatures: verifiedSignatureCount.value,
-    newInquiries: newInquiryCount.value,
+    newCaseSubmissions: newCaseSubmissionCount.value,
+    newGeneralInquiries: newGeneralInquiryCount.value,
     pendingComments: pendingCommentCount.value,
     pendingPosts: pendingPostCount.value,
     supporters: supporterCount.value,
@@ -81,7 +88,12 @@ export default async function AdminDashboardPage() {
       value: counts.newSupportersThisWeek,
       href: "/admin/supporters",
     },
-    { label: "New inquiries", value: counts.newInquiries, href: "/admin/inquiries" },
+    {
+      label: "New case submissions",
+      value: counts.newCaseSubmissions,
+      href: "/admin/case-submissions",
+    },
+    { label: "New inquiries", value: counts.newGeneralInquiries, href: "/admin/inquiries" },
     { label: "Comments to moderate", value: counts.pendingComments, href: "/admin/comments" },
     { label: "Posts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
   ];

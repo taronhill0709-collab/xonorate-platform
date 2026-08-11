@@ -117,6 +117,12 @@ export default async function PetitionsIndexPage() {
                         )}
                       </p>
                     </div>
+                    <Link
+                      href={`/petitions/${row.slug}#sign`}
+                      className="mt-4 inline-block rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:opacity-90"
+                    >
+                      Sign this petition
+                    </Link>
                   </div>
                 </li>
               );

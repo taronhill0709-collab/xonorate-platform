@@ -57,6 +57,11 @@ export const postStatusEnum = pgEnum("post_status", ["pending", "published"]);
 
 export const petitionStatusEnum = pgEnum("petition_status", ["draft", "published"]);
 
+export const generalInquiryStatusEnum = pgEnum("general_inquiry_status", [
+  "new",
+  "responded",
+]);
+
 // --- Auth.js required tables (Drizzle adapter shape) ---
 
 export const users = pgTable("users", {
@@ -318,6 +323,21 @@ export const inquiryDecisionLogs = pgTable("inquiry_decision_logs", {
     .references(() => inquiries.id, { onDelete: "cascade" }),
   body: text("body").notNull(),
   createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- General inquiries (quick questions/contact messages, distinct from a
+// full case submission above — no case details, no admin case-creation flow) ---
+
+export const generalInquiries = pgTable("general_inquiries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  message: text("message").notNull(),
+  status: generalInquiryStatusEnum("status").notNull().default("new"),
+  adminReply: text("admin_reply"),
+  respondedAt: timestamp("responded_at"),
+  ipAddress: text("ip_address"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
