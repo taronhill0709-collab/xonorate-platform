@@ -1,36 +1,94 @@
-import { desc } from "drizzle-orm";
+import { and, desc, eq, lte } from "drizzle-orm";
 import Link from "next/link";
 import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { inquiries } from "@/db/schema";
+import { inquiries, inquiryStatusEnum } from "@/db/schema";
 import { INQUIRY_STATUS_LABEL } from "@/lib/inquiry-status";
-import { setInquiryStatus } from "./actions";
 
-export default async function AdminInquiriesPage() {
-  const rows = await db.select().from(inquiries).orderBy(desc(inquiries.createdAt));
+const FOLLOW_UP_DEADLINE_DAYS = 14;
+
+const TABS = [
+  { key: "all", label: "All" },
+  { key: "new", label: "New" },
+  { key: "needs_more_info", label: "Needs more info" },
+  { key: "needs_follow_up", label: `Needs follow-up (${FOLLOW_UP_DEADLINE_DAYS}+ days)` },
+  { key: "under_review", label: "Under review" },
+  { key: "accepted", label: "Accepted" },
+  { key: "declined", label: "Declined" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
+function badgeTone(status: string): "brand" | "danger" | "neutral" {
+  if (status === "accepted") return "brand";
+  if (status === "declined") return "danger";
+  return "neutral";
+}
+
+function followUpDeadline(): Date {
+  return new Date(Date.now() - FOLLOW_UP_DEADLINE_DAYS * 24 * 60 * 60 * 1000);
+}
+
+export default async function AdminInquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status: statusParam } = await searchParams;
+  const activeTab: TabKey = TABS.some((t) => t.key === statusParam)
+    ? (statusParam as TabKey)
+    : "all";
+
+  const deadline = followUpDeadline();
+
+  const where =
+    activeTab === "all"
+      ? undefined
+      : activeTab === "needs_follow_up"
+        ? and(eq(inquiries.status, "needs_more_info"), lte(inquiries.infoRequestedAt, deadline))
+        : eq(inquiries.status, activeTab as (typeof inquiryStatusEnum.enumValues)[number]);
+
+  const rows = await db
+    .select()
+    .from(inquiries)
+    .where(where)
+    .orderBy(desc(inquiries.createdAt));
 
   return (
     <div>
       <h1 className="font-serif text-2xl text-foreground">Inquiries</h1>
+
+      <div className="mt-4 flex flex-wrap gap-2 border-b border-border pb-3">
+        {TABS.map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.key === "all" ? "/admin/inquiries" : `/admin/inquiries?status=${tab.key}`}
+            className={`rounded-full px-3 py-1 text-sm transition ${
+              activeTab === tab.key
+                ? "bg-brand text-brand-foreground"
+                : "border border-border text-muted hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">No inquiries yet.</p>
+        <p className="mt-6 text-sm text-muted">No inquiries here.</p>
       ) : (
         <div className="mt-6 space-y-4">
           {rows.map((row) => (
-            <div key={row.id} className="rounded-lg border border-border p-4 text-sm">
+            <Link
+              key={row.id}
+              href={`/admin/inquiries/${row.id}`}
+              className="block rounded-lg border border-border p-4 text-sm transition hover:border-brand"
+            >
               <div className="flex items-center justify-between">
                 <p className="font-medium text-foreground">
                   {row.personName} <span className="text-muted">· {row.state}</span>
                 </p>
-                <Badge
-                  tone={
-                    row.status === "accepted"
-                      ? "brand"
-                      : row.status === "declined"
-                        ? "danger"
-                        : "neutral"
-                  }
-                >
+                <Badge tone={badgeTone(row.status)}>
                   {INQUIRY_STATUS_LABEL[row.status] ?? row.status}
                 </Badge>
               </div>
@@ -38,46 +96,10 @@ export default async function AdminInquiriesPage() {
                 Submitted by {row.submitterName} ({row.submitterEmail}) —{" "}
                 {row.relationshipToPerson}
               </p>
-              <p className="mt-2 whitespace-pre-line text-foreground">{row.caseSummary}</p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                {row.status === "new" && (
-                  <form action={setInquiryStatus.bind(null, row.id, "reviewing")}>
-                    <button type="submit" className="text-brand underline">
-                      Start review
-                    </button>
-                  </form>
-                )}
-                {row.status === "reviewing" && (
-                  <form action={setInquiryStatus.bind(null, row.id, "accepted")}>
-                    <button type="submit" className="text-brand underline">
-                      Accept
-                    </button>
-                  </form>
-                )}
-                {(row.status === "new" || row.status === "reviewing") && (
-                  <form action={setInquiryStatus.bind(null, row.id, "declined")}>
-                    <button type="submit" className="text-red-600 underline">
-                      Decline
-                    </button>
-                  </form>
-                )}
-                {row.status === "accepted" && (
-                  <Link
-                    href={{
-                      pathname: "/admin/cases/new",
-                      query: {
-                        clientName: row.personName,
-                        state: row.state,
-                        summary: row.caseSummary,
-                      },
-                    }}
-                    className="text-brand underline"
-                  >
-                    Create case from this inquiry
-                  </Link>
-                )}
-              </div>
-            </div>
+              <p className="mt-2 line-clamp-2 whitespace-pre-line text-foreground">
+                {row.caseSummary}
+              </p>
+            </Link>
           ))}
         </div>
       )}

@@ -41,7 +41,8 @@ export const commentStatusEnum = pgEnum("comment_status", [
 
 export const inquiryStatusEnum = pgEnum("inquiry_status", [
   "new",
-  "reviewing",
+  "needs_more_info",
+  "under_review",
   "declined",
   "accepted",
 ]);
@@ -264,7 +265,59 @@ export const inquiries = pgTable("inquiries", {
   caseSummary: text("case_summary").notNull(),
   state: text("state").notNull(),
   status: inquiryStatusEnum("status").notNull().default("new"),
+  // Set each time staff send a "Request More Info" email — drives the
+  // 14-day-overdue "needs follow-up" admin view. Cleared implicitly by the
+  // status moving off needs_more_info (a fresh request overwrites it).
+  infoRequestedAt: timestamp("info_requested_at"),
+  // Bearer token embedded in the "Request More Info" email link — grants
+  // access to the public follow-up form without an account. Regenerated on
+  // every new request.
+  followUpToken: text("follow_up_token").unique(),
+  // Internal acceptance-criteria checklist, keyed by the ids in
+  // src/lib/inquiry-criteria.ts. { [criterionKey]: boolean }
+  criteriaChecklist: jsonb("criteria_checklist").notNull().default({}),
   ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Logs one "Request More Info" send — what was asked, when, and by which
+// admin. The submitter's answers land in inquiryFollowUps, not here.
+export const inquiryInfoRequests = pgTable("inquiry_info_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  inquiryId: uuid("inquiry_id")
+    .notNull()
+    .references(() => inquiries.id, { onDelete: "cascade" }),
+  // preset keys from src/lib/inquiry-info-requests.ts, e.g. ["court_documents"]
+  requestedItems: jsonb("requested_items").notNull().default([]),
+  requestedNote: text("requested_note"),
+  requestedBy: text("requested_by").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// A submitter's answers to a follow-up request, linked back to the original
+// inquiry rather than creating a duplicate submission.
+export const inquiryFollowUps = pgTable("inquiry_follow_ups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  inquiryId: uuid("inquiry_id")
+    .notNull()
+    .references(() => inquiries.id, { onDelete: "cascade" }),
+  requestId: uuid("request_id").references(() => inquiryInfoRequests.id, {
+    onDelete: "set null",
+  }),
+  // { [presetKey]: string, other?: string }
+  responses: jsonb("responses").notNull().default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Timestamped internal notes on why a submission was accepted/declined/sent
+// back for more info — an append-only log rather than one overwritable field.
+export const inquiryDecisionLogs = pgTable("inquiry_decision_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  inquiryId: uuid("inquiry_id")
+    .notNull()
+    .references(() => inquiries.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
