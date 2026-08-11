@@ -18,5 +18,8 @@ export async function sendInquiryInfoRequestEmail(options: {
     subject: `More information needed for ${personName}'s case`,
     text: `Hi ${submitterName},\n\nThank you for submitting ${personName}'s case to Xonorate Media. To continue reviewing it, we need the following:\n\n${itemsText}${note ? `\n\n${note}` : ""}\n\nPlease share what you can here: ${followUpUrl}\n\nThank you,\nXonorate Media`,
     html: `<p>Hi ${submitterName},</p><p>Thank you for submitting ${personName}'s case to Xonorate Media. To continue reviewing it, we need the following:</p><ul>${itemLabels.map((l) => `<li>${l}</li>`).join("")}</ul>${note ? `<p>${note}</p>` : ""}<p><a href="${followUpUrl}">Share what you can here</a></p><p>Thank you,<br/>Xonorate Media</p>`,
+    // Sent from the no-reply platform address, but a reply from the
+    // submitter should land in the admin's actual inbox, not vanish.
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
   });
 }
