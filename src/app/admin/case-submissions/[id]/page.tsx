@@ -14,6 +14,7 @@ import { INQUIRY_INFO_PRESETS, inquiryInfoPresetLabel } from "@/lib/inquiry-info
 import { INQUIRY_STATUS_LABEL } from "@/lib/inquiry-status";
 import {
   addDecisionLogEntry,
+  deleteInfoRequest,
   requestMoreInfo,
   setInquiryStatus,
   updateCriteriaChecklist,
@@ -74,8 +75,8 @@ export default async function AdminInquiryDetailPage({
 
   return (
     <div className="max-w-3xl">
-      <Link href="/admin/inquiries" className="text-sm text-brand underline">
-        ← All inquiries
+      <Link href="/admin/case-submissions" className="text-sm text-brand underline">
+        ← All case submissions
       </Link>
 
       <div className="mt-3 flex items-center justify-between">
@@ -184,9 +185,16 @@ export default async function AdminInquiryDetailPage({
         <ul className="mt-4 space-y-3">
           {infoRequests.map((r) => (
             <li key={r.id} className="rounded-md border border-border p-3 text-sm">
-              <p className="text-xs text-muted">
-                {formatDate(r.createdAt)} — requested by {r.requestedBy}
-              </p>
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-xs text-muted">
+                  {formatDate(r.createdAt)} — requested by {r.requestedBy}
+                </p>
+                <form action={deleteInfoRequest.bind(null, id, r.id)}>
+                  <button type="submit" className="shrink-0 text-xs text-red-600 underline">
+                    Delete
+                  </button>
+                </form>
+              </div>
               {Array.isArray(r.requestedItems) && r.requestedItems.length > 0 && (
                 <ul className="mt-1 list-disc pl-5 text-foreground">
                   {(r.requestedItems as string[]).map((key) => (
