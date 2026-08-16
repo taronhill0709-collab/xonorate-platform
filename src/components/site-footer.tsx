@@ -27,6 +27,7 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
 const MENU_LINKS = [
   { href: "/cases", label: "Cases" },
   { href: "/petitions", label: "Petitions" },
+  { href: "/impact", label: "The Human Cost" },
   { href: "/posts", label: "News" },
   { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" },

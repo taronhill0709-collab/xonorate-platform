@@ -398,3 +398,15 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   email: text("email").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Ad-hoc broadcast email to every supporter (users.role = 'supporter') and
+// newsletter subscriber — case wins, petition wins, major platform news.
+// Unlike petitionUpdates, not tied to a single petition. recipientCount is a
+// snapshot of how many were actually emailed at send time, not a live count.
+export const supporterUpdates = pgTable("supporter_updates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  recipientCount: integer("recipient_count").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

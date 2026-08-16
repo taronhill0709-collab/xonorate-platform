@@ -8,7 +8,7 @@ import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
-import type { CaseImpact } from "@/lib/case-impact";
+import { hasImpactContent, type CaseImpact } from "@/lib/case-impact";
 import { db } from "@/db";
 import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
@@ -132,9 +132,7 @@ export default async function CaseDetailPage({
   const innocenceClaim = caseRow.innocenceClaim as InnocenceClaim | null;
   const claimCategories = innocenceClaim?.categories ?? [];
   const impact = caseRow.impact as CaseImpact | null;
-  const hasImpact = Boolean(
-    impact && (impact.familyImpact || impact.communityImpact || impact.stats.length > 0),
-  );
+  const hasImpact = hasImpactContent(impact);
   const origin = await getOrigin();
 
   let sectionIndex = 0;
@@ -242,7 +240,7 @@ export default async function CaseDetailPage({
         )}
 
         {hasImpact && impact && (
-          <section className="mt-10">
+          <section id="impact" className="mt-10 scroll-mt-20">
             <h2 className="font-serif text-lg text-foreground">{impactRoman}. The cost</h2>
             {impact.stats.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-8">
@@ -355,6 +353,8 @@ export default async function CaseDetailPage({
               <div className="mt-5">
                 <PetitionSignForm
                   petitionId={petition.id}
+                  petitionUrl={`${origin}/petitions/${petition.slug}`}
+                  petitionTitle={petition.title}
                   alreadyConfirmed={confirmed === "1"}
                   initiallySigned={initiallySigned}
                 />

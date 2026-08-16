@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signPetition } from "@/app/petitions/actions";
+import { ShareButtons } from "@/components/share-buttons";
 
 type Status =
   | { kind: "idle" }
@@ -14,10 +15,14 @@ type Status =
 
 export function PetitionSignForm({
   petitionId,
+  petitionUrl,
+  petitionTitle,
   alreadyConfirmed,
   initiallySigned = false,
 }: {
   petitionId: string;
+  petitionUrl: string;
+  petitionTitle: string;
   alreadyConfirmed: boolean;
   initiallySigned?: boolean;
 }) {
@@ -26,12 +31,29 @@ export function PetitionSignForm({
   const [status, setStatus] = useState<Status>(
     initiallySigned ? { kind: "signed" } : { kind: "idle" },
   );
+  // Only a submit within this render (or an email-confirm redirect) counts as
+  // "just signed" — a page revisit gets a plainer share prompt, not the
+  // excited peak-intent framing.
+  const [justSigned, setJustSigned] = useState(false);
 
   if (alreadyConfirmed || status.kind === "signed") {
+    const freshlySigned = alreadyConfirmed || justSigned;
     return (
-      <p className="rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
-        Thanks for signing — your signature has been confirmed and counted.
-      </p>
+      <div className="space-y-4">
+        <p className="rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
+          Thanks for signing — your signature has been confirmed and counted.
+        </p>
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            {freshlySigned
+              ? "Help this reach more people — share it now:"
+              : "Share this petition:"}
+          </p>
+          <div className="mt-2">
+            <ShareButtons url={petitionUrl} title={petitionTitle} />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -56,6 +78,7 @@ export function PetitionSignForm({
       return;
     }
     if (result.alreadyVerified) {
+      setJustSigned(true);
       setStatus({ kind: "signed" });
       router.refresh();
     } else {

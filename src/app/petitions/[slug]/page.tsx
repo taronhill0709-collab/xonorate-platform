@@ -205,14 +205,20 @@ export default async function PetitionDetailPage({
         <div id="sign" className="mt-8 scroll-mt-20 rounded-lg border border-border p-5">
           <PetitionSignForm
             petitionId={petition.id}
+            petitionUrl={`${origin}/petitions/${slug}`}
+            petitionTitle={petition.title}
             alreadyConfirmed={confirmed === "1"}
             initiallySigned={initiallySigned}
           />
         </div>
 
-        <div className="mt-6">
-          <ShareButtons url={`${origin}/petitions/${slug}`} title={petition.title} />
-        </div>
+        {/* Signed visitors already get share buttons in the confirmation box
+            above — showing this too would just duplicate the same row. */}
+        {!(initiallySigned || confirmed === "1") && (
+          <div className="mt-6">
+            <ShareButtons url={`${origin}/petitions/${slug}`} title={petition.title} />
+          </div>
+        )}
 
         {updates.length > 0 && (
           <div className="mt-10">

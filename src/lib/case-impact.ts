@@ -49,3 +49,9 @@ export function serializeFactLines(lines: string[]): string {
 }
 
 export { parseStats as parseImpactStats, serializeStats as serializeImpactStats };
+
+export function hasImpactContent(
+  impact: CaseImpact | null | undefined,
+): impact is CaseImpact {
+  return Boolean(impact && (impact.familyImpact || impact.communityImpact || impact.stats.length > 0));
+}
