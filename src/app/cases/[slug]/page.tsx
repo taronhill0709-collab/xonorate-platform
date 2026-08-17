@@ -2,7 +2,7 @@ import { and, count, desc, eq, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
@@ -10,7 +10,7 @@ import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
 import { hasImpactContent, type CaseImpact } from "@/lib/case-impact";
 import { db } from "@/db";
-import { caseDocuments, cases, petitions, signatures } from "@/db/schema";
+import { caseDocuments, caseSlugHistory, cases, petitions, signatures } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
 import type { InnocenceClaim } from "@/lib/innocence-claim";
 import { getOrigin, resolveShareImage } from "@/lib/request-ip";
@@ -96,7 +96,16 @@ export default async function CaseDetailPage({
   const { confirmed } = await searchParams;
 
   const [caseRow] = await db.select().from(cases).where(eq(cases.slug, slug)).limit(1);
-  if (!caseRow) notFound();
+  if (!caseRow) {
+    const [redirected] = await db
+      .select({ slug: cases.slug })
+      .from(caseSlugHistory)
+      .innerJoin(cases, eq(caseSlugHistory.caseId, cases.id))
+      .where(eq(caseSlugHistory.oldSlug, slug))
+      .limit(1);
+    if (redirected) permanentRedirect(`/cases/${redirected.slug}`);
+    notFound();
+  }
 
   // Fire-and-forget: a raw view counter (no dedup) showing the attention
   // this case has gotten — never blocks the page render on it.

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { caseDocuments, caseStatusEnum, cases, documentStatusEnum } from "@/db/schema";
+import { caseDocuments, caseSlugHistory, caseStatusEnum, cases, documentStatusEnum } from "@/db/schema";
 import {
   type CaseImpact,
   type ImpactFacts,
@@ -26,7 +26,8 @@ import {
   type CaseOverviewJobStatus,
 } from "@/lib/case-overview-jobs";
 import { requireAdmin } from "@/lib/require-admin";
-import { insertWithUniqueSlug } from "@/lib/unique-slug";
+import { slugify } from "@/lib/slug";
+import { insertWithUniqueSlug, updateWithUniqueSlug } from "@/lib/unique-slug";
 
 const caseFormSchema = z.object({
   clientName: z.string().min(1),
@@ -201,31 +202,51 @@ export async function updateCase(caseId: string, formData: FormData) {
     throw err;
   });
 
-  await db
-    .update(cases)
-    .set({
-      clientName: data.clientName,
-      summary: data.summary,
-      convictionDetails: data.convictionDetails,
-      timeServed: data.timeServed,
-      exonerationDetails: data.exonerationDetails,
-      status: data.status,
-      state: data.state,
-      photoUrl: data.photoUrl,
-      innocenceClaim: data.innocenceClaim,
-      updatedAt: new Date(),
-    })
-    .where(eq(cases.id, caseId));
-
-  const [row] = await db
+  const [current] = await db
     .select({ slug: cases.slug })
     .from(cases)
     .where(eq(cases.id, caseId))
     .limit(1);
 
+  const baseFields = {
+    clientName: data.clientName,
+    summary: data.summary,
+    convictionDetails: data.convictionDetails,
+    timeServed: data.timeServed,
+    exonerationDetails: data.exonerationDetails,
+    status: data.status,
+    state: data.state,
+    photoUrl: data.photoUrl,
+    innocenceClaim: data.innocenceClaim,
+    updatedAt: new Date(),
+  };
+
+  const requestedSlug = slugify(data.slugInput);
+  let finalSlug = current?.slug ?? requestedSlug;
+
+  if (current && requestedSlug && requestedSlug !== current.slug) {
+    finalSlug = await updateWithUniqueSlug(requestedSlug, (slug) =>
+      db
+        .update(cases)
+        .set({ ...baseFields, slug })
+        .where(eq(cases.id, caseId))
+        .returning({ id: cases.id }),
+    );
+    // Old links (social posts, emails, print materials) keep working —
+    // onConflictDoNothing so re-using a slug that's already someone else's
+    // redirect target doesn't hijack it.
+    await db
+      .insert(caseSlugHistory)
+      .values({ caseId, oldSlug: current.slug })
+      .onConflictDoNothing();
+  } else {
+    await db.update(cases).set(baseFields).where(eq(cases.id, caseId));
+  }
+
   revalidatePath("/admin/cases");
   revalidatePath(`/admin/cases/${caseId}/edit`);
-  if (row) revalidatePath(`/cases/${row.slug}`);
+  revalidatePath(`/cases/${finalSlug}`);
+  if (current && current.slug !== finalSlug) revalidatePath(`/cases/${current.slug}`);
   redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }
 

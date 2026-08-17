@@ -410,3 +410,26 @@ export const supporterUpdates = pgTable("supporter_updates", {
   recipientCount: integer("recipient_count").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// --- Slug redirects ---
+// When an admin changes a case or petition's slug, the previous value is
+// kept here so links already shared elsewhere (social posts, emails, print
+// materials, search results) redirect to the new URL instead of 404ing.
+
+export const caseSlugHistory = pgTable("case_slug_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  caseId: uuid("case_id")
+    .notNull()
+    .references(() => cases.id, { onDelete: "cascade" }),
+  oldSlug: text("old_slug").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const petitionSlugHistory = pgTable("petition_slug_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  petitionId: uuid("petition_id")
+    .notNull()
+    .references(() => petitions.id, { onDelete: "cascade" }),
+  oldSlug: text("old_slug").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

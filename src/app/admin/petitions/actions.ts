@@ -5,11 +5,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { cases, petitionStatusEnum, petitions, petitionUpdates, signatures } from "@/db/schema";
+import {
+  cases,
+  petitionSlugHistory,
+  petitionStatusEnum,
+  petitions,
+  petitionUpdates,
+  signatures,
+} from "@/db/schema";
 import { sendPetitionUpdateEmail } from "@/lib/petition-update-email";
 import { getOrigin } from "@/lib/request-ip";
 import { requireAdmin } from "@/lib/require-admin";
-import { insertWithUniqueSlug } from "@/lib/unique-slug";
+import { slugify } from "@/lib/slug";
+import { insertWithUniqueSlug, updateWithUniqueSlug } from "@/lib/unique-slug";
 
 const petitionFormSchema = z.object({
   title: z.string().min(1),
@@ -65,28 +73,48 @@ export async function updatePetition(petitionId: string, formData: FormData) {
   await requireAdmin();
   const data = parsePetitionForm(formData);
 
-  await db
-    .update(petitions)
-    .set({
-      title: data.title,
-      recipientName: data.recipientName,
-      askText: data.askText,
-      goalCount: data.goalCount,
-      startingSignatureCount: data.startingSignatureCount,
-      caseId: data.caseId,
-      status: data.status,
-    })
-    .where(eq(petitions.id, petitionId));
-
-  const [row] = await db
+  const [current] = await db
     .select({ slug: petitions.slug })
     .from(petitions)
     .where(eq(petitions.id, petitionId))
     .limit(1);
 
+  const baseFields = {
+    title: data.title,
+    recipientName: data.recipientName,
+    askText: data.askText,
+    goalCount: data.goalCount,
+    startingSignatureCount: data.startingSignatureCount,
+    caseId: data.caseId,
+    status: data.status,
+  };
+
+  const requestedSlug = slugify(data.slugInput);
+  let finalSlug = current?.slug ?? requestedSlug;
+
+  if (current && requestedSlug && requestedSlug !== current.slug) {
+    finalSlug = await updateWithUniqueSlug(requestedSlug, (slug) =>
+      db
+        .update(petitions)
+        .set({ ...baseFields, slug })
+        .where(eq(petitions.id, petitionId))
+        .returning({ id: petitions.id }),
+    );
+    // Old links (social posts, emails, print materials) keep working —
+    // onConflictDoNothing so re-using a slug that's already someone else's
+    // redirect target doesn't hijack it.
+    await db
+      .insert(petitionSlugHistory)
+      .values({ petitionId, oldSlug: current.slug })
+      .onConflictDoNothing();
+  } else {
+    await db.update(petitions).set(baseFields).where(eq(petitions.id, petitionId));
+  }
+
   revalidatePath("/admin/petitions");
   revalidatePath(`/admin/petitions/${petitionId}/edit`);
-  if (row) revalidatePath(`/petitions/${row.slug}`);
+  revalidatePath(`/petitions/${finalSlug}`);
+  if (current && current.slug !== finalSlug) revalidatePath(`/petitions/${current.slug}`);
   redirect(`/admin/petitions/${petitionId}/edit?saved=1`);
 }
 

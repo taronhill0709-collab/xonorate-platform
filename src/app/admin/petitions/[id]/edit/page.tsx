@@ -68,6 +68,12 @@ export default async function EditPetitionPage({
         <Field label="Title" name="title">
           <TextInput id="title" name="title" defaultValue={petition.title} required />
         </Field>
+        <Field
+          label="Slug (the part of the URL after /petitions/ — changing this updates the public URL; the old URL will keep working and redirect here automatically)"
+          name="slug"
+        >
+          <TextInput id="slug" name="slug" defaultValue={petition.slug} required />
+        </Field>
         <Field label="Status" name="status">
           <Select id="status" name="status" defaultValue={petition.status} required>
             <option value="draft">Draft — hidden from the public site</option>

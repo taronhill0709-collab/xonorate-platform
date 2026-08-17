@@ -106,6 +106,12 @@ export default async function EditCasePage({
             required
           />
         </Field>
+        <Field
+          label="Slug (the part of the URL after /cases/ — changing this updates the public URL; the old URL will keep working and redirect here automatically)"
+          name="slug"
+        >
+          <TextInput id="slug" name="slug" defaultValue={caseRow.slug} required />
+        </Field>
         <Field label="State" name="state">
           <TextInput id="state" name="state" defaultValue={caseRow.state} required />
         </Field>

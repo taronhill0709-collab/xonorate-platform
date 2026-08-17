@@ -1,14 +1,14 @@
 import { and, count, desc, eq, gte, isNotNull } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { ShareButtons } from "@/components/share-buttons";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
-import { cases, petitions, petitionUpdates, signatures } from "@/db/schema";
+import { cases, petitionSlugHistory, petitions, petitionUpdates, signatures } from "@/db/schema";
 import { getOrigin, resolveShareImage } from "@/lib/request-ip";
 import { formatSignerName } from "@/lib/signer-name";
 
@@ -92,7 +92,16 @@ export default async function PetitionDetailPage({
     .from(petitions)
     .where(and(eq(petitions.slug, slug), eq(petitions.status, "published")))
     .limit(1);
-  if (!petition) notFound();
+  if (!petition) {
+    const [redirected] = await db
+      .select({ slug: petitions.slug })
+      .from(petitionSlugHistory)
+      .innerJoin(petitions, eq(petitionSlugHistory.petitionId, petitions.id))
+      .where(and(eq(petitionSlugHistory.oldSlug, slug), eq(petitions.status, "published")))
+      .limit(1);
+    if (redirected) permanentRedirect(`/petitions/${redirected.slug}`);
+    notFound();
+  }
 
   const linkedCase = petition.caseId
     ? (
