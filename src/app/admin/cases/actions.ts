@@ -42,6 +42,7 @@ const caseFormSchema = z.object({
   exonerationYear: z.coerce.number().int().optional(),
   status: z.enum(caseStatusEnum.enumValues),
   state: z.string().min(1),
+  isClient: z.string().optional(),
   photoUrl: z.string().optional().or(z.literal("")),
   stats: z.string().optional(),
   pullQuote: z.string().optional(),
@@ -102,6 +103,7 @@ async function parseCaseForm(formData: FormData) {
     exonerationDetails,
     status: parsed.status,
     state: parsed.state,
+    isClient: parsed.isClient === "on",
     photoUrl,
     innocenceClaim,
   };
@@ -128,6 +130,7 @@ export async function createCase(formData: FormData) {
         exonerationDetails: data.exonerationDetails,
         status: data.status,
         state: data.state,
+        isClient: data.isClient,
         photoUrl: data.photoUrl,
         innocenceClaim: data.innocenceClaim,
       })
@@ -216,6 +219,7 @@ export async function updateCase(caseId: string, formData: FormData) {
     exonerationDetails: data.exonerationDetails,
     status: data.status,
     state: data.state,
+    isClient: data.isClient,
     photoUrl: data.photoUrl,
     innocenceClaim: data.innocenceClaim,
     updatedAt: new Date(),

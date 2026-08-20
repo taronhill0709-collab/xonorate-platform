@@ -125,6 +125,18 @@ export default async function EditCasePage({
         <Field label="Summary" name="summary">
           <TextArea id="summary" name="summary" rows={4} defaultValue={caseRow.summary} required />
         </Field>
+        <div className="flex items-center gap-2">
+          <input
+            id="isClient"
+            name="isClient"
+            type="checkbox"
+            defaultChecked={caseRow.isClient}
+            className="h-4 w-4 rounded border-border"
+          />
+          <label htmlFor="isClient" className="text-sm text-foreground">
+            This is a Xonorate client (uncheck for a spotlight / awareness case we don&apos;t represent)
+          </label>
+        </div>
         <Field label="Photo (optional)" name="photo">
           {caseRow.photoUrl && (
             <Image

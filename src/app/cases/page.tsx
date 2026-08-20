@@ -5,7 +5,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
-import { CASE_STATUS_LABEL } from "@/lib/case-status";
+import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 
 export const metadata: Metadata = {
   title: "Cases",
@@ -26,6 +26,7 @@ export default async function CasesIndexPage() {
       status: cases.status,
       state: cases.state,
       photoUrl: cases.photoUrl,
+      isClient: cases.isClient,
     })
     .from(cases)
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
@@ -46,7 +47,7 @@ export default async function CasesIndexPage() {
                 key={row.id}
                 className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
               >
-                {row.photoUrl && (
+                {row.photoUrl ? (
                   <Image
                     src={row.photoUrl}
                     alt={row.clientName}
@@ -55,6 +56,12 @@ export default async function CasesIndexPage() {
                     className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-border/70"
                     unoptimized
                   />
+                ) : (
+                  <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
+                    <span className="font-serif text-2xl text-muted">
+                      {row.clientName.charAt(0)}
+                    </span>
+                  </div>
                 )}
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-brand">
@@ -66,6 +73,11 @@ export default async function CasesIndexPage() {
                   >
                     {row.clientName}
                   </Link>
+                  {!row.isClient && (
+                    <p className="mt-1 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted uppercase">
+                      {SPOTLIGHT_CASE_LABEL}
+                    </p>
+                  )}
                   <p className="mt-2 line-clamp-2 text-sm text-muted">{row.summary}</p>
                 </div>
               </li>

@@ -1,0 +1,1 @@
+ALTER TABLE "cases" ADD COLUMN "is_client" boolean DEFAULT true NOT NULL;

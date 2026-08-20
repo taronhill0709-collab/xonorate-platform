@@ -34,6 +34,7 @@ export default async function Home() {
       photoUrl: cases.photoUrl,
       convictionDetails: cases.convictionDetails,
       timeServed: cases.timeServed,
+      isClient: cases.isClient,
     })
     .from(cases)
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt))
@@ -48,6 +49,7 @@ export default async function Home() {
     photoUrl: c.photoUrl,
     convictedYear: (c.convictionDetails as ConvictionDetails).year,
     timeServed: c.timeServed,
+    isClient: c.isClient,
   }));
 
   const recentPosts = await db

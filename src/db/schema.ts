@@ -132,6 +132,10 @@ export const cases = pgTable("cases", {
   status: caseStatusEnum("status").notNull().default("awaiting_review"),
   state: text("state").notNull(),
   photoUrl: text("photo_url"),
+  // false for a "spotlight" / public-awareness case we're featuring but
+  // don't represent — shown with a distinguishing badge everywhere a case
+  // card or case page renders, instead of blending in with actual clients.
+  isClient: boolean("is_client").notNull().default(true),
   // Full attorney-confirmed evidence dossier, matching the standard
   // Xonorate campaign-brief template — null until that level of detail
   // exists for a case. Shape:

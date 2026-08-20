@@ -11,7 +11,7 @@ import { SiteHeader } from "@/components/site-header";
 import { hasImpactContent, type CaseImpact } from "@/lib/case-impact";
 import { db } from "@/db";
 import { caseDocuments, caseSlugHistory, cases, petitions, signatures } from "@/db/schema";
-import { CASE_STATUS_LABEL } from "@/lib/case-status";
+import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 import type { InnocenceClaim } from "@/lib/innocence-claim";
 import { getOrigin, resolveShareImage } from "@/lib/request-ip";
 
@@ -173,8 +173,13 @@ export default async function CaseDetailPage({
           {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
         </p>
         <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
+        {!caseRow.isClient && (
+          <p className="mt-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted uppercase">
+            {SPOTLIGHT_CASE_LABEL}
+          </p>
+        )}
 
-        {caseRow.photoUrl && (
+        {caseRow.photoUrl ? (
           <Image
             src={caseRow.photoUrl}
             alt={caseRow.clientName}
@@ -183,6 +188,12 @@ export default async function CaseDetailPage({
             className="mt-6 h-24 w-24 rounded-full object-cover"
             unoptimized
           />
+        ) : (
+          <div className="mt-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
+            <span className="font-serif text-2xl text-muted">
+              {caseRow.clientName.charAt(0)}
+            </span>
+          </div>
         )}
 
         <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>

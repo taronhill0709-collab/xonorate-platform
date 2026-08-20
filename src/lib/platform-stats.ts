@@ -12,15 +12,21 @@ type ExonerationYear = { year: number } | null;
  * cited national estimates on the homepage. Each stat is omitted rather
  * than shown as zero when there's nothing to count yet. */
 export async function getPlatformStats(): Promise<PlatformStat[]> {
-  const caseRows = await db
+  const allCaseRows = await db
     .select({
       status: cases.status,
       state: cases.state,
       convictionDetails: cases.convictionDetails,
       exonerationDetails: cases.exonerationDetails,
       impact: cases.impact,
+      isClient: cases.isClient,
     })
     .from(cases);
+
+  // Spotlight cases (isClient: false) are cases we're raising awareness of,
+  // not ones we represent — excluded from stats that claim to count "our
+  // clients".
+  const caseRows = allCaseRows.filter((c) => c.isClient);
 
   const totalClients = caseRows.length;
 

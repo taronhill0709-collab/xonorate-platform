@@ -162,6 +162,13 @@
       "when": 1786927597027,
       "tag": "0022_fine_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787264941022,
+      "tag": "0023_add-cases-is-client",
+      "breakpoints": true
     }
   ]
 }

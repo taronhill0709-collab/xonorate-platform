@@ -48,7 +48,14 @@ export default async function AdminCasesPage() {
                     isLast={i === rows.length - 1}
                   />
                 </td>
-                <td className="py-2 text-foreground">{row.clientName}</td>
+                <td className="py-2 text-foreground">
+                  {row.clientName}
+                  {!row.isClient && (
+                    <span className="ml-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted uppercase">
+                      Spotlight
+                    </span>
+                  )}
+                </td>
                 <td className="py-2 text-foreground">{row.state}</td>
                 <td className="py-2">
                   <CaseStatusSelect caseId={row.id} status={row.status} />

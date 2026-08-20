@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { CASE_STATUS_LABEL } from "@/lib/case-status";
+import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 
 export type FeaturedCase = {
   id: string;
@@ -15,6 +15,7 @@ export type FeaturedCase = {
   photoUrl: string | null;
   convictedYear: number;
   timeServed: string | null;
+  isClient: boolean;
 };
 
 /** Horizontally scrolling strip of case cards with prev/next arrows and dot
@@ -99,6 +100,11 @@ export function FeaturedCasesCarousel({ cases }: { cases: FeaturedCase[] }) {
                 Convicted: {c.convictedYear}
                 {c.timeServed ? ` · Served: ${c.timeServed}` : ""}
               </p>
+              {!c.isClient && (
+                <p className="mt-2 inline-flex items-center rounded-full border border-header-border px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-muted uppercase">
+                  {SPOTLIGHT_CASE_LABEL}
+                </p>
+              )}
               <span className="mt-3 inline-block text-xs text-band-accent underline">
                 View case →
               </span>
