@@ -51,7 +51,7 @@ export default async function AdminCasesPage() {
                 <td className="py-2 text-foreground">
                   {row.clientName}
                   {!row.isClient && (
-                    <span className="ml-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted uppercase">
+                    <span className="ml-2 inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
                       Spotlight
                     </span>
                   )}

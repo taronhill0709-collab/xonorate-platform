@@ -1,5 +1,5 @@
 import { asc, desc, eq } from "drizzle-orm";
-import { ArrowRight, FileSignature } from "lucide-react";
+import { ArrowRight, FileSignature, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FeaturedCasesCarousel } from "@/components/featured-cases-carousel";
@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, posts } from "@/db/schema";
+import { getFounderCase } from "@/lib/founder";
 import { excerptFromMarkdown } from "@/lib/markdown";
 import {
   WRONGFUL_CONVICTION_CAUSES,
@@ -68,6 +69,7 @@ export default async function Home() {
     .limit(FEED_LIMIT);
 
   const platformStats = await getPlatformStats();
+  const founderCase = await getFounderCase();
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -107,6 +109,60 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {founderCase && (
+          <section className="relative overflow-hidden bg-header-background py-14">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at 15% 50%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 60%)",
+              }}
+              aria-hidden
+            />
+            <div className="relative mx-auto w-full max-w-4xl px-6">
+              <div className="flex flex-col items-center gap-8 rounded-2xl border border-brand/30 bg-white/[0.03] px-6 py-10 text-center sm:flex-row sm:px-10 sm:text-left">
+                {founderCase.photoUrl ? (
+                  <Image
+                    src={founderCase.photoUrl}
+                    alt={founderCase.clientName}
+                    width={160}
+                    height={160}
+                    className="h-32 w-32 shrink-0 rounded-full object-cover ring-4 ring-brand/50 sm:h-40 sm:w-40"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full bg-white/[0.06] ring-4 ring-brand/50 sm:h-40 sm:w-40">
+                    <span className="font-serif text-4xl text-header-muted">
+                      {founderCase.clientName.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
+                    <ShieldCheck size={14} />
+                    Our founder
+                  </p>
+                  <h2 className="mt-2 font-serif text-2xl text-header-foreground sm:text-3xl">
+                    {founderCase.clientName}{" "}
+                    spent 16 years in prison for a crime he didn&apos;t commit.
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-xl text-sm text-header-muted sm:mx-0">
+                    Exonerated in 2021 after New Jersey&apos;s Conviction Review Unit found he
+                    never should have been convicted, he founded Xonorate so other wrongfully
+                    convicted people don&apos;t wait 16 years for someone to listen.
+                  </p>
+                  <Link
+                    href={`/cases/${founderCase.slug}`}
+                    className="mt-4 inline-flex items-center gap-1 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+                  >
+                    Read his story <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section
           aria-labelledby="wrongful-conviction-heading"

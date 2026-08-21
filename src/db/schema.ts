@@ -393,6 +393,10 @@ export const siteSettings = pgTable("site_settings", {
   // homepage's "our impact" tally shows this as-is, not a computed number.
   // Null hides the stat entirely rather than showing a placeholder.
   socialViewsLabel: text("social_views_label"),
+  // Shown in the homepage/About "Our founder" sections — deliberately
+  // separate from any case's own photoUrl, since the founder may want a
+  // different picture there than on his case page.
+  founderPhotoUrl: text("founder_photo_url"),
 });
 
 // --- Newsletter ---

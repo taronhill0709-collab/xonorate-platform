@@ -101,7 +101,7 @@ export function FeaturedCasesCarousel({ cases }: { cases: FeaturedCase[] }) {
                 {c.timeServed ? ` · Served: ${c.timeServed}` : ""}
               </p>
               {!c.isClient && (
-                <p className="mt-2 inline-flex items-center rounded-full border border-header-border px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-muted uppercase">
+                <p className="mt-2 inline-flex items-center rounded-full bg-band-accent px-2 py-0.5 text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
                   {SPOTLIGHT_CASE_LABEL}
                 </p>
               )}

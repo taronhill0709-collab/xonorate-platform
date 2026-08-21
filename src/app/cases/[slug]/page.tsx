@@ -174,7 +174,7 @@ export default async function CaseDetailPage({
         </p>
         <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
         {!caseRow.isClient && (
-          <p className="mt-2 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted uppercase">
+          <p className="mt-2 inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-foreground uppercase">
             {SPOTLIGHT_CASE_LABEL}
           </p>
         )}

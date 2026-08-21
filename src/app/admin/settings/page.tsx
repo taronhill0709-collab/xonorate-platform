@@ -1,10 +1,16 @@
 import { eq } from "drizzle-orm";
+import Image from "next/image";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
-import { Field, SubmitButton, TextInput } from "../_components/field";
+import { Field, FileInput, SubmitButton, TextInput } from "../_components/field";
 import { saveSettings } from "./actions";
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ photoError?: string }>;
+}) {
+  const { photoError } = await searchParams;
   const [settings] = await db
     .select()
     .from(siteSettings)
@@ -18,7 +24,39 @@ export default async function AdminSettingsPage() {
         Site-wide values that aren&apos;t tied to a single case, petition, or post.
       </p>
 
+      {photoError && (
+        <p className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {photoError}
+        </p>
+      )}
+
       <form action={saveSettings} className="mt-6 space-y-4">
+        <Field
+          label="Founder photo — shown in the &quot;Our founder&quot; sections on the homepage and About page, separate from his case page photo"
+          name="founderPhoto"
+        >
+          {settings?.founderPhotoUrl && (
+            <Image
+              src={settings.founderPhotoUrl}
+              alt=""
+              width={96}
+              height={96}
+              className="mb-2 h-24 w-24 rounded-full object-cover"
+              unoptimized
+            />
+          )}
+          <FileInput
+            id="founderPhoto"
+            name="founderPhoto"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+          />
+          <input
+            type="hidden"
+            name="founderPhotoUrl"
+            value={settings?.founderPhotoUrl ?? ""}
+          />
+        </Field>
+
         <Field
           label="Social media views/exposure — shown as-is in the homepage's &quot;Our impact so far&quot; section (leave blank to hide it)"
           name="socialViewsLabel"

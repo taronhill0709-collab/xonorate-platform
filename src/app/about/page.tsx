@@ -1,5 +1,8 @@
+import { ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { getFounderCase } from "@/lib/founder";
 
 export const metadata = {
   title: "About",
@@ -7,7 +10,13 @@ export const metadata = {
     "Xonorate advocates for the wrongfully convicted — documenting cases, running petitions, and reporting on the scale of wrongful conviction in the U.S.",
 };
 
-export default function AboutPage() {
+// Pulls the founder's case (photo, slug) live so it never drifts from
+// what's on his actual case page.
+export const dynamic = "force-dynamic";
+
+export default async function AboutPage() {
+  const founderCase = await getFounderCase();
+
   return (
     <>
       <SiteHeader />
@@ -40,6 +49,49 @@ export default function AboutPage() {
           incentive to move quickly. Cases can sit for years without
           attention. Our job is to make sure they don&apos;t sit quietly.
         </p>
+
+        {founderCase && (
+          <div className="mt-10 flex flex-col items-center gap-5 rounded-xl border border-brand/30 bg-brand-light/40 p-6 text-center sm:flex-row sm:text-left">
+            {founderCase.photoUrl ? (
+              <Image
+                src={founderCase.photoUrl}
+                alt={founderCase.clientName}
+                width={112}
+                height={112}
+                className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-brand/40"
+                unoptimized
+              />
+            ) : (
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-4 ring-brand/40">
+                <span className="font-serif text-2xl text-muted">
+                  {founderCase.clientName.charAt(0)}
+                </span>
+              </div>
+            )}
+            <div>
+              <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
+                <ShieldCheck size={14} />
+                Our founder
+              </p>
+              <p className="mt-2 text-muted">
+                {founderCase.clientName}{" "}
+                founded Xonorate after spending 16
+                years in a New Jersey prison for a double homicide he didn&apos;t
+                commit — exonerated in 2021 when the state&apos;s Conviction
+                Review Unit found he never should have been convicted. This
+                platform exists because he knows firsthand how long a wrongful
+                conviction can sit unattended, and what it takes to get one
+                looked at again.
+              </p>
+              <Link
+                href={`/cases/${founderCase.slug}`}
+                className="mt-3 inline-block text-sm font-medium text-brand underline"
+              >
+                Read his case
+              </Link>
+            </div>
+          </div>
+        )}
 
         <h2 className="mt-10 font-serif text-xl text-foreground">
           What we do

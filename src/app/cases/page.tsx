@@ -74,7 +74,7 @@ export default async function CasesIndexPage() {
                     {row.clientName}
                   </Link>
                   {!row.isClient && (
-                    <p className="mt-1 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted uppercase">
+                    <p className="mt-1 inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold tracking-wide text-accent-foreground uppercase">
                       {SPOTLIGHT_CASE_LABEL}
                     </p>
                   )}
