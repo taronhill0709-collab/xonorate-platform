@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { RedactedPhoto } from "@/components/redacted-photo";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 
 export type FeaturedCase = {
@@ -65,13 +66,13 @@ export function FeaturedCasesCarousel({ cases }: { cases: FeaturedCase[] }) {
         onScroll={handleScroll}
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {cases.map((c) => (
+        {cases.map((c, i) => (
           <Link
             key={c.id}
             href={`/cases/${c.slug}`}
-            className="group w-56 shrink-0 snap-start overflow-hidden rounded-lg border border-header-border bg-white/[0.03] transition hover:border-header-muted sm:w-60"
+            className="group w-56 shrink-0 snap-start overflow-hidden rounded-lg border border-header-border bg-muted-background transition hover:border-brand/50 sm:w-60"
           >
-            <div className="relative h-40 w-full bg-header-border/40">
+            <div className="relative h-40 w-full">
               {c.photoUrl ? (
                 <Image
                   src={c.photoUrl}
@@ -81,31 +82,27 @@ export function FeaturedCasesCarousel({ cases }: { cases: FeaturedCase[] }) {
                   unoptimized
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-header-muted">
-                  <span className="font-serif text-3xl">
-                    {c.clientName.charAt(0)}
-                  </span>
-                </div>
+                <RedactedPhoto seed={i} />
               )}
-              <span className="absolute top-2 left-2 rounded-full bg-header-background/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-foreground uppercase">
-                {CASE_STATUS_LABEL[c.status] ?? c.status}
-              </span>
             </div>
             <div className="p-4">
-              <p className="font-serif text-lg text-header-foreground">
+              <span className="inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                {CASE_STATUS_LABEL[c.status] ?? c.status}
+              </span>
+              <p className="mt-2 font-serif text-lg text-header-foreground">
                 {c.clientName}
               </p>
-              <p className="mt-1 text-xs text-header-muted">{c.state}</p>
+              <p className="mt-1 font-mono text-xs text-header-muted uppercase">{c.state}</p>
               <p className="mt-2 text-xs text-header-muted">
                 Convicted: {c.convictedYear}
                 {c.timeServed ? ` · Served: ${c.timeServed}` : ""}
               </p>
               {!c.isClient && (
-                <p className="mt-2 inline-flex items-center rounded-full bg-band-accent px-2 py-0.5 text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
+                <p className="mt-2 font-mono text-[10px] tracking-wide text-header-muted uppercase">
                   {SPOTLIGHT_CASE_LABEL}
                 </p>
               )}
-              <span className="mt-3 inline-block text-xs text-band-accent underline">
+              <span className="mt-3 inline-block text-xs font-bold text-brand">
                 View case →
               </span>
             </div>

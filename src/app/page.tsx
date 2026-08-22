@@ -3,6 +3,7 @@ import { ArrowRight, FileSignature, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FeaturedCasesCarousel } from "@/components/featured-cases-carousel";
+import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -79,36 +80,36 @@ export default async function Home() {
       <SiteHeader />
       <main className="relative flex-1">
         <section className="relative overflow-hidden bg-header-background">
-          <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-8 px-6 py-16 sm:flex-row sm:gap-12 sm:py-20">
-            <Image
-              src="/xonorate-mark.svg"
-              alt=""
-              width={280}
-              height={280}
-              className="h-40 w-40 shrink-0 opacity-60 sm:h-64 sm:w-64"
-            />
-            <div className="text-center sm:text-left">
-              <h1 className="font-serif text-4xl text-header-foreground">
+          <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-16 sm:grid-cols-[1.15fr_0.85fr] sm:items-center sm:gap-16 sm:py-24">
+            <div>
+              <p className="text-xs font-semibold tracking-widest text-brand uppercase">
                 Xonorate Media Platform
+              </p>
+              <h1 className="mt-3 font-serif text-4xl text-header-foreground sm:text-5xl">
+                We expose injustice. We amplify the{" "}
+                <span className="text-brand">innocent</span>.
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-header-muted sm:mx-0">
+              <p className="mt-5 max-w-md text-header-muted">
                 Advocating for the wrongfully convicted — client cases, live
                 petitions, and stories of exoneration.
               </p>
-              <div className="mt-8 flex items-center justify-center gap-4 sm:justify-start">
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/cases"
+                  className="rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+                >
+                  Explore cases →
+                </Link>
                 <Link
                   href="/petitions"
-                  className="rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+                  className="rounded-md border border-header-border px-5 py-2 text-sm font-medium text-header-foreground transition hover:border-header-muted"
                 >
                   View petitions
                 </Link>
-                <Link
-                  href="/submit-inquiry"
-                  className="text-sm text-header-muted underline transition hover:text-header-foreground"
-                >
-                  Submit an inquiry
-                </Link>
               </div>
+            </div>
+            <div className="aspect-4/5 w-full overflow-hidden rounded-lg border border-header-border sm:aspect-3/4">
+              <RedactedPhoto />
             </div>
           </div>
         </section>
@@ -348,7 +349,7 @@ export default async function Home() {
               </p>
             ) : (
               <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                {recentlyExonerated.map((row) => {
+                {recentlyExonerated.map((row, i) => {
                   const conviction = row.convictionDetails as ConvictionDetails;
                   const exoneration = row.exonerationDetails as ExonerationDetails;
                   const teaser = exoneration?.whatLedToExoneration || row.summary;
@@ -360,9 +361,9 @@ export default async function Home() {
                     <Link
                       key={row.id}
                       href={`/cases/${row.slug}`}
-                      className="group overflow-hidden rounded-lg border border-header-border bg-white/[0.03] transition hover:border-header-muted"
+                      className="group overflow-hidden rounded-lg border border-header-border bg-muted-background transition hover:border-brand/50"
                     >
-                      <div className="relative h-40 w-full bg-header-border/40">
+                      <div className="relative h-40 w-full">
                         {row.photoUrl ? (
                           <Image
                             src={row.photoUrl}
@@ -373,38 +374,36 @@ export default async function Home() {
                             unoptimized
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-header-muted">
-                            <span className="font-serif text-2xl">X</span>
-                          </div>
-                        )}
-                        {!row.isClient && (
-                          <span className="absolute top-2 left-2 rounded-full bg-header-background/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-foreground uppercase">
-                            {SPOTLIGHT_CASE_LABEL}
-                          </span>
+                          <RedactedPhoto seed={i + 1} />
                         )}
                       </div>
                       <div className="p-4">
-                        <p className="line-clamp-2 font-serif text-lg text-header-foreground">
+                        <span className="inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                          Exonerated
+                        </span>
+                        {!row.isClient && (
+                          <span className="ml-2 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                            {SPOTLIGHT_CASE_LABEL}
+                          </span>
+                        )}
+                        <p className="mt-2 line-clamp-2 font-serif text-lg text-header-foreground">
                           {row.clientName}
                         </p>
-                        <p className="mt-1 text-xs text-header-muted">
-                          {conviction.charge ? `Convicted of ${conviction.charge} · ` : ""}
+                        <p className="mt-1 font-mono text-xs text-header-muted uppercase">
                           {row.state}
                         </p>
                         <p className="mt-2 line-clamp-2 text-sm text-header-muted">
                           {teaser}
                         </p>
-                        <div className="mt-3 flex items-center justify-between text-xs text-header-muted">
+                        <div className="mt-3 flex items-center justify-between text-xs">
                           {yearsLost != null && yearsLost > 0 ? (
-                            <span className="font-semibold text-band-accent">
+                            <span className="font-semibold text-brand">
                               {yearsLost} year{yearsLost === 1 ? "" : "s"} lost
                             </span>
                           ) : (
                             <span />
                           )}
-                          <span className="text-band-accent underline">
-                            Read the case →
-                          </span>
+                          <span className="font-bold text-brand">Read the case →</span>
                         </div>
                       </div>
                     </Link>
