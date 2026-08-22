@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { AdminNavLink } from "@/components/admin-nav-link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { SavedToast } from "./_components/saved-toast";
 
@@ -40,30 +41,26 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-full flex-1">
-      <aside className="w-56 shrink-0 bg-header-background">
+      <aside className="w-56 shrink-0 border-r border-header-border bg-header-background">
         <div className="px-5 py-6">
           <Link
             href="/"
-            className="font-serif text-lg text-header-foreground hover:underline"
+            className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase hover:text-brand"
           >
             Xonorate
           </Link>
-          <p className="text-xs text-header-muted">Admin</p>
+          <p className="font-mono text-[11px] tracking-widest text-header-muted uppercase">
+            Admin
+          </p>
         </div>
         <nav className="flex flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-2 py-1.5 text-sm text-header-muted transition hover:bg-white/10 hover:text-header-foreground"
-            >
-              {item.label}
-            </Link>
+            <AdminNavLink key={item.href} href={item.href} label={item.label} />
           ))}
         </nav>
       </aside>
       <div className="flex flex-1 flex-col bg-background">
-        <header className="flex items-center justify-between border-b border-border px-6 py-3">
+        <header className="flex items-center justify-between border-b border-border bg-muted-background px-6 py-3">
           <p className="text-sm text-muted">
             Signed in as {session.user.email}
           </p>

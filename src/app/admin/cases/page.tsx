@@ -38,49 +38,59 @@ export default async function AdminCasesPage() {
         <p className="mt-6 text-sm text-muted">No cases yet.</p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
-          <thead className="text-muted">
+          <thead>
             <tr className="border-b border-border">
               <th className="py-2 font-medium" />
-              <th className="py-2 font-medium">Client</th>
-              <th className="py-2 font-medium">State</th>
-              <th className="py-2 font-medium">Status</th>
-              <th className="py-2 font-medium">Views</th>
+              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+                Client
+              </th>
+              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+                State
+              </th>
+              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+                Status
+              </th>
+              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+                Views
+              </th>
               <th className="py-2 font-medium" />
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={row.id} className="border-b border-border">
-                <td className="py-2">
+              <tr key={row.id} className="border-b border-border hover:bg-muted-background">
+                <td className="py-3">
                   <CaseReorderButtons
                     caseId={row.id}
                     isFirst={i === 0}
                     isLast={i === rows.length - 1}
                   />
                 </td>
-                <td className="py-2 text-foreground">
+                <td className="py-3 font-medium text-foreground">
                   {row.clientName}
                   {!row.isClient && (
-                    <span className="ml-2 inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
+                    <span className="ml-2 inline-flex items-center border border-border px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted uppercase">
                       Spotlight
                     </span>
                   )}
                 </td>
-                <td className="py-2 text-foreground">{row.state}</td>
-                <td className="py-2">
+                <td className="py-3 text-foreground">{row.state}</td>
+                <td className="py-3">
                   <CaseStatusSelect caseId={row.id} status={row.status} />
                 </td>
-                <td className="py-2 text-foreground">{row.viewCount.toLocaleString()}</td>
-                <td className="py-2 text-right">
+                <td className="py-3 font-mono text-foreground tabular-nums">
+                  {row.viewCount.toLocaleString()}
+                </td>
+                <td className="py-3 text-right">
                   <a
                     href={`/cases/${row.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand underline"
+                    className="text-brand hover:underline"
                   >
                     View
                   </a>{" "}
-                  <Link href={`/admin/cases/${row.id}/edit`} className="text-brand underline">
+                  <Link href={`/admin/cases/${row.id}/edit`} className="text-brand hover:underline">
                     Edit
                   </Link>{" "}
                   <form action={deleteCase.bind(null, row.id)} className="inline">
