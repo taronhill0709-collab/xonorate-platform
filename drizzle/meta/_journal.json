@@ -183,6 +183,13 @@
       "when": 1787359555959,
       "tag": "0025_add-cases-source-url",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1787363436319,
+      "tag": "0026_add-cases-social-sharing",
+      "breakpoints": true
     }
   ]
 }

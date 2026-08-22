@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
     },
     { label: "New inquiries", value: counts.newGeneralInquiries, href: "/admin/inquiries" },
     { label: "Comments to moderate", value: counts.pendingComments, href: "/admin/comments" },
-    { label: "Posts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
+    { label: "Roundup drafts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
   ];
 
   return (

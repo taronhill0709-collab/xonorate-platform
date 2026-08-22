@@ -1,28 +1,32 @@
-import { excerptFromMarkdown } from "@/lib/markdown";
-
 const HASHTAGS = "#WrongfulConviction #Justice #Exoneration #Innocence";
 
-/** Ready-to-paste Facebook/Instagram caption for a published post — a self-contained
- * summary first, since links get buried by social algorithms, with the link kept
- * at the end for anyone who wants to read further. */
+// Instagram/Facebook captions read better as a self-contained summary first
+// (links get buried by social algorithms), with the link kept at the end
+// for anyone who wants to read further.
+const EXCERPT_LIMIT = 280;
+
+/** Ready-to-paste Facebook/Instagram caption for an exonerated case. */
 export function buildSocialCaption({
-  title,
-  body,
+  clientName,
+  state,
+  excerpt,
   origin,
   slug,
 }: {
-  title: string;
-  body: string;
+  clientName: string;
+  state: string;
+  excerpt: string;
   origin: string;
   slug: string;
 }): string {
-  const excerpt = excerptFromMarkdown(body, 280);
+  const trimmed =
+    excerpt.length > EXCERPT_LIMIT ? `${excerpt.slice(0, EXCERPT_LIMIT - 1)}…` : excerpt;
   return [
-    title,
+    `${clientName} (${state}) was wrongfully convicted — and has now been exonerated.`,
     "",
-    excerpt,
+    trimmed,
     "",
-    `Full story: ${origin}/posts/${slug}`,
+    `Full story: ${origin}/cases/${slug}`,
     "",
     HASHTAGS,
   ].join("\n");

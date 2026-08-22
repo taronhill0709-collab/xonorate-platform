@@ -14,10 +14,14 @@ export default async function AdminPostsPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl text-foreground">Posts</h1>
+      <h1 className="font-serif text-2xl text-foreground">Roundup</h1>
+      <p className="mt-1 text-sm text-muted">
+        Daily wrongful-conviction news, researched and drafted for your review each morning.
+        Admin-only — nothing here ever appears on the public site.
+      </p>
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">
-          No posts yet. The daily content pipeline writes drafts here for review.
+          No drafts yet. The daily roundup pipeline writes one here each morning for review.
         </p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">

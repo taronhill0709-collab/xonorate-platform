@@ -7,7 +7,7 @@ import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
 import { requireAdmin } from "@/lib/require-admin";
 import { db } from "@/db";
-import { posts } from "@/db/schema";
+import { cases } from "@/db/schema";
 import { getOrigin } from "@/lib/request-ip";
 import { buildSocialCaption } from "@/lib/social-caption";
 import { getPostMetrics, postToInstagram } from "@/lib/buffer";
@@ -27,25 +27,22 @@ export async function setSocialPostsEnabled(enabled: boolean) {
 
 export type PostToSocialResult = { ok: true } | { ok: false; error: string };
 
-/** Publishes a post's caption + photo to Instagram via Buffer, which
- * cross-posts to Facebook automatically. Guarded by `postedToSocialAt` so a
- * double-click (or a second admin) can't push the same post twice. */
+type ExonerationDetails = { whatLedToExoneration: string; year: number } | null;
+
+/** Publishes an exonerated case's caption + photo to Instagram via Buffer,
+ * which cross-posts to Facebook automatically. Guarded by `postedToSocialAt`
+ * so a double-click (or a second admin) can't push the same case twice. */
 export async function postToInstagramAndFacebook(
-  postId: string,
+  caseId: string,
 ): Promise<PostToSocialResult> {
   await requireAdmin();
 
-  const [row] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
+  const [row] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!row) {
-    return { ok: false, error: "Post not found" };
+    return { ok: false, error: "Case not found" };
   }
-  if (row.status !== "published") {
-    return { ok: false, error: "Only published posts can be shared to social" };
-  }
-  if (row.type === "daily_roundup") {
-    // Roundup posts are an admin-only research briefing — enforce this
-    // server-side too, not just by hiding the button in the UI.
-    return { ok: false, error: "Roundup posts can't be shared to social" };
+  if (row.status !== "exonerated") {
+    return { ok: false, error: "Only exonerated cases can be shared to social" };
   }
   if (row.postedToSocialAt) {
     return {
@@ -53,46 +50,48 @@ export async function postToInstagramAndFacebook(
       error: `Already posted on ${row.postedToSocialAt.toLocaleDateString("en-US")}`,
     };
   }
-  if (!row.imageUrl) {
-    return { ok: false, error: "This post has no photo — Instagram requires an image" };
+  if (!row.photoUrl) {
+    return { ok: false, error: "This case has no photo — Instagram requires an image" };
   }
 
-  // Atomically claim the post before calling Buffer — if two requests race
+  // Atomically claim the case before calling Buffer — if two requests race
   // (double-click, two admins), only one UPDATE can match `postedToSocialAt
   // IS NULL` and actually publish.
   const [claimed] = await db
-    .update(posts)
+    .update(cases)
     .set({ postedToSocialAt: new Date() })
-    .where(and(eq(posts.id, postId), isNull(posts.postedToSocialAt)))
-    .returning({ id: posts.id });
+    .where(and(eq(cases.id, caseId), isNull(cases.postedToSocialAt)))
+    .returning({ id: cases.id });
   if (!claimed) {
     return { ok: false, error: "Already posted (claimed by a concurrent request)" };
   }
 
   const origin = await getOrigin();
+  const exoneration = row.exonerationDetails as ExonerationDetails;
   const caption = buildSocialCaption({
-    title: row.title,
-    body: row.body,
+    clientName: row.clientName,
+    state: row.state,
+    excerpt: exoneration?.whatLedToExoneration || row.summary,
     origin,
     slug: row.slug,
   });
 
-  const result = await postToInstagram({ text: caption, imageUrl: row.imageUrl });
+  const result = await postToInstagram({ text: caption, imageUrl: row.photoUrl });
   if (!result.ok) {
     // Publishing failed — release the claim so the button becomes available
-    // again instead of permanently showing "already posted" for a post that
+    // again instead of permanently showing "already posted" for a case that
     // never actually went out.
     await db
-      .update(posts)
+      .update(cases)
       .set({ postedToSocialAt: null })
-      .where(eq(posts.id, postId));
+      .where(eq(cases.id, caseId));
     return { ok: false, error: result.error };
   }
 
   await db
-    .update(posts)
+    .update(cases)
     .set({ bufferPostId: result.bufferPostId })
-    .where(eq(posts.id, postId));
+    .where(eq(cases.id, caseId));
 
   revalidatePath("/admin/social");
   return { ok: true };
@@ -102,16 +101,16 @@ export type RefreshMetricsResult =
   | { ok: true; refreshed: number; failed: number }
   | { ok: false; error: string };
 
-/** Pulls fresh impression counts from Buffer for every post we've shared to
- * social, and caches them on the post row. Buffer only updates these ~daily
+/** Pulls fresh impression counts from Buffer for every case we've shared to
+ * social, and caches them on the case row. Buffer only updates these ~daily
  * on their end, so there's no value in calling this more than occasionally. */
 export async function refreshSocialMetrics(): Promise<RefreshMetricsResult> {
   await requireAdmin();
 
   const withBufferId = await db
-    .select({ id: posts.id, bufferPostId: posts.bufferPostId })
-    .from(posts)
-    .where(isNotNull(posts.bufferPostId));
+    .select({ id: cases.id, bufferPostId: cases.bufferPostId })
+    .from(cases)
+    .where(isNotNull(cases.bufferPostId));
 
   let refreshed = 0;
   let failed = 0;
@@ -124,18 +123,19 @@ export async function refreshSocialMetrics(): Promise<RefreshMetricsResult> {
       continue;
     }
     await db
-      .update(posts)
+      .update(cases)
       .set({
         socialViews: metrics.impressions,
         socialMetricsSyncedAt: new Date(),
       })
-      .where(eq(posts.id, row.id));
+      .where(eq(cases.id, row.id));
     refreshed += 1;
   }
 
   revalidatePath("/admin/social");
   revalidatePath("/admin/cases");
   revalidatePath("/");
+  revalidatePath("/exonerated");
 
   return { ok: true, refreshed, failed };
 }

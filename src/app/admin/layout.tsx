@@ -14,13 +14,14 @@ export const dynamic = "force-dynamic";
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/cases", label: "Cases" },
+  { href: "/admin/cases/candidates", label: "Candidates" },
   { href: "/admin/petitions", label: "Petitions" },
   { href: "/admin/supporters", label: "Supporters" },
   { href: "/admin/supporter-updates", label: "Supporter Updates" },
   { href: "/admin/case-submissions", label: "Case Submissions" },
   { href: "/admin/inquiries", label: "Inquiries" },
   { href: "/admin/comments", label: "Comments" },
-  { href: "/admin/posts", label: "Posts" },
+  { href: "/admin/posts", label: "Roundup" },
   { href: "/admin/social", label: "Social" },
   { href: "/admin/settings", label: "Settings" },
 ];

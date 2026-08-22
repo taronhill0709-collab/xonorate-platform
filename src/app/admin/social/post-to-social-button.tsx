@@ -4,11 +4,11 @@ import { useState, useTransition } from "react";
 import { postToInstagramAndFacebook } from "./actions";
 
 export function PostToSocialButton({
-  postId,
+  caseId,
   alreadyPostedAt,
   disabledReason,
 }: {
-  postId: string;
+  caseId: string;
   alreadyPostedAt: string | null;
   disabledReason?: string;
 }) {
@@ -40,7 +40,7 @@ export function PostToSocialButton({
         onClick={() => {
           setError(null);
           startTransition(async () => {
-            const result = await postToInstagramAndFacebook(postId);
+            const result = await postToInstagramAndFacebook(caseId);
             if (result.ok) {
               setPostedAt(new Date().toISOString());
             } else {

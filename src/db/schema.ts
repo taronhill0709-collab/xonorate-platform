@@ -159,6 +159,20 @@ export const cases = pgTable("cases", {
   // (nre-case-research.ts); null for manually-entered client cases with no
   // single external source.
   sourceUrl: text("source_url"),
+  // Social-sharing state — mirrors the fields the `posts` table used before
+  // the public feed moved from posts to cases; the /admin/social tool now
+  // shares exonerated cases instead of AI-drafted posts.
+  // Set once this case has been pushed to Instagram/Facebook via Buffer —
+  // guards the share button against firing twice for the same case.
+  postedToSocialAt: timestamp("posted_to_social_at"),
+  // Buffer's own ID for the update pushed to Instagram — needed to later ask
+  // Buffer for that post's performance metrics. Null until posted.
+  bufferPostId: text("buffer_post_id"),
+  // Cached impressions count from Buffer, refreshed via the admin "Refresh
+  // social metrics" action — Buffer's metrics only update ~daily on their
+  // end, so this is never fetched live on a page render.
+  socialViews: integer("social_views").notNull().default(0),
+  socialMetricsSyncedAt: timestamp("social_metrics_synced_at"),
   // Admin-controlled display order (ascending) for the cases list and the
   // homepage's featured cases — lower sorts first. Ties (the common case,
   // since every row defaults to 0 until reordered) fall back to createdAt.
