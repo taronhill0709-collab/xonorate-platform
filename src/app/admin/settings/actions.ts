@@ -33,6 +33,17 @@ export async function saveSettings(formData: FormData) {
         })
       : normalizeText(formData.get("founderPhotoUrl"));
 
+  const heroImageFile = formData.get("heroImage");
+  const heroImageUrl =
+    heroImageFile instanceof File && heroImageFile.size > 0
+      ? await uploadCasePhoto(heroImageFile).catch((err) => {
+          if (err instanceof InvalidCasePhotoError) {
+            redirect(`/admin/settings?photoError=${encodeURIComponent(err.message)}`);
+          }
+          throw err;
+        })
+      : normalizeText(formData.get("heroImageUrl"));
+
   await db
     .insert(siteSettings)
     .values({
@@ -41,10 +52,11 @@ export async function saveSettings(formData: FormData) {
       facebookUrl,
       instagramUrl,
       founderPhotoUrl,
+      heroImageUrl,
     })
     .onConflictDoUpdate({
       target: siteSettings.id,
-      set: { socialViewsLabel, facebookUrl, instagramUrl, founderPhotoUrl },
+      set: { socialViewsLabel, facebookUrl, instagramUrl, founderPhotoUrl, heroImageUrl },
     });
 
   revalidatePath("/", "layout");

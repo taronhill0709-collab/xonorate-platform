@@ -116,7 +116,7 @@ export default async function AdminDashboardPage() {
         {tiles.map((tile) => {
           const content = (
             <>
-              <p className="font-mono text-3xl font-bold text-brand tabular-nums">
+              <p className="font-serif text-3xl font-extrabold tracking-tight text-brand tabular-nums">
                 {tile.value}
               </p>
               <p className="mt-1 font-mono text-[11px] tracking-wide text-muted uppercase">

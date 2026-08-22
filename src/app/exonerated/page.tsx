@@ -2,6 +2,8 @@ import { asc, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { RedactedPhoto } from "@/components/redacted-photo";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
@@ -60,24 +62,22 @@ export default async function ExoneratedIndexPage() {
               return (
                 <li
                   key={row.id}
-                  className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+                  className="flex gap-4 border border-border p-5 transition hover:border-brand/50"
                 >
-                  {row.photoUrl ? (
-                    <Image
-                      src={row.photoUrl}
-                      alt={row.clientName}
-                      width={96}
-                      height={96}
-                      className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-border/70"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
-                      <span className="font-serif text-2xl text-muted">
-                        {row.clientName.charAt(0)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="h-24 w-24 shrink-0 overflow-hidden border border-border">
+                    {row.photoUrl ? (
+                      <Image
+                        src={row.photoUrl}
+                        alt={row.clientName}
+                        width={96}
+                        height={96}
+                        className="h-full w-full object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <RedactedPhoto />
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
@@ -118,7 +118,7 @@ export default async function ExoneratedIndexPage() {
                         href={row.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 inline-block text-xs text-muted underline decoration-dotted underline-offset-2 hover:text-brand"
+                        className="mt-2 inline-block text-xs text-link underline-offset-2 hover:text-link-strong hover:underline"
                       >
                         Source: National Registry of Exonerations ↗
                       </a>
@@ -130,6 +130,7 @@ export default async function ExoneratedIndexPage() {
           </ul>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

@@ -78,7 +78,7 @@ export default async function AdminCasesPage() {
                 <td className="py-3">
                   <CaseStatusSelect caseId={row.id} status={row.status} />
                 </td>
-                <td className="py-3 font-mono text-foreground tabular-nums">
+                <td className="py-3 font-semibold text-foreground tabular-nums">
                   {row.viewCount.toLocaleString()}
                 </td>
                 <td className="py-3 text-right">

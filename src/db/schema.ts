@@ -417,6 +417,9 @@ export const siteSettings = pgTable("site_settings", {
   // separate from any case's own photoUrl, since the founder may want a
   // different picture there than on his case page.
   founderPhotoUrl: text("founder_photo_url"),
+  // The homepage hero's exhibit graphic — shows the RedactedPhoto
+  // placeholder when null.
+  heroImageUrl: text("hero_image_url"),
 });
 
 // --- Newsletter ---

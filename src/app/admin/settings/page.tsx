@@ -32,6 +32,28 @@ export default async function AdminSettingsPage({
 
       <form action={saveSettings} className="mt-6 space-y-4">
         <Field
+          label="Homepage hero image — shown next to the headline on the homepage (leave blank to show the case-file placeholder graphic)"
+          name="heroImage"
+        >
+          {settings?.heroImageUrl && (
+            <Image
+              src={settings.heroImageUrl}
+              alt=""
+              width={192}
+              height={240}
+              className="mb-2 h-40 w-32 border border-border object-cover"
+              unoptimized
+            />
+          )}
+          <FileInput
+            id="heroImage"
+            name="heroImage"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+          />
+          <input type="hidden" name="heroImageUrl" value={settings?.heroImageUrl ?? ""} />
+        </Field>
+
+        <Field
           label="Founder photo — shown in the &quot;Our founder&quot; sections on the homepage and About page, separate from his case page photo"
           name="founderPhoto"
         >

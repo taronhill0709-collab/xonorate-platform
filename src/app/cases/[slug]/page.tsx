@@ -218,7 +218,7 @@ export default async function CaseDetailPage({
           <div className="mt-8 flex flex-wrap gap-x-10 gap-y-6 border-y border-border py-6">
             {innocenceClaim.stats.map((stat, i) => (
               <div key={i}>
-                <p className="font-mono text-3xl font-bold text-brand tabular-nums">
+                <p className="font-serif text-3xl font-extrabold tracking-tight text-brand tabular-nums">
                   {stat.value}
                 </p>
                 <p className="mt-1 max-w-36 text-xs text-muted">{stat.label}</p>
@@ -317,7 +317,7 @@ export default async function CaseDetailPage({
               <div className="mt-4 flex flex-wrap gap-x-8 gap-y-4">
                 {impact.stats.map((stat, i) => (
                   <div key={i}>
-                    <p className="font-mono text-3xl font-bold text-brand tabular-nums">
+                    <p className="font-serif text-3xl font-extrabold tracking-tight text-brand tabular-nums">
                       {stat.value}
                     </p>
                     <p className="mt-1 max-w-32 text-xs text-muted">{stat.label}</p>

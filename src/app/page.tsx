@@ -6,7 +6,7 @@ import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
-import { cases } from "@/db/schema";
+import { cases, siteSettings } from "@/db/schema";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 import { getFounderCase } from "@/lib/founder";
 import {
@@ -73,6 +73,11 @@ export default async function Home() {
 
   const platformStats = await getPlatformStats();
   const founderCase = await getFounderCase();
+  const [settings] = await db
+    .select({ heroImageUrl: siteSettings.heroImageUrl })
+    .from(siteSettings)
+    .where(eq(siteSettings.id, "singleton"))
+    .limit(1);
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -84,7 +89,7 @@ export default async function Home() {
               <p className="text-xs font-semibold tracking-widest text-brand uppercase">
                 Xonorate Media Platform
               </p>
-              <h1 className="mt-3 font-serif text-4xl text-header-foreground sm:text-5xl">
+              <h1 className="mt-3 text-balance font-serif text-[2.5rem] leading-[1.15] text-header-foreground sm:text-5xl">
                 We expose injustice. We amplify the{" "}
                 <span className="text-brand">innocent</span>.
               </h1>
@@ -108,7 +113,18 @@ export default async function Home() {
               </div>
             </div>
             <div className="aspect-4/5 w-full overflow-hidden rounded-lg border border-header-border sm:aspect-3/4">
-              <RedactedPhoto />
+              {settings?.heroImageUrl ? (
+                <Image
+                  src={settings.heroImageUrl}
+                  alt=""
+                  width={640}
+                  height={800}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <RedactedPhoto />
+              )}
             </div>
           </div>
         </section>
@@ -472,7 +488,7 @@ export default async function Home() {
                 >
                   <dt className="sr-only">{stat.label}</dt>
                   <dd
-                    className={`font-mono font-bold text-brand tabular-nums ${
+                    className={`font-serif font-extrabold tracking-tight text-brand tabular-nums ${
                       stat.value.length > 10
                         ? "text-xl"
                         : stat.value.length > 6
