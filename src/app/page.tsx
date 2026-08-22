@@ -1,14 +1,13 @@
 import { asc, desc, eq, ne } from "drizzle-orm";
-import { ArrowRight, FileSignature, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { FeaturedCasesCarousel } from "@/components/featured-cases-carousel";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
-import { SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
+import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 import { getFounderCase } from "@/lib/founder";
 import {
   WRONGFUL_CONVICTION_CAUSES,
@@ -41,7 +40,7 @@ export default async function Home() {
     .from(cases)
     .where(ne(cases.status, "exonerated"))
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt))
-    .limit(5);
+    .limit(3);
 
   const featuredCases = recentCases.map((c) => ({
     id: c.id,
@@ -115,55 +114,27 @@ export default async function Home() {
         </section>
 
         {founderCase && (
-          <section className="relative overflow-hidden bg-header-background py-14">
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 15% 50%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 60%)",
-              }}
-              aria-hidden
-            />
-            <div className="relative mx-auto w-full max-w-4xl px-6">
-              <div className="flex flex-col items-center gap-8 rounded-2xl border border-brand/30 bg-white/[0.03] px-6 py-10 text-center sm:flex-row sm:px-10 sm:text-left">
-                {founderCase.photoUrl ? (
-                  <Image
-                    src={founderCase.photoUrl}
-                    alt={founderCase.clientName}
-                    width={160}
-                    height={160}
-                    className="h-32 w-32 shrink-0 rounded-full object-cover ring-4 ring-brand/50 sm:h-40 sm:w-40"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full bg-white/[0.06] ring-4 ring-brand/50 sm:h-40 sm:w-40">
-                    <span className="font-serif text-4xl text-header-muted">
-                      {founderCase.clientName.charAt(0)}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
-                    <ShieldCheck size={14} />
-                    Our founder
-                  </p>
-                  <h2 className="mt-2 font-serif text-2xl text-header-foreground sm:text-3xl">
-                    {founderCase.clientName}{" "}
-                    spent 16 years in prison for a crime he didn&apos;t commit.
-                  </h2>
-                  <p className="mx-auto mt-3 max-w-xl text-sm text-header-muted sm:mx-0">
-                    Exonerated in 2021 after New Jersey&apos;s Conviction Review Unit found he
-                    never should have been convicted, he founded Xonorate so other wrongfully
-                    convicted people don&apos;t wait 16 years for someone to listen.
-                  </p>
-                  <Link
-                    href={`/cases/${founderCase.slug}`}
-                    className="mt-4 inline-flex items-center gap-1 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
-                  >
-                    Read his story <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
+          <section className="border-t border-header-border bg-header-background/60 py-8">
+            <div className="mx-auto w-full max-w-6xl px-6">
+              <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
+                <ShieldCheck size={14} />
+                Our founder
+              </p>
+              <p className="max-w-3xl text-sm text-header-muted">
+                <strong className="font-semibold text-header-foreground">
+                  {founderCase.clientName} spent 16 years in prison for a crime he didn&apos;t
+                  commit.
+                </strong>{" "}
+                Exonerated in 2021 after New Jersey&apos;s Conviction Review Unit found he never
+                should have been convicted, he founded Xonorate so other wrongfully convicted
+                people don&apos;t wait 16 years for someone to listen.{" "}
+                <Link
+                  href={`/cases/${founderCase.slug}`}
+                  className="font-semibold whitespace-nowrap text-brand hover:underline"
+                >
+                  Read his story →
+                </Link>
+              </p>
             </div>
           </section>
         )}
@@ -294,33 +265,101 @@ export default async function Home() {
                 View all cases <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="mt-8">
-              <FeaturedCasesCarousel cases={featuredCases} />
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredCases.map((c, i) => (
+                <Link
+                  key={c.id}
+                  href={`/cases/${c.slug}`}
+                  className="group overflow-hidden rounded-lg border border-header-border bg-muted-background transition hover:border-brand/50"
+                >
+                  <div className="relative h-40 w-full">
+                    {c.photoUrl ? (
+                      <Image
+                        src={c.photoUrl}
+                        alt={c.clientName}
+                        fill
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <RedactedPhoto seed={i} />
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <span className="inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                      {CASE_STATUS_LABEL[c.status] ?? c.status}
+                    </span>
+                    <p className="mt-2 font-serif text-lg text-header-foreground">
+                      {c.clientName}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-header-muted uppercase">
+                      {c.state}
+                    </p>
+                    <p className="mt-2 text-xs text-header-muted">
+                      Convicted: {c.convictedYear}
+                      {c.timeServed ? ` · Served: ${c.timeServed}` : ""}
+                    </p>
+                    <span className="mt-3 inline-block text-xs font-bold text-brand">
+                      View case →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+              <div className="flex flex-col justify-center gap-3 bg-header-border/30 p-6">
+                <h3 className="font-serif text-lg text-header-foreground">
+                  Know someone wrongfully convicted?
+                </h3>
+                <p className="text-sm text-header-muted">
+                  Submitting a case is the first step toward review.
+                </p>
+                <Link
+                  href="/submit-case"
+                  className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+                >
+                  Submit a case →
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-band-background">
-          <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 bg-brand px-6 py-14 text-center sm:flex-row sm:text-left">
-            <FileSignature className="h-12 w-12 shrink-0 text-brand-foreground" />
-            <div className="flex-1">
-              <p className="font-mono text-xs tracking-widest text-brand-foreground/70 uppercase">
-                Take action
-              </p>
-              <h2 className="mt-2 font-serif text-2xl text-brand-foreground">
-                Your voice can change a life.
-              </h2>
-              <p className="mt-2 text-sm text-brand-foreground/80">
-                Sign petitions, share cases, and help bring justice to those
-                who were wrongfully convicted.
-              </p>
+        <section className="border-t border-header-border bg-header-background py-16">
+          <div className="mx-auto w-full max-w-6xl px-6">
+            <p className="font-mono text-xs tracking-widest text-brand uppercase">Take action</p>
+            <h2 className="mt-2 font-serif text-3xl text-header-foreground">
+              Be part of the solution.
+            </h2>
+            <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden border border-header-border bg-header-border sm:grid-cols-2 lg:grid-cols-4">
+              <Link href="/petitions" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
+                <span className="font-mono text-xs text-brand">01</span>
+                <h3 className="font-medium text-header-foreground">Sign petitions</h3>
+                <p className="text-sm text-header-muted">
+                  Add your name to a case actively pushing for review.
+                </p>
+              </Link>
+              <Link href="/cases" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
+                <span className="font-mono text-xs text-brand">02</span>
+                <h3 className="font-medium text-header-foreground">Share a case</h3>
+                <p className="text-sm text-header-muted">
+                  Reach is the resource we have the most of — use it.
+                </p>
+              </Link>
+              <Link href="/submit-case" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
+                <span className="font-mono text-xs text-brand">03</span>
+                <h3 className="font-medium text-header-foreground">Submit a case</h3>
+                <p className="text-sm text-header-muted">
+                  Tell us about someone who may have been wrongly convicted.
+                </p>
+              </Link>
+              <Link href="/submit-inquiry" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
+                <span className="font-mono text-xs text-brand">04</span>
+                <h3 className="font-medium text-header-foreground">Submit an inquiry</h3>
+                <p className="text-sm text-header-muted">
+                  Have a question, a lead, or a document? Send it our way.
+                </p>
+              </Link>
             </div>
-            <Link
-              href="/petitions"
-              className="shrink-0 rounded-md bg-brand-foreground px-5 py-2 text-sm font-medium text-brand transition hover:opacity-90"
-            >
-              Explore petitions
-            </Link>
           </div>
         </section>
 
