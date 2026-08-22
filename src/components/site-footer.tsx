@@ -52,21 +52,24 @@ export async function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-header-border bg-header-background">
-      <div className="mx-auto w-full max-w-6xl px-6 py-12">
-        <div className="flex flex-col items-start gap-3 border-b border-header-border pb-10 sm:flex-row sm:items-center sm:justify-between">
+    <>
+      <section className="bg-brand">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-serif text-lg text-header-foreground">
+            <p className="font-serif text-lg text-brand-foreground">
               Stay informed. Stay involved.
             </p>
-            <p className="mt-1 text-sm text-header-muted">
+            <p className="mt-1 text-sm text-brand-foreground/75">
               Get the latest updates on cases, petitions, and justice reform.
             </p>
           </div>
           <NewsletterForm />
         </div>
+      </section>
 
-        <div className="grid grid-cols-2 gap-8 pt-10 sm:grid-cols-4">
+      <footer className="border-t border-header-border bg-header-background">
+        <div className="mx-auto w-full max-w-6xl px-6 py-12">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <Image
@@ -112,7 +115,7 @@ export async function SiteFooter() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold tracking-wide text-header-foreground uppercase">
+            <p className="font-mono text-xs tracking-widest text-header-muted uppercase">
               Menu
             </p>
             <ul className="mt-3 space-y-2">
@@ -130,7 +133,7 @@ export async function SiteFooter() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold tracking-wide text-header-foreground uppercase">
+            <p className="font-mono text-xs tracking-widest text-header-muted uppercase">
               Get Involved
             </p>
             <ul className="mt-3 space-y-2">
@@ -148,18 +151,19 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-header-border pt-6">
-          <p className="text-xs text-header-muted">
-            Xonorate does not adjudicate guilt or innocence — that evaluation
-            belongs to the attorneys and innocence organizations we work
-            with, based on the evidence in each case. No claim of innocence
-            made here is a guarantee.
-          </p>
-          <p className="mt-3 text-xs text-header-muted">
-            © {year} Xonorate Media Platform. All rights reserved.
-          </p>
+          <div className="mt-10 border-t border-header-border pt-6">
+            <p className="text-xs text-header-muted">
+              Xonorate does not adjudicate guilt or innocence — that
+              evaluation belongs to the attorneys and innocence organizations
+              we work with, based on the evidence in each case. No claim of
+              innocence made here is a guarantee.
+            </p>
+            <p className="mt-3 font-mono text-xs text-header-muted">
+              © {year} Xonorate Media Platform. All rights reserved.
+            </p>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 }

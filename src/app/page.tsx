@@ -301,23 +301,23 @@ export default async function Home() {
         </section>
 
         <section className="bg-band-background">
-          <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 px-6 py-14 text-center sm:flex-row sm:text-left">
-            <FileSignature className="h-12 w-12 shrink-0 text-band-accent" />
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 bg-brand px-6 py-14 text-center sm:flex-row sm:text-left">
+            <FileSignature className="h-12 w-12 shrink-0 text-brand-foreground" />
             <div className="flex-1">
-              <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
+              <p className="font-mono text-xs tracking-widest text-brand-foreground/70 uppercase">
                 Take action
               </p>
-              <h2 className="mt-2 font-serif text-2xl text-band-foreground">
+              <h2 className="mt-2 font-serif text-2xl text-brand-foreground">
                 Your voice can change a life.
               </h2>
-              <p className="mt-2 text-sm text-band-foreground/75">
+              <p className="mt-2 text-sm text-brand-foreground/80">
                 Sign petitions, share cases, and help bring justice to those
                 who were wrongfully convicted.
               </p>
             </div>
             <Link
               href="/petitions"
-              className="shrink-0 rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+              className="shrink-0 rounded-md bg-brand-foreground px-5 py-2 text-sm font-medium text-brand transition hover:opacity-90"
             >
               Explore petitions
             </Link>
@@ -416,21 +416,24 @@ export default async function Home() {
 
         {platformStats.length > 0 && (
           <section className="mx-auto w-full max-w-3xl px-6 py-16">
-            <h2 className="font-serif text-xl text-foreground">
+            <p className="font-mono text-xs tracking-widest text-brand uppercase">
+              Our own record
+            </p>
+            <h2 className="mt-2 font-serif text-2xl text-foreground">
               Our impact so far
             </h2>
             <p className="mt-1 text-sm text-muted">
               Counted live from our own case files — not a national estimate.
             </p>
-            <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {platformStats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-lg border border-border p-5 text-center shadow-sm"
+                  className="border border-border bg-muted-background p-5 text-center"
                 >
                   <dt className="sr-only">{stat.label}</dt>
                   <dd
-                    className={`font-serif text-brand ${
+                    className={`font-mono font-bold text-brand tabular-nums ${
                       stat.value.length > 10
                         ? "text-xl"
                         : stat.value.length > 6
