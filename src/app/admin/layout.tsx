@@ -45,9 +45,9 @@ export default async function AdminLayout({
         <div className="px-5 py-6">
           <Link
             href="/"
-            className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase hover:text-brand"
+            className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase"
           >
-            Xonorate
+            X<span className="text-brand">o</span>norate
           </Link>
           <p className="font-mono text-[11px] tracking-widest text-header-muted uppercase">
             Admin

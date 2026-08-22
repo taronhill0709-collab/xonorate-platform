@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
@@ -71,17 +70,11 @@ export async function SiteFooter() {
         <div className="mx-auto w-full max-w-6xl px-6 py-12">
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/xonorate-mark.svg"
-                alt=""
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-              <span className="font-display text-lg font-semibold tracking-[0.08em] text-header-foreground">
-                XONORATE
-              </span>
+            <Link
+              href="/"
+              className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase"
+            >
+              X<span className="text-brand">o</span>norate
             </Link>
             <p className="mt-2 text-sm text-header-muted">
               Giving a Voice to the Voiceless.

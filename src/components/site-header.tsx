@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { MobileNav } from "@/components/mobile-nav";
@@ -103,18 +102,11 @@ export async function SiteHeader() {
   return (
     <header className="relative border-b border-header-border bg-header-background">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
-        <Link href="/" className="flex items-center gap-4">
-          <Image
-            src="/xonorate-mark.svg"
-            alt=""
-            width={44}
-            height={44}
-            className="h-11 w-11 shrink-0"
-          />
-          <span className="h-9 w-px bg-header-border" aria-hidden />
-          <span className="font-display text-2xl font-semibold tracking-[0.08em] text-header-foreground">
-            XONORATE
-          </span>
+        <Link
+          href="/"
+          className="font-display text-2xl font-bold tracking-[0.06em] text-header-foreground uppercase"
+        >
+          X<span className="text-brand">o</span>norate
         </Link>
         <nav className="hidden items-center gap-6 text-sm sm:flex">
           {navLinks}

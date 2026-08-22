@@ -1,16 +1,8 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const alt = "Xonorate Media Platform — advocating for the wrongfully convicted";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-const markSvg = readFileSync(
-  join(process.cwd(), "public/xonorate-mark.svg"),
-  "utf-8",
-);
-const markDataUri = `data:image/svg+xml;base64,${Buffer.from(markSvg).toString("base64")}`;
 
 export default function Image() {
   return new ImageResponse(
@@ -23,31 +15,23 @@ export default function Image() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px",
-          backgroundColor: "#1b2a4a",
+          backgroundColor: "#14120e",
           backgroundImage:
-            "radial-gradient(circle at 85% 15%, rgba(212,161,46,0.28), transparent 55%)",
+            "radial-gradient(circle at 85% 15%, rgba(201,154,68,0.22), transparent 55%)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <img
-            src={markDataUri}
-            alt=""
-            width={64}
-            height={64}
-            style={{ marginRight: 20 }}
-          />
-          <div
-            style={{
-              display: "flex",
-              fontSize: 34,
-              fontWeight: 700,
-              letterSpacing: 6,
-              color: "#f7f4ef",
-              textTransform: "uppercase",
-            }}
-          >
-            Xonorate
-          </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 40,
+            fontWeight: 700,
+            letterSpacing: 3,
+            textTransform: "uppercase",
+          }}
+        >
+          <span style={{ color: "#f2ece0" }}>X</span>
+          <span style={{ color: "#c99a44" }}>o</span>
+          <span style={{ color: "#f2ece0" }}>norate</span>
         </div>
 
         <div
@@ -57,15 +41,15 @@ export default function Image() {
             fontSize: 56,
             fontWeight: 700,
             lineHeight: 1.15,
-            color: "#ffffff",
+            color: "#f2ece0",
           }}
         >
           Advocating for the wrongfully convicted
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ display: "flex", width: 64, height: 4, backgroundColor: "#d4a12e", marginRight: 20 }} />
-          <div style={{ display: "flex", fontSize: 24, color: "#c9cedb" }}>
+          <div style={{ display: "flex", width: 64, height: 4, backgroundColor: "#c99a44", marginRight: 20 }} />
+          <div style={{ display: "flex", fontSize: 24, color: "#a99c81" }}>
             Client cases · live petitions · stories of exoneration
           </div>
         </div>
