@@ -26,7 +26,7 @@ async function main() {
         contributingFactors:
           "The conviction rests almost entirely on DNA evidence attributed to Mr. Resiles following a database search nine days after the killing. No independently reviewed DNA case file has been produced beyond summary lab reports. In a letter to the court, Mr. Resiles states that physical evidence recovered from the scene was never tested and that the timeline presented to the jury was never reconciled with available electronic records. WSVN reported that a juror in the case that ended in mistrial stated afterward that some jurors would not convict on the greater charge because of Mr. Resiles' race.",
       },
-      timeServed: "~11 years, 11 months — continuously in custody since September 2014",
+      timeServed: "~11 years, 11 months - continuously in custody since September 2014",
       exonerationDetails: null,
       status: "active_case",
       state: "Davie, Florida (Broward County)",
@@ -62,7 +62,7 @@ async function main() {
             items: [
               {
                 title: "Disputed forensic DNA evidence",
-                body: "The conviction rests almost entirely on DNA attributed to Mr. Resiles. A DNA association does not establish when material was deposited, how, whether by direct or indirect transfer, or what activity produced it. The defense challenged the interpretation methodology at trial, including the statistical calculations used to attribute the profiles. Independent review of the complete DNA case file — electropherograms, quantitation data, bench notes, controls, chain-of-custody records, not just summary reports — has never been completed.",
+                body: "The conviction rests almost entirely on DNA attributed to Mr. Resiles. A DNA association does not establish when material was deposited, how, whether by direct or indirect transfer, or what activity produced it. The defense challenged the interpretation methodology at trial, including the statistical calculations used to attribute the profiles. Independent review of the complete DNA case file - electropherograms, quantitation data, bench notes, controls, chain-of-custody records, not just summary reports - has never been completed.",
               },
               {
                 title: "Prejudicial flight evidence",
@@ -86,7 +86,7 @@ async function main() {
     },
     {
       caseId: row.id,
-      title: "NBC6 — Jury finds Resiles guilty (Mar. 2022)",
+      title: "NBC6 - Jury finds Resiles guilty (Mar. 2022)",
       status: "on_file",
       fileUrl:
         "https://www.nbcmiami.com/news/local/dayonte-resiles-found-guilty-of-murdering-woman-in-davie-home-in-2014/2716810/",
@@ -94,21 +94,21 @@ async function main() {
     },
     {
       caseId: row.id,
-      title: "CBS News Miami — Death penalty dropped, life sentence mandatory",
+      title: "CBS News Miami - Death penalty dropped, life sentence mandatory",
       status: "on_file",
       fileUrl: "https://cbsnews.com/miami/news/death-penalty-dropped-dayonte-resiles-jill-halliburton-su",
       sortOrder: 2,
     },
     {
       caseId: row.id,
-      title: "CBS News — First trial ends in mistrial after juror disagreement",
+      title: "CBS News - First trial ends in mistrial after juror disagreement",
       status: "on_file",
       fileUrl: "https://www.cbsnews.com/news/dayonte-resiles-trial-juror-manslaughter-verdict-fort-lauderdale/",
       sortOrder: 3,
     },
     {
       caseId: row.id,
-      title: "WSVN — Sentencing coverage, including juror's statement on race",
+      title: "WSVN - Sentencing coverage, including juror's statement on race",
       status: "on_file",
       fileUrl:
         "https://wsvn.com/news/local/broward/dayonte-resiles-sentenced-to-life-in-prison-for-2014-murder-of-davie-woman/",
@@ -116,7 +116,7 @@ async function main() {
     },
     {
       caseId: row.id,
-      title: "Local10 — DNA testimony and defense challenge at trial",
+      title: "Local10 - DNA testimony and defense challenge at trial",
       status: "on_file",
       fileUrl: "https://www.local10.com/news/local/2021/11/30/resiles-murder-trial-resumes-with-testimony-over-dna/",
       sortOrder: 5,
