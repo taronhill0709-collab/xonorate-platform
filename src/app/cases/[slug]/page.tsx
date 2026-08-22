@@ -6,7 +6,9 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
+import { RedactedPhoto } from "@/components/redacted-photo";
 import { ShareButtons } from "@/components/share-buttons";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { hasImpactContent, type CaseImpact } from "@/lib/case-impact";
 import { db } from "@/db";
@@ -169,12 +171,14 @@ export default async function CaseDetailPage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <p className="text-xs font-medium uppercase tracking-wide text-brand">
+        <p className="font-mono text-xs tracking-widest text-brand uppercase">
           {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
         </p>
-        <h1 className="mt-1 font-serif text-3xl text-foreground">{caseRow.clientName}</h1>
+        <h1 className="mt-1 font-serif text-3xl text-foreground sm:text-4xl">
+          {caseRow.clientName}
+        </h1>
         {!caseRow.isClient && (
-          <p className="mt-2 inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-foreground uppercase">
+          <p className="mt-2 inline-flex items-center border border-border px-2 py-0.5 font-mono text-[11px] tracking-wide text-muted uppercase">
             {SPOTLIGHT_CASE_LABEL}
           </p>
         )}
@@ -193,81 +197,101 @@ export default async function CaseDetailPage({
           )}
         </p>
 
-        {caseRow.photoUrl ? (
-          <Image
-            src={caseRow.photoUrl}
-            alt={caseRow.clientName}
-            width={96}
-            height={96}
-            className="mt-6 h-24 w-24 rounded-full object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="mt-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
-            <span className="font-serif text-2xl text-muted">
-              {caseRow.clientName.charAt(0)}
-            </span>
-          </div>
-        )}
+        <div className="mt-6 h-32 w-32 overflow-hidden border border-border">
+          {caseRow.photoUrl ? (
+            <Image
+              src={caseRow.photoUrl}
+              alt={caseRow.clientName}
+              width={128}
+              height={128}
+              className="h-full w-full object-cover"
+              unoptimized
+            />
+          ) : (
+            <RedactedPhoto />
+          )}
+        </div>
 
         <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>
 
         {innocenceClaim && innocenceClaim.stats.length > 0 && (
-          <div className="mt-8 flex flex-wrap gap-8">
+          <div className="mt-8 flex flex-wrap gap-x-10 gap-y-6 border-y border-border py-6">
             {innocenceClaim.stats.map((stat, i) => (
               <div key={i}>
-                <p className="font-serif text-3xl text-brand">{stat.value}</p>
-                <p className="mt-1 max-w-32 text-xs text-muted">{stat.label}</p>
+                <p className="font-mono text-3xl font-bold text-brand tabular-nums">
+                  {stat.value}
+                </p>
+                <p className="mt-1 max-w-36 text-xs text-muted">{stat.label}</p>
               </div>
             ))}
           </div>
         )}
 
         {innocenceClaim?.pullQuote && (
-          <blockquote className="mt-8 border-l-2 border-accent pl-4 font-serif text-lg italic text-foreground">
+          <blockquote className="mt-8 border-l-2 border-brand pl-4 font-serif text-lg text-foreground italic">
             &ldquo;{innocenceClaim.pullQuote}&rdquo;
           </blockquote>
         )}
 
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">{convictionRoman}. The conviction</h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div>
-              <dt className="text-muted">Charge</dt>
-              <dd className="text-foreground">{conviction.charge}</dd>
+          <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+            <span className="font-mono text-sm font-normal text-brand">{convictionRoman}.</span>
+            The conviction
+          </h2>
+          <dl className="mt-4 space-y-3 text-sm">
+            <div className="border-b border-border pb-3">
+              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">Charge</dt>
+              <dd className="mt-0.5 text-foreground">{conviction.charge}</dd>
             </div>
-            <div>
-              <dt className="text-muted">Year convicted</dt>
-              <dd className="text-foreground">{conviction.year}</dd>
+            <div className="border-b border-border pb-3">
+              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                Year convicted
+              </dt>
+              <dd className="mt-0.5 text-foreground">{conviction.year}</dd>
             </div>
-            <div>
-              <dt className="text-muted">Sentence</dt>
-              <dd className="text-foreground">{conviction.sentence}</dd>
+            <div className="border-b border-border pb-3">
+              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                Sentence
+              </dt>
+              <dd className="mt-0.5 text-foreground">{conviction.sentence}</dd>
             </div>
             {caseRow.timeServed && (
-              <div>
-                <dt className="text-muted">Time served</dt>
-                <dd className="text-foreground">{caseRow.timeServed}</dd>
+              <div className="border-b border-border pb-3">
+                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                  Time served
+                </dt>
+                <dd className="mt-0.5 text-foreground">{caseRow.timeServed}</dd>
               </div>
             )}
             <div>
-              <dt className="text-muted">What contributed to the conviction</dt>
-              <dd className="text-foreground">{conviction.contributingFactors}</dd>
+              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                What contributed to the conviction
+              </dt>
+              <dd className="mt-0.5 text-foreground">{conviction.contributingFactors}</dd>
             </div>
           </dl>
         </section>
 
         {exoneration && (
           <section className="mt-10">
-            <h2 className="font-serif text-lg text-foreground">{exonerationRoman}. Exoneration</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div>
-                <dt className="text-muted">Year exonerated</dt>
-                <dd className="text-foreground">{exoneration.year}</dd>
+            <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+              <span className="font-mono text-sm font-normal text-brand">
+                {exonerationRoman}.
+              </span>
+              Exoneration
+            </h2>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div className="border-b border-border pb-3">
+                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                  Year exonerated
+                </dt>
+                <dd className="mt-0.5 text-foreground">{exoneration.year}</dd>
               </div>
               <div>
-                <dt className="text-muted">What led to exoneration</dt>
-                <dd className="text-foreground">{exoneration.whatLedToExoneration}</dd>
+                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                  What led to exoneration
+                </dt>
+                <dd className="mt-0.5 text-foreground">{exoneration.whatLedToExoneration}</dd>
               </div>
             </dl>
             {caseRow.sourceUrl && (
@@ -275,7 +299,7 @@ export default async function CaseDetailPage({
                 href={caseRow.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-block text-xs text-muted underline decoration-dotted underline-offset-2 hover:text-brand"
+                className="mt-4 inline-block font-mono text-xs text-link uppercase hover:text-link-strong"
               >
                 Source: National Registry of Exonerations ↗
               </a>
@@ -285,12 +309,17 @@ export default async function CaseDetailPage({
 
         {hasImpact && impact && (
           <section id="impact" className="mt-10 scroll-mt-20">
-            <h2 className="font-serif text-lg text-foreground">{impactRoman}. The cost</h2>
+            <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+              <span className="font-mono text-sm font-normal text-brand">{impactRoman}.</span>
+              The cost
+            </h2>
             {impact.stats.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-8">
+              <div className="mt-4 flex flex-wrap gap-x-8 gap-y-4">
                 {impact.stats.map((stat, i) => (
                   <div key={i}>
-                    <p className="font-serif text-3xl text-brand">{stat.value}</p>
+                    <p className="font-mono text-3xl font-bold text-brand tabular-nums">
+                      {stat.value}
+                    </p>
                     <p className="mt-1 max-w-32 text-xs text-muted">{stat.label}</p>
                   </div>
                 ))}
@@ -298,16 +327,20 @@ export default async function CaseDetailPage({
             )}
             {impact.familyImpact && (
               <div className="mt-5">
-                <h3 className="text-sm font-medium text-foreground">Impact on family</h3>
-                <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+                <h3 className="font-mono text-xs tracking-wide text-muted uppercase">
+                  Impact on family
+                </h3>
+                <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">
                   {impact.familyImpact}
                 </p>
               </div>
             )}
             {impact.communityImpact && (
               <div className="mt-5">
-                <h3 className="text-sm font-medium text-foreground">Impact on community</h3>
-                <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+                <h3 className="font-mono text-xs tracking-wide text-muted uppercase">
+                  Impact on community
+                </h3>
+                <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">
                   {impact.communityImpact}
                 </p>
               </div>
@@ -317,13 +350,16 @@ export default async function CaseDetailPage({
 
         {claimCategories.map((category, ci) => (
           <section key={category.title} className="mt-10">
-            <h2 className="font-serif text-lg text-foreground">
-              {categoryRomans[ci]}. {category.title}
+            <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+              <span className="font-mono text-sm font-normal text-brand">
+                {categoryRomans[ci]}.
+              </span>
+              {category.title}
             </h2>
             <ol className="mt-4 space-y-5">
               {category.items.map((item, i) => (
-                <li key={i}>
-                  <p className="font-medium text-foreground">
+                <li key={i} className="border-l-2 border-border pl-4">
+                  <p className="font-semibold text-brand">
                     {i + 1}. {item.title}
                   </p>
                   <p className="mt-1 text-sm text-foreground">{item.body}</p>
@@ -334,9 +370,14 @@ export default async function CaseDetailPage({
         ))}
 
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">{documentsRoman}. Documents</h2>
+          <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+            <span className="font-mono text-sm font-normal text-brand">{documentsRoman}.</span>
+            Documents
+          </h2>
           {documents.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">No documents listed yet.</p>
+            <p className="mt-3 border border-dashed border-border p-4 text-sm text-muted">
+              No documents listed yet.
+            </p>
           ) : (
             <table className="mt-3 w-full text-left text-sm">
               <tbody>
@@ -344,7 +385,7 @@ export default async function CaseDetailPage({
                   <tr key={doc.id} className="border-b border-border">
                     <td className="py-2 text-foreground">
                       {doc.fileUrl ? (
-                        <a href={doc.fileUrl} className="underline">
+                        <a href={doc.fileUrl} className="text-link hover:text-link-strong hover:underline">
                           {doc.title}
                         </a>
                       ) : (
@@ -355,8 +396,8 @@ export default async function CaseDetailPage({
                       <span
                         className={
                           doc.status === "on_file"
-                            ? "inline-flex items-center rounded-full bg-brand-light px-2 py-0.5 text-xs text-brand"
-                            : "inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted"
+                            ? "inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                            : "inline-flex items-center border border-border px-2 py-0.5 font-mono text-[10px] tracking-wide text-muted uppercase"
                         }
                       >
                         {doc.status === "on_file" ? "On file" : "Needed"}
@@ -370,26 +411,29 @@ export default async function CaseDetailPage({
         </section>
 
         <section className="mt-10">
-          <h2 className="font-serif text-lg text-foreground">{takeActionRoman}. Take action</h2>
+          <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
+            <span className="font-mono text-sm font-normal text-brand">{takeActionRoman}.</span>
+            Take action
+          </h2>
           {petition ? (
-            <div className="mt-4 rounded-lg border border-border p-5">
+            <div className="mt-4 border border-border bg-muted-background p-5">
               <p className="font-serif text-lg text-foreground">{petition.title}</p>
               <p className="mt-2 whitespace-pre-line text-sm text-foreground">
                 {petition.askText}
               </p>
               <div className="mt-4">
-                <div className="h-2 rounded-full bg-muted-background">
+                <div className="h-2 bg-border">
                   <div
-                    className="h-2 rounded-full bg-brand"
+                    className="h-2 bg-brand"
                     style={{
                       width: `${Math.min(100, Math.round((signatureCount / petition.goalCount) * 100))}%`,
                     }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 font-mono text-xs text-muted tabular-nums">
                   {signatureCount.toLocaleString()} of {petition.goalCount.toLocaleString()}{" "}
                   signatures ·{" "}
-                  <Link href={`/petitions/${petition.slug}`} className="underline">
+                  <Link href={`/petitions/${petition.slug}`} className="text-link hover:text-link-strong hover:underline">
                     view petition
                   </Link>
                 </p>
@@ -405,7 +449,9 @@ export default async function CaseDetailPage({
               </div>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-muted">No active petition for this case yet.</p>
+            <p className="mt-3 border border-dashed border-border p-4 text-sm text-muted">
+              No active petition for this case yet.
+            </p>
           )}
         </section>
 
@@ -415,6 +461,7 @@ export default async function CaseDetailPage({
 
         <CommentSection targetType="case" targetId={caseRow.id} />
       </main>
+      <SiteFooter />
     </>
   );
 }
