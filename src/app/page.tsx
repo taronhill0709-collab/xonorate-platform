@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, ne } from "drizzle-orm";
 import { ArrowRight, FileSignature, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +38,7 @@ export default async function Home() {
       isClient: cases.isClient,
     })
     .from(cases)
+    .where(ne(cases.status, "exonerated"))
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt))
     .limit(5);
 
@@ -92,7 +93,7 @@ export default async function Home() {
               </h1>
               <p className="mx-auto mt-3 max-w-md text-header-muted sm:mx-0">
                 Advocating for the wrongfully convicted — client cases, live
-                petitions, and daily advocacy news.
+                petitions, and stories of exoneration.
               </p>
               <div className="mt-8 flex items-center justify-center gap-4 sm:justify-start">
                 <Link

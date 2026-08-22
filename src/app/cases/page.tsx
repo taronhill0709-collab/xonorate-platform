@@ -31,6 +31,9 @@ export default async function CasesIndexPage() {
     .from(cases)
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
 
+  const activeCases = rows.filter((row) => row.status !== "exonerated");
+  const exoneratedCases = rows.filter((row) => row.status === "exonerated");
+
   return (
     <>
       <SiteHeader />
@@ -41,50 +44,80 @@ export default async function CasesIndexPage() {
         {rows.length === 0 ? (
           <p className="mt-8 text-sm text-muted">No cases published yet.</p>
         ) : (
-          <ul className="mt-8 space-y-6">
-            {rows.map((row) => (
-              <li
-                key={row.id}
-                className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
-              >
-                {row.photoUrl ? (
-                  <Image
-                    src={row.photoUrl}
-                    alt={row.clientName}
-                    width={96}
-                    height={96}
-                    className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-border/70"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
-                    <span className="font-serif text-2xl text-muted">
-                      {row.clientName.charAt(0)}
-                    </span>
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-wide text-brand">
-                    {CASE_STATUS_LABEL[row.status] ?? row.status} · {row.state}
-                  </p>
-                  <Link
-                    href={`/cases/${row.slug}`}
-                    className="mt-1 block font-serif text-xl text-foreground hover:underline"
-                  >
-                    {row.clientName}
-                  </Link>
-                  {!row.isClient && (
-                    <p className="mt-1 inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold tracking-wide text-accent-foreground uppercase">
-                      {SPOTLIGHT_CASE_LABEL}
-                    </p>
-                  )}
-                  <p className="mt-2 line-clamp-2 text-sm text-muted">{row.summary}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            {activeCases.length > 0 && (
+              <section className="mt-10">
+                <h2 className="font-serif text-xl text-foreground">Active cases</h2>
+                <p className="mt-1 text-sm text-muted">Still seeking exoneration.</p>
+                <CaseList rows={activeCases} />
+              </section>
+            )}
+            {exoneratedCases.length > 0 && (
+              <section className="mt-12">
+                <h2 className="font-serif text-xl text-foreground">Exonerated</h2>
+                <p className="mt-1 text-sm text-muted">The wins — cleared of all charges.</p>
+                <CaseList rows={exoneratedCases} />
+              </section>
+            )}
+          </>
         )}
       </main>
     </>
+  );
+}
+
+type CaseRow = {
+  id: string;
+  clientName: string;
+  slug: string;
+  summary: string;
+  status: string;
+  state: string;
+  photoUrl: string | null;
+  isClient: boolean;
+};
+
+function CaseList({ rows }: { rows: CaseRow[] }) {
+  return (
+    <ul className="mt-6 space-y-6">
+      {rows.map((row) => (
+        <li
+          key={row.id}
+          className="flex gap-4 rounded-lg border border-border p-5 shadow-sm transition hover:shadow-md"
+        >
+          {row.photoUrl ? (
+            <Image
+              src={row.photoUrl}
+              alt={row.clientName}
+              width={96}
+              height={96}
+              className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-border/70"
+              unoptimized
+            />
+          ) : (
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-1 ring-border/70">
+              <span className="font-serif text-2xl text-muted">{row.clientName.charAt(0)}</span>
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-brand">
+              {CASE_STATUS_LABEL[row.status] ?? row.status} · {row.state}
+            </p>
+            <Link
+              href={`/cases/${row.slug}`}
+              className="mt-1 block font-serif text-xl text-foreground hover:underline"
+            >
+              {row.clientName}
+            </Link>
+            {!row.isClient && (
+              <p className="mt-1 inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold tracking-wide text-accent-foreground uppercase">
+                {SPOTLIGHT_CASE_LABEL}
+              </p>
+            )}
+            <p className="mt-2 line-clamp-2 text-sm text-muted">{row.summary}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

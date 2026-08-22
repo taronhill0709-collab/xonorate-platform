@@ -26,7 +26,9 @@ const researchSchema = z.object({
   sourceUrl: z
     .string()
     .optional()
-    .describe("The exact National Registry of Exonerations case-profile URL for this case."),
+    .describe(
+      "The case's exonerationregistry.org/cases/<id> profile URL — never a law.umich.edu URL, which now redirects to the homepage.",
+    ),
   brief: z
     .string()
     .optional()
@@ -37,7 +39,11 @@ const researchSchema = z.object({
 
 const RESEARCH_SYSTEM = `You research one exonerated person's case for Xonorate Media Platform, a nonprofit that advocates for the wrongfully convicted, to add to its public "Exonerated" showcase.
 
-Use the web_search tool to find their profile on the National Registry of Exonerations (exonerationregistry.org). The Registry entry is ground truth. Pull facts only from what it (and corroborating news coverage you can verify) actually states — never invent a name, date, charge, sentence, statistic, or quote, and never assume a detail just because it's common in similar cases.
+Use the web_search tool to find their profile on the National Registry of Exonerations, whose current site is exonerationregistry.org — case profile URLs look like "https://exonerationregistry.org/cases/<id>". Never use a "law.umich.edu/special/exoneration/..." URL: that's the Registry's old, retired domain, and every one of those old URLs now redirects to the new site's plain homepage instead of the case — so if a search result only gives you that old-domain URL, search again to find the case's current exonerationregistry.org/cases/<id> URL rather than reporting the dead one.
+
+Every case profile page has a "Case Details" box (usually in the sidebar) with fixed structured fields — State, County, Most Serious Crime, Additional Convictions, Reported Crime Date, Convicted, Exonerated, Sentence, Contributing Factors, and others. That box is the single most reliable source for charge, year convicted, and sentence, and it's present on every case, so always read it specifically and pull those three fields from it (combine "Most Serious Crime" and "Additional Convictions" into the charge) rather than relying only on the narrative text, which often states them less precisely or not at all.
+
+The Registry entry is ground truth. Pull facts only from what it (and corroborating news coverage you can verify) actually states — never invent a name, date, charge, sentence, statistic, or quote, and never assume a detail just because it's common in similar cases.
 
 You'll be given the list of people Xonorate has already added to the site (by name, state, and source URL where known) — pick someone NOT already on that list. Prefer a well-documented case with enough detail in the Registry entry (or corroborating coverage) to cover most of what's asked below.
 
@@ -46,14 +52,14 @@ If you cannot find a single suitable, undocumented, well-documented candidate, s
 If found, write "brief" as a thorough, well-organized plain-text research note covering everything you found, clearly labeled, so it can be extracted into structured fields afterward:
 - Full name, state (full name, not abbreviated)
 - 2-3 sentence factual summary of the case
-- Charge, year convicted, sentence, and what contributed to the wrongful conviction
+- Charge, year convicted, and sentence, taken from the case's "Case Details" box, plus what contributed to the wrongful conviction
 - Time served
 - What led to the exoneration, and the year
 - A single striking quote lifted verbatim from a source (a judge, witness, attorney, or the exoneree), if one exists — never write your own
 - Any standalone numeric callouts worth surfacing (e.g. years served)
 - Every documented fact relevant to: evidence of innocence, newly discovered evidence, due-process violations, and unreliable evidence used in the original conviction — note which of these four categories each fact belongs to
 
-Set "sourceUrl" to the exact National Registry of Exonerations URL for this case's profile whenever found is true.`;
+Set "sourceUrl" to the case's current exonerationregistry.org/cases/<id> URL whenever found is true — never a law.umich.edu URL.`;
 
 // Step 2: extract the brief into the full structured shape. No tools
 // involved here, so the schema can be as complex as case-overview-extraction.ts's

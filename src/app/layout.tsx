@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import { Providers } from "./providers";
+import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,13 +29,13 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.AUTH_URL ?? "http://localhost:8888"),
+  metadataBase: new URL(getSiteOrigin()),
   title: {
     default: "Xonorate Media Platform",
     template: "%s | Xonorate Media Platform",
   },
   description:
-    "Advocating for the wrongfully convicted — client cases, live petitions, and daily advocacy news.",
+    "Advocating for the wrongfully convicted — client cases, live petitions, and stories of exoneration.",
   openGraph: {
     siteName: "Xonorate Media Platform",
     type: "website",

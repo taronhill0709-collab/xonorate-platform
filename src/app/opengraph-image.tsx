@@ -66,7 +66,7 @@ export default function Image() {
         <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ display: "flex", width: 64, height: 4, backgroundColor: "#d4a12e", marginRight: 20 }} />
           <div style={{ display: "flex", fontSize: 24, color: "#c9cedb" }}>
-            Client cases · live petitions · daily advocacy news
+            Client cases · live petitions · stories of exoneration
           </div>
         </div>
       </div>

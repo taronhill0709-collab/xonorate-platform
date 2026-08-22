@@ -269,7 +269,7 @@ const SECTIONS = [
         <p>
           The{" "}
           <a
-            href="https://www.law.umich.edu/special/exoneration"
+            href="https://exonerationregistry.org/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand underline"
@@ -322,7 +322,7 @@ const SECTIONS = [
         <ResourceCard
           name="National Registry of Exonerations"
           description="Research database tracking exonerations nationwide, including a state-by-state guide to wrongful-conviction compensation laws — use it to see what compensation, if any, a given state provides."
-          href="https://www.law.umich.edu/special/exoneration/Pages/about.aspx"
+          href="https://exonerationregistry.org/about"
         />
 
         <ResourceCard
