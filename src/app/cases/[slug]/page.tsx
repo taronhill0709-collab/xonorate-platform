@@ -145,6 +145,21 @@ export default async function CaseDetailPage({
   const impact = caseRow.impact as CaseImpact | null;
   const hasImpact = hasImpactContent(impact);
   const origin = await getOrigin();
+  const contributingFactorTags = (caseRow.contributingFactorTags as string[] | null) ?? [];
+
+  // NRE-style "Case Details" at-a-glance box — only facts that are
+  // actually on file for this case are shown, since most of these are
+  // optional and often unknown for manually-entered cases.
+  const caseDetailFacts: [string, string][] = (
+    [
+      ["State", caseRow.state],
+      ["County", caseRow.county],
+      ["Race / ethnicity", caseRow.raceEthnicity],
+      ["Sex", caseRow.sex],
+      ["Age at time of crime", caseRow.ageAtCrime != null ? String(caseRow.ageAtCrime) : null],
+      ["DNA evidence involved", caseRow.dnaInvolved != null ? (caseRow.dnaInvolved ? "Yes" : "No") : null],
+    ] as [string, string | null][]
+  ).filter((fact): fact is [string, string] => Boolean(fact[1]));
 
   let sectionIndex = 0;
   const convictionRoman = toRoman(++sectionIndex);
@@ -173,6 +188,7 @@ export default async function CaseDetailPage({
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <p className="font-mono text-xs tracking-widest text-brand uppercase">
           {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
+          {caseRow.county ? `, ${caseRow.county} County` : ""}
         </p>
         <h1 className="mt-1 font-serif text-3xl text-foreground sm:text-4xl">
           {caseRow.clientName}
@@ -211,6 +227,19 @@ export default async function CaseDetailPage({
             <RedactedPhoto />
           )}
         </div>
+
+        {caseDetailFacts.length > 0 && (
+          <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border border-border p-5 text-sm sm:grid-cols-3">
+            {caseDetailFacts.map(([label, value]) => (
+              <div key={label}>
+                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                  {label}
+                </dt>
+                <dd className="mt-0.5 text-foreground">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
         <p className="mt-6 whitespace-pre-line text-foreground">{caseRow.summary}</p>
 
@@ -270,6 +299,18 @@ export default async function CaseDetailPage({
               <dd className="mt-0.5 text-foreground">{conviction.contributingFactors}</dd>
             </div>
           </dl>
+          {contributingFactorTags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {contributingFactorTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </section>
 
         {exoneration && (

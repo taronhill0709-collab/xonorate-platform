@@ -27,8 +27,10 @@ export default async function CasesIndexPage() {
       summary: cases.summary,
       status: cases.status,
       state: cases.state,
+      county: cases.county,
       photoUrl: cases.photoUrl,
       isClient: cases.isClient,
+      convictionDetails: cases.convictionDetails,
     })
     .from(cases)
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
@@ -72,7 +74,7 @@ export default async function CasesIndexPage() {
             {exoneratedCases.length > 0 && (
               <section className="border-t border-border py-14">
                 <p className="font-mono text-xs tracking-widest text-brand uppercase">
-                  The wins
+                  Justice restored
                 </p>
                 <h2 className="mt-2 font-serif text-2xl text-foreground">Exonerated</h2>
                 <CaseGrid rows={exoneratedCases} seedOffset={activeCases.length} />
@@ -86,6 +88,8 @@ export default async function CasesIndexPage() {
   );
 }
 
+type ConvictionDetails = { charge: string; year: number };
+
 type CaseRow = {
   id: string;
   clientName: string;
@@ -93,54 +97,68 @@ type CaseRow = {
   summary: string;
   status: string;
   state: string;
+  county: string | null;
   photoUrl: string | null;
   isClient: boolean;
+  convictionDetails: unknown;
 };
 
 function CaseGrid({ rows, seedOffset }: { rows: CaseRow[]; seedOffset: number }) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-      {rows.map((row, i) => (
-        <Link
-          key={row.id}
-          href={`/cases/${row.slug}`}
-          className="group overflow-hidden rounded-lg border border-border bg-muted-background transition hover:border-brand/50"
-        >
-          <div className="relative h-44 w-full">
-            {row.photoUrl ? (
-              <Image
-                src={row.photoUrl}
-                alt={row.clientName}
-                fill
-                sizes="(min-width: 640px) 33vw, 100vw"
-                className="object-cover"
-                unoptimized
-              />
-            ) : (
-              <RedactedPhoto seed={i + seedOffset} />
-            )}
-          </div>
-          <div className="p-5">
-            <span
-              className={
-                row.status === "exonerated"
-                  ? "inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
-                  : "inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
-              }
-            >
-              {CASE_STATUS_LABEL[row.status] ?? row.status}
-            </span>
-            {!row.isClient && (
-              <span className="ml-2 font-mono text-[10px] tracking-wide text-muted uppercase">
-                {SPOTLIGHT_CASE_LABEL}
+      {rows.map((row, i) => {
+        const conviction = row.convictionDetails as ConvictionDetails;
+        return (
+          <Link
+            key={row.id}
+            href={`/cases/${row.slug}`}
+            className="group overflow-hidden rounded-lg border border-border bg-muted-background transition hover:border-brand/50"
+          >
+            <div className="relative h-44 w-full">
+              {row.photoUrl ? (
+                <Image
+                  src={row.photoUrl}
+                  alt={row.clientName}
+                  fill
+                  sizes="(min-width: 640px) 33vw, 100vw"
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <RedactedPhoto seed={i + seedOffset} />
+              )}
+            </div>
+            <div className="p-5">
+              <span
+                className={
+                  row.status === "exonerated"
+                    ? "inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                    : "inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                }
+              >
+                {CASE_STATUS_LABEL[row.status] ?? row.status}
               </span>
-            )}
-            <p className="mt-2 font-serif text-xl text-foreground">{row.clientName}</p>
-            <p className="mt-1 font-mono text-xs text-muted uppercase">{row.state}</p>
-            <p className="mt-2 line-clamp-2 text-sm text-muted">{row.summary}</p>
-          </div>
-        </Link>
-      ))}
+              {!row.isClient && (
+                <span className="ml-2 font-mono text-[10px] tracking-wide text-muted uppercase">
+                  {SPOTLIGHT_CASE_LABEL}
+                </span>
+              )}
+              <p className="mt-2 font-serif text-xl text-foreground">{row.clientName}</p>
+              <p className="mt-1 font-mono text-xs text-muted uppercase">
+                {row.state}
+                {row.county ? `, ${row.county} County` : ""}
+              </p>
+              {conviction?.charge && (
+                <p className="mt-1 text-xs text-muted">
+                  Convicted of {conviction.charge}
+                  {conviction.year ? ` · ${conviction.year}` : ""}
+                </p>
+              )}
+              <p className="mt-2 line-clamp-2 text-sm text-muted">{row.summary}</p>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

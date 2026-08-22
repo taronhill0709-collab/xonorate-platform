@@ -43,6 +43,11 @@ const caseFormSchema = z.object({
   exonerationYear: z.coerce.number().int().optional(),
   status: z.enum(caseStatusEnum.enumValues),
   state: z.string().min(1),
+  county: z.string().optional(),
+  raceEthnicity: z.string().optional(),
+  sex: z.string().optional(),
+  ageAtCrime: z.coerce.number().int().optional(),
+  dnaInvolved: z.string().optional(),
   isClient: z.string().optional(),
   photoUrl: z.string().optional().or(z.literal("")),
   sourceUrl: z.string().optional().or(z.literal("")),
@@ -96,6 +101,13 @@ async function parseCaseForm(formData: FormData) {
       ? await uploadCasePhoto(photoFile)
       : parsed.photoUrl || null;
 
+  // Multiple checkboxes share the "contributingFactorTags" name, so they
+  // must be read via getAll — Object.fromEntries (used for `raw` above)
+  // would silently keep only the last checked value.
+  const contributingFactorTags = formData
+    .getAll("contributingFactorTags")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+
   return {
     clientName: parsed.clientName,
     slugInput: parsed.slug?.trim() || parsed.clientName,
@@ -105,6 +117,12 @@ async function parseCaseForm(formData: FormData) {
     exonerationDetails,
     status: parsed.status,
     state: parsed.state,
+    county: parsed.county?.trim() || null,
+    raceEthnicity: parsed.raceEthnicity?.trim() || null,
+    sex: parsed.sex?.trim() || null,
+    ageAtCrime: parsed.ageAtCrime ?? null,
+    contributingFactorTags: contributingFactorTags.length > 0 ? contributingFactorTags : null,
+    dnaInvolved: parsed.dnaInvolved === "yes" ? true : parsed.dnaInvolved === "no" ? false : null,
     isClient: parsed.isClient === "on",
     photoUrl,
     sourceUrl: parsed.sourceUrl?.trim() || null,
@@ -133,6 +151,12 @@ export async function createCase(formData: FormData) {
         exonerationDetails: data.exonerationDetails,
         status: data.status,
         state: data.state,
+        county: data.county,
+        raceEthnicity: data.raceEthnicity,
+        sex: data.sex,
+        ageAtCrime: data.ageAtCrime,
+        contributingFactorTags: data.contributingFactorTags,
+        dnaInvolved: data.dnaInvolved,
         isClient: data.isClient,
         photoUrl: data.photoUrl,
         sourceUrl: data.sourceUrl,
@@ -275,6 +299,12 @@ export async function updateCase(caseId: string, formData: FormData) {
     exonerationDetails: data.exonerationDetails,
     status: data.status,
     state: data.state,
+    county: data.county,
+    raceEthnicity: data.raceEthnicity,
+    sex: data.sex,
+    ageAtCrime: data.ageAtCrime,
+    contributingFactorTags: data.contributingFactorTags,
+    dnaInvolved: data.dnaInvolved,
     isClient: data.isClient,
     photoUrl: data.photoUrl,
     sourceUrl: data.sourceUrl,

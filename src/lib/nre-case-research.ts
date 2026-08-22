@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { CONTRIBUTING_FACTOR_TAGS } from "@/lib/contributing-factors";
 import {
   EVIDENCE_CATEGORY_FIELDS,
   serializeCategoryItems,
@@ -50,9 +51,10 @@ You'll be given the list of people Xonorate has already added to the site (by na
 If you cannot find a single suitable, undocumented, well-documented candidate, set "found" to false and leave "brief" empty — never force a low-quality or duplicate pick.
 
 If found, write "brief" as a thorough, well-organized plain-text research note covering everything you found, clearly labeled, so it can be extracted into structured fields afterward:
-- Full name, state (full name, not abbreviated)
+- Full name, state (full name, not abbreviated), and county — all from the "Case Details" box
 - 2-3 sentence factual summary of the case
 - Charge, year convicted, and sentence, taken from the case's "Case Details" box, plus what contributed to the wrongful conviction
+- The "Case Details" box's Contributing Factors entries verbatim (e.g. "Mistaken Witness ID", "False Confession", "Official Misconduct"), its Race/Ethnicity and Sex entries, its "Age at the date of reported crime" entry, and its "Did DNA evidence contribute to the exoneration?" answer, if present
 - Time served
 - What led to the exoneration, and the year
 - A single striking quote lifted verbatim from a source (a judge, witness, attorney, or the exoneree), if one exists — never write your own
@@ -70,11 +72,17 @@ const statSchema = z.object({ value: z.string(), label: z.string() });
 const extractionSchema = z.object({
   clientName: z.string(),
   state: z.string(),
+  county: z.string(),
   summary: z.string(),
   charge: z.string(),
   yearConvicted: z.number().int().nullable(),
   sentence: z.string(),
   contributingFactors: z.string(),
+  contributingFactorTags: z.array(z.enum(CONTRIBUTING_FACTOR_TAGS)),
+  raceEthnicity: z.string(),
+  sex: z.string(),
+  ageAtCrime: z.number().int().nullable(),
+  dnaInvolved: z.boolean().nullable(),
   timeServed: z.string(),
   exonerationSummary: z.string(),
   exonerationYear: z.number().int().nullable(),
@@ -92,7 +100,11 @@ The brief is ground truth. Pull facts only from what it actually states — neve
 
 Field notes:
 - state: the full US state name (e.g. "Texas"), not an abbreviation.
+- county: "" if not stated.
 - yearConvicted / exonerationYear: numbers only, null if not stated.
+- contributingFactorTags: zero or more of the fixed categories that fit, based only on what the brief documents — never guess one just because it's common in similar cases.
+- raceEthnicity / sex / ageAtCrime: demographic facts about the person, only if the brief states them; "" or null otherwise.
+- dnaInvolved: true if the brief says DNA evidence contributed to the exoneration, false if it says DNA was not a factor, null if not addressed.
 - pullQuote: only include it if the brief marks it as a verbatim quote; otherwise "".
 - The four evidence categories are fixed and must be used exactly as named: "Evidence of innocence", "Newly discovered evidence", "Due-process violations", "Unreliable evidence". Sort every fact from the brief into whichever category fits; leave a category's array empty if the brief has nothing for it. Each item is {title, body} — title is a short label, body is 1-3 sentences of supporting detail from the brief.`;
 
@@ -142,11 +154,17 @@ async function extractFromBrief(brief: string): Promise<CaseOverviewDraft> {
   return {
     clientName: data.clientName,
     state: data.state,
+    county: data.county,
     summary: data.summary,
     charge: data.charge,
     year: data.yearConvicted != null ? String(data.yearConvicted) : "",
     sentence: data.sentence,
     contributingFactors: data.contributingFactors,
+    contributingFactorTags: data.contributingFactorTags,
+    raceEthnicity: data.raceEthnicity,
+    sex: data.sex,
+    ageAtCrime: data.ageAtCrime != null ? String(data.ageAtCrime) : "",
+    dnaInvolved: data.dnaInvolved === true ? "yes" : data.dnaInvolved === false ? "no" : "",
     timeServed: data.timeServed,
     exonerationSummary: data.exonerationSummary,
     exonerationYear: data.exonerationYear != null ? String(data.exonerationYear) : "",

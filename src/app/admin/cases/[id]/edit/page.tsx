@@ -12,6 +12,7 @@ import {
   TextInput,
 } from "../../../_components/field";
 import { NumberInput } from "../../../_components/number-input";
+import { CONTRIBUTING_FACTOR_TAGS } from "@/lib/contributing-factors";
 import {
   EMPTY_IMPACT_FACTS,
   serializeFactLines,
@@ -66,6 +67,7 @@ export default async function EditCasePage({
 
   const conviction = caseRow.convictionDetails as ConvictionDetails;
   const exoneration = caseRow.exonerationDetails as ExonerationDetails;
+  const contributingFactorTags = (caseRow.contributingFactorTags as string[] | null) ?? [];
   const innocenceClaim = caseRow.innocenceClaim as InnocenceClaim | null;
   const categoryDefaults = EVIDENCE_CATEGORY_FIELDS.map((f) => {
     const category = innocenceClaim?.categories.find((c) => c.title === f.title);
@@ -114,6 +116,9 @@ export default async function EditCasePage({
         </Field>
         <Field label="State" name="state">
           <TextInput id="state" name="state" defaultValue={caseRow.state} required />
+        </Field>
+        <Field label="County (optional)" name="county">
+          <TextInput id="county" name="county" defaultValue={caseRow.county ?? ""} />
         </Field>
         <Field label="Status" name="status">
           <Select id="status" name="status" defaultValue={caseRow.status} required>
@@ -180,6 +185,49 @@ export default async function EditCasePage({
             defaultValue={conviction.contributingFactors}
             required
           />
+        </Field>
+        <div>
+          <label className="block text-sm font-medium text-foreground">
+            Contributing factor tags (optional — standardized categories, shown as badges)
+          </label>
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {CONTRIBUTING_FACTOR_TAGS.map((tag) => (
+              <label key={tag} className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  name="contributingFactorTags"
+                  value={tag}
+                  defaultChecked={contributingFactorTags.includes(tag)}
+                  className="h-4 w-4 rounded border-border"
+                />
+                {tag}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <h2 className="pt-2 font-serif text-lg text-foreground">
+          Demographics (optional — from NRE&apos;s &quot;Case Details&quot; box)
+        </h2>
+        <Field label="Race / ethnicity" name="raceEthnicity">
+          <TextInput id="raceEthnicity" name="raceEthnicity" defaultValue={caseRow.raceEthnicity ?? ""} />
+        </Field>
+        <Field label="Sex" name="sex">
+          <TextInput id="sex" name="sex" defaultValue={caseRow.sex ?? ""} />
+        </Field>
+        <Field label="Age at time of crime" name="ageAtCrime">
+          <NumberInput id="ageAtCrime" name="ageAtCrime" defaultValue={caseRow.ageAtCrime ?? ""} />
+        </Field>
+        <Field label="Did DNA evidence contribute to the exoneration?" name="dnaInvolved">
+          <Select
+            id="dnaInvolved"
+            name="dnaInvolved"
+            defaultValue={caseRow.dnaInvolved === true ? "yes" : caseRow.dnaInvolved === false ? "no" : ""}
+          >
+            <option value="">Unknown / not documented</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </Select>
         </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">

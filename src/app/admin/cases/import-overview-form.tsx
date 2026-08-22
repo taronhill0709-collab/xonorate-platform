@@ -9,10 +9,20 @@ const POLL_INTERVAL_MS = 2500;
  * mounts inside) from an extracted draft. Those inputs are plain
  * uncontrolled elements with defaultValue, so setting .value directly here
  * is safe -- no React state is fighting for control of them, and it avoids
- * rebuilding the whole form as a controlled component just for this. */
-function fillForm(fields: Record<string, string>) {
-  for (const [id, value] of Object.entries(fields)) {
-    const el = document.getElementById(id) as
+ * rebuilding the whole form as a controlled component just for this.
+ * contributingFactorTags is the one array-valued field -- it's rendered as
+ * a group of checkboxes sharing that `name` rather than a single #id
+ * element, so it's checked by name+value instead of set by id. */
+function fillForm(fields: Record<string, string | string[]>) {
+  for (const [key, value] of Object.entries(fields)) {
+    if (Array.isArray(value)) {
+      const boxes = document.querySelectorAll<HTMLInputElement>(`input[name="${key}"]`);
+      boxes.forEach((box) => {
+        box.checked = value.includes(box.value);
+      });
+      continue;
+    }
+    const el = document.getElementById(key) as
       | HTMLInputElement
       | HTMLTextAreaElement
       | HTMLSelectElement

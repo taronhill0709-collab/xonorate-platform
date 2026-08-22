@@ -85,7 +85,7 @@ export default async function Home() {
       <main className="relative flex-1">
         <section className="relative overflow-hidden bg-header-background">
           <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-16 sm:grid-cols-[1.15fr_0.85fr] sm:items-center sm:gap-16 sm:py-24">
-            <div>
+            <div className="text-center sm:text-left">
               <p className="text-xs font-semibold tracking-widest text-brand uppercase">
                 Xonorate Media Platform
               </p>
@@ -93,11 +93,11 @@ export default async function Home() {
                 We expose injustice. We amplify the{" "}
                 <span className="text-brand">innocent</span>.
               </h1>
-              <p className="mt-5 max-w-md text-header-muted">
+              <p className="mx-auto mt-5 max-w-md text-header-muted sm:mx-0">
                 Advocating for the wrongfully convicted — client cases, live
                 petitions, and stories of exoneration.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
                 <Link
                   href="/cases"
                   className="rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
@@ -130,27 +130,50 @@ export default async function Home() {
         </section>
 
         {founderCase && (
-          <section className="border-t border-header-border bg-header-background/60 py-8">
-            <div className="mx-auto w-full max-w-6xl px-6">
-              <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
-                <ShieldCheck size={14} />
-                Our founder
-              </p>
-              <p className="max-w-3xl text-sm text-header-muted">
-                <strong className="font-semibold text-header-foreground">
-                  {founderCase.clientName} spent 16 years in prison for a crime he didn&apos;t
-                  commit.
-                </strong>{" "}
-                Exonerated in 2021 after New Jersey&apos;s Conviction Review Unit found he never
-                should have been convicted, he founded Xonorate so other wrongfully convicted
-                people don&apos;t wait 16 years for someone to listen.{" "}
+          <section className="border-t border-header-border bg-header-background/60 py-12">
+            <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
+              {founderCase.photoUrl ? (
+                <Image
+                  src={founderCase.photoUrl}
+                  alt={founderCase.clientName}
+                  width={160}
+                  height={160}
+                  className="h-32 w-32 shrink-0 rounded-full object-cover ring-4 ring-brand/40 sm:h-40 sm:w-40"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full bg-muted-background ring-4 ring-brand/40 sm:h-40 sm:w-40">
+                  <span className="font-serif text-3xl text-header-muted">
+                    {founderCase.clientName.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div>
+                <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
+                  <ShieldCheck size={14} />
+                  Our founder
+                </p>
+                <p className="mt-2 max-w-2xl text-sm text-header-muted">
+                  <strong className="font-semibold text-header-foreground">
+                    {founderCase.clientName}
+                  </strong>{" "}
+                  spent 16 years in a New Jersey prison for a double homicide he
+                  didn&apos;t commit. He was exonerated in 2021 after the
+                  state&apos;s Conviction Review Unit found he never should have
+                  been convicted in the first place — and walked out having
+                  learned firsthand how long a wrongful conviction can sit
+                  unexamined, and what it actually takes to get one looked at
+                  again. He founded Xonorate so other wrongfully convicted
+                  people don&apos;t have to wait 16 years for someone to
+                  listen.
+                </p>
                 <Link
                   href={`/cases/${founderCase.slug}`}
-                  className="font-semibold whitespace-nowrap text-brand hover:underline"
+                  className="mt-3 inline-block text-sm font-semibold text-brand hover:underline"
                 >
                   Read his story →
                 </Link>
-              </p>
+              </div>
             </div>
           </section>
         )}
@@ -384,7 +407,7 @@ export default async function Home() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
-                  The wins
+                  Justice restored
                 </p>
                 <h2 className="mt-2 font-serif text-3xl text-header-foreground">
                   Exonerated

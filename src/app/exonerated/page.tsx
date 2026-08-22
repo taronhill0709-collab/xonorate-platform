@@ -29,11 +29,14 @@ export default async function ExoneratedIndexPage() {
       slug: cases.slug,
       summary: cases.summary,
       state: cases.state,
+      county: cases.county,
       photoUrl: cases.photoUrl,
       isClient: cases.isClient,
       convictionDetails: cases.convictionDetails,
       exonerationDetails: cases.exonerationDetails,
       sourceUrl: cases.sourceUrl,
+      contributingFactorTags: cases.contributingFactorTags,
+      dnaInvolved: cases.dnaInvolved,
     })
     .from(cases)
     .where(eq(cases.status, "exonerated"))
@@ -97,7 +100,10 @@ export default async function ExoneratedIndexPage() {
                       {conviction.charge && (
                         <span className="text-foreground">Convicted of {conviction.charge}</span>
                       )}
-                      <span>{row.state}</span>
+                      <span>
+                        {row.state}
+                        {row.county ? `, ${row.county} County` : ""}
+                      </span>
                       {conviction.year && (
                         <span>
                           {conviction.year}
@@ -112,6 +118,24 @@ export default async function ExoneratedIndexPage() {
                     </div>
 
                     <p className="mt-2 line-clamp-2 text-sm text-muted">{teaser}</p>
+
+                    {((row.contributingFactorTags as string[] | null)?.length || row.dnaInvolved) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {((row.contributingFactorTags as string[] | null) ?? []).map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {row.dnaInvolved && (
+                          <span className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                            DNA evidence
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {row.sourceUrl && (
                       <a

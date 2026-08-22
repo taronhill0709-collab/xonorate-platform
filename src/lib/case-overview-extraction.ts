@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { CONTRIBUTING_FACTOR_TAGS } from "@/lib/contributing-factors";
 import {
   EVIDENCE_CATEGORY_FIELDS,
   serializeCategoryItems,
@@ -18,11 +19,17 @@ const statSchema = z.object({ value: z.string(), label: z.string() });
 const extractionSchema = z.object({
   clientName: z.string(),
   state: z.string(),
+  county: z.string(),
   summary: z.string(),
   charge: z.string(),
   yearConvicted: z.number().int().nullable(),
   sentence: z.string(),
   contributingFactors: z.string(),
+  contributingFactorTags: z.array(z.enum(CONTRIBUTING_FACTOR_TAGS)),
+  raceEthnicity: z.string(),
+  sex: z.string(),
+  ageAtCrime: z.number().int().nullable(),
+  dnaInvolved: z.boolean().nullable(),
   timeServed: z.string(),
   exonerationSummary: z.string(),
   exonerationYear: z.number().int().nullable(),
@@ -40,8 +47,12 @@ The document is ground truth. Pull facts only from what it actually states — n
 
 Field notes:
 - state: the full US state name (e.g. "Texas"), not an abbreviation.
+- county: the county the case was tried in, or "" if not stated.
 - summary: 2-3 sentences, plain factual overview of the case.
 - yearConvicted / exonerationYear: numbers only, null if not stated. exonerationYear and exonerationSummary should stay empty/null if the document describes an ongoing case with no exoneration yet.
+- contributingFactorTags: zero or more of the fixed categories that fit, based only on what the document documents — never guess one just because it's common in similar cases.
+- raceEthnicity / sex / ageAtCrime: demographic facts about the person, only if the document states them; "" or null otherwise.
+- dnaInvolved: true if the document says DNA evidence contributed to the exoneration, false if it says DNA was not a factor, null if not addressed.
 - pullQuote: a single striking sentence lifted verbatim from the document (e.g. from a judge, witness, or attorney), or "" if nothing suitable exists. Never write your own.
 - stats: short standalone numeric callouts the document supports (e.g. years served, number of pieces of evidence), each as {value, label}. Leave empty if the document doesn't support any.
 - The four evidence categories are fixed and must be used exactly as named: "Evidence of innocence", "Newly discovered evidence", "Due-process violations", "Unreliable evidence". Sort every fact from the document into whichever category fits; leave a category's array empty if the document has nothing for it. Each item is {title, body} — title is a short label, body is 1-3 sentences of supporting detail from the document.`;
@@ -49,11 +60,17 @@ Field notes:
 export type CaseOverviewDraft = {
   clientName: string;
   state: string;
+  county: string;
   summary: string;
   charge: string;
   year: string;
   sentence: string;
   contributingFactors: string;
+  contributingFactorTags: string[];
+  raceEthnicity: string;
+  sex: string;
+  ageAtCrime: string;
+  dnaInvolved: "yes" | "no" | "";
   timeServed: string;
   exonerationSummary: string;
   exonerationYear: string;
@@ -138,11 +155,17 @@ export async function extractCaseOverview(file: File): Promise<CaseOverviewDraft
   return {
     clientName: data.clientName,
     state: data.state,
+    county: data.county,
     summary: data.summary,
     charge: data.charge,
     year: data.yearConvicted != null ? String(data.yearConvicted) : "",
     sentence: data.sentence,
     contributingFactors: data.contributingFactors,
+    contributingFactorTags: data.contributingFactorTags,
+    raceEthnicity: data.raceEthnicity,
+    sex: data.sex,
+    ageAtCrime: data.ageAtCrime != null ? String(data.ageAtCrime) : "",
+    dnaInvolved: data.dnaInvolved === true ? "yes" : data.dnaInvolved === false ? "no" : "",
     timeServed: data.timeServed,
     exonerationSummary: data.exonerationSummary,
     exonerationYear: data.exonerationYear != null ? String(data.exonerationYear) : "",

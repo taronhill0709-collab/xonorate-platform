@@ -131,6 +131,20 @@ export const cases = pgTable("cases", {
   exonerationDetails: jsonb("exoneration_details"),
   status: caseStatusEnum("status").notNull().default("awaiting_review"),
   state: text("state").notNull(),
+  // County, demographic, and case-characteristic fields mirrored from the
+  // National Registry of Exonerations' standard "Case Details" box — all
+  // optional, since older/manually-entered cases often don't have them.
+  county: text("county"),
+  raceEthnicity: text("race_ethnicity"),
+  sex: text("sex"),
+  ageAtCrime: integer("age_at_crime"),
+  // Standardized contributing-factor tags (see contributing-factors.ts) —
+  // separate from convictionDetails.contributingFactors, which is free-text
+  // narrative. Array of strings; null/empty until tagged.
+  contributingFactorTags: jsonb("contributing_factor_tags"),
+  // Whether DNA evidence contributed to the exoneration — null when
+  // unknown/not documented, distinct from false ("documented as not DNA").
+  dnaInvolved: boolean("dna_involved"),
   photoUrl: text("photo_url"),
   // false for a "spotlight" / public-awareness case we're featuring but
   // don't represent — shown with a distinguishing badge everywhere a case
