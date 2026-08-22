@@ -110,30 +110,30 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl text-foreground">Dashboard</h1>
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <p className="font-mono text-xs tracking-widest text-brand uppercase">Overview</p>
+      <h1 className="mt-1 font-serif text-2xl text-foreground">Dashboard</h1>
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {tiles.map((tile) => {
           const content = (
             <>
-              <p className="text-2xl font-semibold text-foreground">
+              <p className="font-mono text-3xl font-bold text-brand tabular-nums">
                 {tile.value}
               </p>
-              <p className="text-sm text-muted">{tile.label}</p>
+              <p className="mt-1 font-mono text-[11px] tracking-wide text-muted uppercase">
+                {tile.label}
+              </p>
             </>
           );
           return tile.href ? (
             <Link
               key={tile.label}
               href={tile.href}
-              className="rounded-lg border border-border bg-background p-4 transition hover:border-brand"
+              className="border border-border bg-muted-background p-4 transition hover:border-brand"
             >
               {content}
             </Link>
           ) : (
-            <div
-              key={tile.label}
-              className="rounded-lg border border-border bg-background p-4"
-            >
+            <div key={tile.label} className="border border-border bg-muted-background p-4">
               {content}
             </div>
           );
