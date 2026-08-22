@@ -1,31 +1,28 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
+import { Public_Sans, Source_Sans_3, Space_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const sourceSans3 = Source_Sans_3({
+  variable: "--font-source-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair",
+// Headings (font-serif) and the XONORATE wordmark (font-display) both use
+// this — see the .font-serif rule in globals.css for the shared heading
+// treatment (title case, tight tracking).
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
   subsets: ["latin"],
-  weight: ["400", "600", "700", "900"],
-});
-
-// An elegant, distinct face for the XONORATE wordmark only — separate from
-// Playfair Display, which is used for body headings.
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-cormorant-garamond",
-  subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -53,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} ${playfairDisplay.variable} ${cormorantGaramond.variable} h-full antialiased`}
+      className={`${sourceSans3.variable} ${spaceMono.variable} ${publicSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>

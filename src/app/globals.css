@@ -1,28 +1,35 @@
 @import "tailwindcss";
 
 /*
- * Brand palette: permanent dark navy background, periwinkle primary for
- * buttons/links, gold accent for petition CTAs, Playfair Display headings
- * over Inter body/UI text. One fixed theme — no light/dark OS switching.
+ * "Xonorate Noir" brand palette: warm near-black background, brass/gold
+ * primary for buttons/links/CTAs, a dedicated ink-blue for inline citation
+ * links (kept distinct from gold so "clickable reference" never reads as
+ * a decorative brand accent), Public Sans headings over Source Sans 3
+ * body/UI text, Space Mono for labels/data. One fixed theme — no light/dark
+ * OS switching. See src/app/page.tsx's stats section for the one deliberate
+ * exception (a light paper-toned band) — that's hand-coded there, not a
+ * token, since every other section stays dark.
  */
 :root {
-  --background: #0d1220;
-  --foreground: #f2f4f8;
-  --muted: #96a3c4;
-  --muted-background: #161d30;
-  --border: #2a3350;
-  --brand: #7b93c2;
-  --brand-foreground: #12172a;
-  --brand-light: #202a44;
-  --accent: #d4a12e;
-  --accent-foreground: #14181f;
-  --header-background: #0a0e18;
-  --header-foreground: #f5f6fa;
-  --header-muted: #9aa8cc;
-  --header-border: #262c40;
-  --band-background: #1b2a4a;
-  --band-foreground: #f5f6fa;
-  --band-accent: #d4a12e;
+  --background: #14120e;
+  --foreground: #f2ece0;
+  --muted: #a99c81;
+  --muted-background: #1e1a13;
+  --border: #3a3324;
+  --brand: #c99a44;
+  --brand-foreground: #14120e;
+  --brand-light: #2a2116;
+  --accent: #e3b866;
+  --accent-foreground: #14120e;
+  --header-background: #100e0b;
+  --header-foreground: #f2ece0;
+  --header-muted: #a99c81;
+  --header-border: #241f16;
+  --band-background: #1a170f;
+  --band-foreground: #f2ece0;
+  --band-accent: #c99a44;
+  --link: #4a9cb0;
+  --link-strong: #6bb8cc;
 }
 
 @theme inline {
@@ -43,14 +50,21 @@
   --color-band-background: var(--band-background);
   --color-band-foreground: var(--band-foreground);
   --color-band-accent: var(--band-accent);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-cormorant-garamond);
+  --color-link: var(--link);
+  --color-link-strong: var(--link-strong);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-public-sans);
+  --font-mono: var(--font-space-mono);
+  --font-display: var(--font-public-sans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-serif {
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
 }

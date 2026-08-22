@@ -167,21 +167,24 @@ export default async function Home() {
           </section>
         )}
 
-        <section
-          aria-labelledby="wrongful-conviction-heading"
-          className="bg-band-background"
-        >
+        {/* The one deliberate light-paper section on an otherwise dark
+            site — an "exhibit" moment for the sourced data. Colors are
+            hand-coded here rather than pulled from the shared band-*
+            tokens, since those tokens are also used for dark-context
+            accents elsewhere (carousel badges, toasts) that must stay
+            light-on-dark. */}
+        <section aria-labelledby="wrongful-conviction-heading" className="bg-[#f2ece0]">
           <div className="mx-auto w-full max-w-4xl px-6 py-14">
-            <p className="text-center text-xs font-semibold tracking-widest text-band-accent uppercase">
+            <p className="text-center text-xs font-semibold tracking-widest text-[#8a7f5f] uppercase">
               Why this work matters
             </p>
             <h2
               id="wrongful-conviction-heading"
-              className="mx-auto mt-2 max-w-xl text-center font-serif text-3xl text-band-foreground"
+              className="mx-auto mt-2 max-w-xl text-center font-serif text-3xl text-[#14120e]"
             >
               Wrongful conviction isn&apos;t rare. It&apos;s systemic.
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-center text-sm text-band-foreground/75">
+            <p className="mx-auto mt-4 max-w-lg text-center text-sm text-[#5a5138]">
               Every case below is a person convicted — many still incarcerated
               today — on evidence that doesn&apos;t hold up to serious
               scrutiny. That&apos;s exactly why Xonorate exists: to put a name
@@ -189,29 +192,26 @@ export default async function Home() {
               the review it deserves.
             </p>
 
-            <dl className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
+            <dl className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-3">
               {WRONGFUL_CONVICTION_STATS.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <stat.icon
-                    className="mx-auto h-7 w-7 text-band-accent"
-                    aria-hidden
-                  />
+                  <stat.icon className="mx-auto h-7 w-7 text-[#c99a44]" aria-hidden />
                   <dt className="sr-only">{stat.label}</dt>
-                  <dd className="mt-2 font-sans text-4xl font-semibold text-band-foreground">
+                  <dd className="mt-3 font-serif text-5xl font-extrabold tracking-tight text-[#14120e] tabular-nums">
                     {stat.value}
                   </dd>
-                  <p className="mt-1.5 text-sm text-band-foreground/70">
+                  <p className="mx-auto mt-3 max-w-[22ch] text-base font-semibold text-[#3a2f18]">
                     {stat.label}
                   </p>
                 </div>
               ))}
             </dl>
 
-            <div className="mt-12 border-t border-white/15 pt-10">
-              <h3 className="text-center font-serif text-lg text-band-foreground">
+            <div className="mt-12 border-t border-[#d3c7a5] pt-10">
+              <h3 className="text-center font-serif text-lg text-[#14120e]">
                 Leading causes of wrongful conviction
               </h3>
-              <p className="mx-auto mt-1 max-w-md text-center text-xs text-band-foreground/60">
+              <p className="mx-auto mt-1 max-w-md text-center text-xs text-[#8a7f5f]">
                 Share of Innocence Project client cases involving each factor.
                 Most wrongful convictions involve more than one.
               </p>
@@ -220,16 +220,14 @@ export default async function Home() {
                 {WRONGFUL_CONVICTION_CAUSES.map((cause) => (
                   <div key={cause.label} className="mt-5 first:mt-0">
                     <div className="flex items-baseline justify-between gap-4">
-                      <span className="text-sm text-band-foreground/90">
-                        {cause.label}
-                      </span>
-                      <span className="font-sans text-sm font-semibold text-band-foreground">
+                      <span className="text-sm text-[#3a2f18]">{cause.label}</span>
+                      <span className="font-sans text-sm font-semibold text-[#14120e]">
                         {cause.value}%
                       </span>
                     </div>
-                    <div className="mt-1.5 h-2 w-full rounded-r-[4px] bg-white/15">
+                    <div className="mt-1.5 h-2 w-full rounded-r-[4px] bg-[#e7dfcd]">
                       <div
-                        className="h-2 rounded-r-[4px] bg-band-accent"
+                        className="h-2 rounded-r-[4px] bg-[#c99a44]"
                         style={{ width: `${cause.value}%` }}
                       />
                     </div>
@@ -238,14 +236,14 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="mt-12 flex flex-col items-center gap-4 border-t border-white/15 pt-10 sm:flex-row sm:justify-between sm:gap-6">
-              <p className="text-xs text-band-foreground/60">
-                Sources:{" "}
+            <div className="mt-12 flex flex-col items-center gap-4 border-t border-[#d3c7a5] pt-10 sm:flex-row sm:justify-between sm:gap-6">
+              <p className="font-mono text-xs tracking-wide text-[#8a7f5f] uppercase">
+                Sources —{" "}
                 <a
                   href="https://exonerationregistry.org/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-band-accent underline hover:text-band-foreground"
+                  className="font-bold text-[#2b6273] normal-case underline decoration-current underline-offset-2 hover:text-[#1f4a58]"
                 >
                   National Registry of Exonerations
                 </a>
@@ -254,7 +252,7 @@ export default async function Home() {
                   href="https://innocenceproject.org/exonerations-data/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-band-accent underline hover:text-band-foreground"
+                  className="font-bold text-[#2b6273] normal-case underline decoration-current underline-offset-2 hover:text-[#1f4a58]"
                 >
                   Innocence Project
                 </a>
@@ -262,13 +260,13 @@ export default async function Home() {
               <div className="flex shrink-0 flex-wrap items-center gap-4">
                 <Link
                   href="/impact"
-                  className="text-sm font-medium text-band-accent underline hover:text-band-foreground"
+                  className="text-sm font-medium text-[#8a5f1a] underline hover:text-[#14120e]"
                 >
                   See the human cost
                 </Link>
                 <Link
                   href="/cases"
-                  className="rounded-md bg-band-accent px-5 py-2 text-sm font-medium text-header-foreground transition hover:opacity-90"
+                  className="rounded-md bg-[#c99a44] px-5 py-2 text-sm font-medium text-[#14120e] transition hover:bg-[#e3b866]"
                 >
                   See who we&apos;re fighting for
                 </Link>
