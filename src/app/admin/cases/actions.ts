@@ -25,6 +25,7 @@ import {
   storeCaseOverviewUpload,
   type CaseOverviewJobStatus,
 } from "@/lib/case-overview-jobs";
+import { deleteCaseNreCandidate } from "@/lib/case-nre-candidates";
 import { requireAdmin } from "@/lib/require-admin";
 import { slugify } from "@/lib/slug";
 import { insertWithUniqueSlug, updateWithUniqueSlug } from "@/lib/unique-slug";
@@ -44,6 +45,7 @@ const caseFormSchema = z.object({
   state: z.string().min(1),
   isClient: z.string().optional(),
   photoUrl: z.string().optional().or(z.literal("")),
+  sourceUrl: z.string().optional().or(z.literal("")),
   stats: z.string().optional(),
   pullQuote: z.string().optional(),
   evidenceOfInnocence: z.string().optional(),
@@ -105,6 +107,7 @@ async function parseCaseForm(formData: FormData) {
     state: parsed.state,
     isClient: parsed.isClient === "on",
     photoUrl,
+    sourceUrl: parsed.sourceUrl?.trim() || null,
     innocenceClaim,
   };
 }
@@ -132,13 +135,66 @@ export async function createCase(formData: FormData) {
         state: data.state,
         isClient: data.isClient,
         photoUrl: data.photoUrl,
+        sourceUrl: data.sourceUrl,
         innocenceClaim: data.innocenceClaim,
       })
       .returning({ id: cases.id }),
   );
 
+  // If this case was created from a staged NRE research candidate, the
+  // candidate has now been reviewed and saved — clear it from the queue.
+  const candidateId = formData.get("candidateId");
+  if (typeof candidateId === "string" && candidateId) {
+    await deleteCaseNreCandidate(candidateId);
+  }
+
   revalidatePath("/admin/cases");
+  revalidatePath("/admin/cases/candidates");
   redirect(`/admin/cases/${row.id}/edit`);
+}
+
+/** Drops a staged NRE research candidate without creating a case for it —
+ * e.g. it's a duplicate, poorly documented, or not a good fit. */
+export async function discardCaseCandidate(candidateId: string) {
+  await requireAdmin();
+  await deleteCaseNreCandidate(candidateId);
+  revalidatePath("/admin/cases/candidates");
+  redirect("/admin/cases/candidates?saved=discarded");
+}
+
+export type TriggerCandidateResearchResult = { ok: true } | { ok: false; error: string };
+
+/** Manually fires the same NRE-research job the daily cron runs — for
+ * testing, or when you don't want to wait for the next scheduled run.
+ * Mirrors startCaseOverviewExtraction's own dispatch: awaits only the
+ * background function's immediate 202 acknowledgement, not the research
+ * itself, which reliably takes 30-45+ seconds (same reasoning as the PDF
+ * import and the roundup — see case-overview-extract-background.mts /
+ * daily-content-background.mts). Refresh /admin/cases/candidates after
+ * a bit to see the result. A successful dispatch doesn't guarantee a
+ * candidate was found — some runs turn up nothing suitable, same as the
+ * roundup can find little news some days. */
+export async function triggerCaseCandidateResearch(): Promise<TriggerCandidateResearchResult> {
+  await requireAdmin();
+
+  const origin = process.env.URL ?? process.env.DEPLOY_PRIME_URL;
+  const secret = process.env.DAILY_CONTENT_SECRET;
+  if (!origin || !secret) {
+    console.error("triggerCaseCandidateResearch: missing URL or DAILY_CONTENT_SECRET env var");
+    return { ok: false, error: "Research isn't configured on this deploy yet." };
+  }
+
+  try {
+    await fetch(`${origin}/.netlify/functions/daily-case-candidate-background`, {
+      method: "POST",
+      headers: { "x-daily-content-secret": secret },
+    });
+  } catch (err) {
+    console.error("triggerCaseCandidateResearch: failed to dispatch background job", err);
+    return { ok: false, error: "Couldn't start research. Try again." };
+  }
+
+  return { ok: true };
 }
 
 export type StartCaseOverviewExtractionResult =
@@ -221,6 +277,7 @@ export async function updateCase(caseId: string, formData: FormData) {
     state: data.state,
     isClient: data.isClient,
     photoUrl: data.photoUrl,
+    sourceUrl: data.sourceUrl,
     innocenceClaim: data.innocenceClaim,
     updatedAt: new Date(),
   };

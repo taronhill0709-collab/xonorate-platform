@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
-import { cases, petitions, posts } from "@/db/schema";
+import { cases, petitions } from "@/db/schema";
 import { getSiteOrigin } from "@/lib/site-url";
 
 // Must be generated per-request, not at build time — the build environment's
@@ -12,16 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = getSiteOrigin();
 
-  const [caseRows, petitionRows, postRows] = await Promise.all([
+  const [caseRows, petitionRows] = await Promise.all([
     db.select({ slug: cases.slug, updatedAt: cases.updatedAt }).from(cases),
     db
       .select({ slug: petitions.slug, createdAt: petitions.createdAt })
       .from(petitions)
       .where(eq(petitions.status, "published")),
-    db
-      .select({ slug: posts.slug, publishedAt: posts.publishedAt })
-      .from(posts)
-      .where(eq(posts.status, "published")),
   ]);
 
   return [
@@ -29,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/cases`, changeFrequency: "daily", priority: 0.8 },
     { url: `${origin}/petitions`, changeFrequency: "daily", priority: 0.8 },
     { url: `${origin}/impact`, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${origin}/posts`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${origin}/exonerated`, changeFrequency: "daily", priority: 0.8 },
     ...caseRows.map((c) => ({
       url: `${origin}/cases/${c.slug}`,
       lastModified: c.updatedAt,
@@ -41,12 +37,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: p.createdAt,
       changeFrequency: "daily" as const,
       priority: 0.7,
-    })),
-    ...postRows.map((p) => ({
-      url: `${origin}/posts/${p.slug}`,
-      lastModified: p.publishedAt ?? undefined,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
     })),
   ];
 }

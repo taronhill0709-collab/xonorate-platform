@@ -31,10 +31,10 @@ export async function SiteHeader() {
         Petitions
       </Link>
       <Link
-        href="/posts"
+        href="/exonerated"
         className="text-header-muted transition hover:text-header-foreground"
       >
-        News
+        Exonerated
       </Link>
       <details className="group relative">
         <summary className="flex cursor-pointer list-none items-center gap-1 text-header-muted transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">

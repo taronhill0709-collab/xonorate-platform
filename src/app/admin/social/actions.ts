@@ -42,6 +42,11 @@ export async function postToInstagramAndFacebook(
   if (row.status !== "published") {
     return { ok: false, error: "Only published posts can be shared to social" };
   }
+  if (row.type === "daily_roundup") {
+    // Roundup posts are an admin-only research briefing — enforce this
+    // server-side too, not just by hiding the button in the UI.
+    return { ok: false, error: "Roundup posts can't be shared to social" };
+  }
   if (row.postedToSocialAt) {
     return {
       ok: false,

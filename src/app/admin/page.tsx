@@ -11,6 +11,7 @@ import {
   signatures,
   users,
 } from "@/db/schema";
+import { listCaseNreCandidates } from "@/lib/case-nre-candidates";
 
 async function getCounts() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -72,10 +73,19 @@ async function getCounts() {
 }
 
 export default async function AdminDashboardPage() {
-  const counts = await getCounts();
+  // Sourced from Netlify Blobs, not Postgres like every other tile here —
+  // staged NRE research candidates never touch the `cases` table until an
+  // admin reviews and saves them (see case-nre-candidates.ts), so there's
+  // no DB row to count() until then.
+  const [counts, candidates] = await Promise.all([getCounts(), listCaseNreCandidates()]);
 
   const tiles = [
     { label: "Cases", value: counts.cases, href: "/admin/cases" },
+    {
+      label: "Exoneree candidates to review",
+      value: candidates.length,
+      href: "/admin/cases/candidates",
+    },
     { label: "Petitions", value: counts.petitions, href: "/admin/petitions" },
     {
       label: "Confirmed signatures",

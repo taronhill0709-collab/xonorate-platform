@@ -176,6 +176,13 @@
       "when": 1787275098773,
       "tag": "0024_add-site-settings-founder-photo",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1787359555959,
+      "tag": "0025_add-cases-source-url",
+      "breakpoints": true
     }
   ]
 }

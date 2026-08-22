@@ -6,19 +6,19 @@ import { FeaturedCasesCarousel } from "@/components/featured-cases-carousel";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
-import { cases, posts } from "@/db/schema";
+import { cases } from "@/db/schema";
+import { SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 import { getFounderCase } from "@/lib/founder";
-import { excerptFromMarkdown } from "@/lib/markdown";
 import {
   WRONGFUL_CONVICTION_CAUSES,
   WRONGFUL_CONVICTION_STATS,
 } from "@/lib/national-exoneration-stats";
 import { getPlatformStats } from "@/lib/platform-stats";
-import { POST_TYPE_LABEL } from "@/lib/post-type";
 
-type ConvictionDetails = { year: number };
+type ConvictionDetails = { charge: string; year: number };
+type ExonerationDetails = { whatLedToExoneration: string; year: number } | null;
 
-const FEED_LIMIT = 3;
+const EXONERATED_FEED_LIMIT = 3;
 
 // Signature counts and freshly published content must always be fresh —
 // never statically prerendered.
@@ -53,20 +53,22 @@ export default async function Home() {
     isClient: c.isClient,
   }));
 
-  const recentPosts = await db
+  const recentlyExonerated = await db
     .select({
-      id: posts.id,
-      type: posts.type,
-      title: posts.title,
-      slug: posts.slug,
-      body: posts.body,
-      imageUrl: posts.imageUrl,
-      publishedAt: posts.publishedAt,
+      id: cases.id,
+      clientName: cases.clientName,
+      slug: cases.slug,
+      summary: cases.summary,
+      state: cases.state,
+      photoUrl: cases.photoUrl,
+      isClient: cases.isClient,
+      convictionDetails: cases.convictionDetails,
+      exonerationDetails: cases.exonerationDetails,
     })
-    .from(posts)
-    .where(eq(posts.status, "published"))
-    .orderBy(asc(posts.sortOrder), desc(posts.publishedAt))
-    .limit(FEED_LIMIT);
+    .from(cases)
+    .where(eq(cases.status, "exonerated"))
+    .orderBy(asc(cases.sortOrder), desc(cases.updatedAt))
+    .limit(EXONERATED_FEED_LIMIT);
 
   const platformStats = await getPlatformStats();
   const founderCase = await getFounderCase();
@@ -327,75 +329,88 @@ export default async function Home() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
-                  Latest news
+                  The wins
                 </p>
                 <h2 className="mt-2 font-serif text-3xl text-header-foreground">
-                  Coverage and updates
+                  Exonerated
                 </h2>
               </div>
               <Link
-                href="/posts"
+                href="/exonerated"
                 className="hidden shrink-0 items-center gap-1 text-sm text-header-muted underline transition hover:text-header-foreground sm:flex"
               >
-                View all news <ArrowRight size={14} />
+                View all exonerated <ArrowRight size={14} />
               </Link>
             </div>
 
-            {recentPosts.length === 0 ? (
+            {recentlyExonerated.length === 0 ? (
               <p className="mt-8 text-sm text-header-muted">
-                Check back soon for updates.
+                Check back soon for exonerations.
               </p>
             ) : (
               <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                {recentPosts.map((row) => (
-                  <Link
-                    key={row.id}
-                    href={`/posts/${row.slug}`}
-                    className="group overflow-hidden rounded-lg border border-header-border bg-white/[0.03] transition hover:border-header-muted"
-                  >
-                    <div className="relative h-40 w-full bg-header-border/40">
-                      {row.imageUrl ? (
-                        <Image
-                          src={row.imageUrl}
-                          alt=""
-                          fill
-                          sizes="(min-width: 640px) 33vw, 100vw"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-header-muted">
-                          <span className="font-serif text-2xl">X</span>
-                        </div>
-                      )}
-                      <span className="absolute top-2 left-2 rounded-full bg-header-background/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-foreground uppercase">
-                        {POST_TYPE_LABEL[row.type] ?? row.type}
-                      </span>
-                    </div>
-                    <div className="p-4">
-                      <p className="line-clamp-2 font-serif text-lg text-header-foreground">
-                        {row.title}
-                      </p>
-                      <p className="mt-2 line-clamp-2 text-sm text-header-muted">
-                        {excerptFromMarkdown(row.body)}
-                      </p>
-                      <div className="mt-3 flex items-center justify-between text-xs text-header-muted">
-                        {row.publishedAt && (
-                          <span>
-                            {row.publishedAt.toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
+                {recentlyExonerated.map((row) => {
+                  const conviction = row.convictionDetails as ConvictionDetails;
+                  const exoneration = row.exonerationDetails as ExonerationDetails;
+                  const teaser = exoneration?.whatLedToExoneration || row.summary;
+                  const yearsLost =
+                    exoneration?.year && conviction.year
+                      ? exoneration.year - conviction.year
+                      : null;
+                  return (
+                    <Link
+                      key={row.id}
+                      href={`/cases/${row.slug}`}
+                      className="group overflow-hidden rounded-lg border border-header-border bg-white/[0.03] transition hover:border-header-muted"
+                    >
+                      <div className="relative h-40 w-full bg-header-border/40">
+                        {row.photoUrl ? (
+                          <Image
+                            src={row.photoUrl}
+                            alt=""
+                            fill
+                            sizes="(min-width: 640px) 33vw, 100vw"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-header-muted">
+                            <span className="font-serif text-2xl">X</span>
+                          </div>
+                        )}
+                        {!row.isClient && (
+                          <span className="absolute top-2 left-2 rounded-full bg-header-background/90 px-2 py-0.5 text-[10px] font-medium tracking-wide text-header-foreground uppercase">
+                            {SPOTLIGHT_CASE_LABEL}
                           </span>
                         )}
-                        <span className="text-band-accent underline">
-                          Read more →
-                        </span>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="p-4">
+                        <p className="line-clamp-2 font-serif text-lg text-header-foreground">
+                          {row.clientName}
+                        </p>
+                        <p className="mt-1 text-xs text-header-muted">
+                          {conviction.charge ? `Convicted of ${conviction.charge} · ` : ""}
+                          {row.state}
+                        </p>
+                        <p className="mt-2 line-clamp-2 text-sm text-header-muted">
+                          {teaser}
+                        </p>
+                        <div className="mt-3 flex items-center justify-between text-xs text-header-muted">
+                          {yearsLost != null && yearsLost > 0 ? (
+                            <span className="font-semibold text-band-accent">
+                              {yearsLost} year{yearsLost === 1 ? "" : "s"} lost
+                            </span>
+                          ) : (
+                            <span />
+                          )}
+                          <span className="text-band-accent underline">
+                            Read the case →
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

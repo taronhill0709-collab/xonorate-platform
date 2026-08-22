@@ -155,6 +155,9 @@ export default async function EditCasePage({
           />
           <input type="hidden" name="photoUrl" value={caseRow.photoUrl ?? ""} />
         </Field>
+        <Field label="Source URL (optional — e.g. the National Registry of Exonerations profile this was drawn from)" name="sourceUrl">
+          <TextInput id="sourceUrl" name="sourceUrl" type="url" defaultValue={caseRow.sourceUrl ?? ""} />
+        </Field>
 
         <h2 className="pt-2 font-serif text-lg text-foreground">Conviction</h2>
         <Field label="Charge" name="charge">

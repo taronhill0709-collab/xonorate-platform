@@ -6,12 +6,13 @@ import { CaseStatusSelect } from "./case-status-select";
 import { DeleteCaseButton } from "./delete-case-button";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
+import { listCaseNreCandidates } from "@/lib/case-nre-candidates";
 
 export default async function AdminCasesPage() {
-  const rows = await db
-    .select()
-    .from(cases)
-    .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
+  const [rows, candidates] = await Promise.all([
+    db.select().from(cases).orderBy(asc(cases.sortOrder), desc(cases.createdAt)),
+    listCaseNreCandidates(),
+  ]);
 
   return (
     <div>
@@ -24,6 +25,15 @@ export default async function AdminCasesPage() {
           New case
         </Link>
       </div>
+
+      {candidates.length > 0 && (
+        <Link
+          href="/admin/cases/candidates"
+          className="mt-4 block rounded-md border border-brand/40 bg-brand/5 px-4 py-2.5 text-sm text-foreground underline-offset-2 hover:underline"
+        >
+          {candidates.length} exoneree candidate{candidates.length === 1 ? "" : "s"} awaiting review →
+        </Link>
+      )}
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">No cases yet.</p>
       ) : (

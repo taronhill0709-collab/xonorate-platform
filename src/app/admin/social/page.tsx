@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import { CopyCaptionButton } from "./copy-caption-button";
@@ -6,7 +6,6 @@ import { PostToSocialButton } from "./post-to-social-button";
 import { RefreshMetricsButton } from "./refresh-metrics-button";
 import { setSocialPostsEnabled } from "./actions";
 import { SOCIAL_POSTS_COOKIE } from "./constants";
-import { ShareButtons } from "@/components/share-buttons";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { getOrigin } from "@/lib/request-ip";
@@ -67,7 +66,9 @@ async function SocialPostList({ limit }: { limit: number }) {
     db
       .select()
       .from(posts)
-      .where(eq(posts.status, "published"))
+      // Roundup posts are an admin-only research briefing — never eligible
+      // for social sharing, same as they're excluded from every public page.
+      .where(and(eq(posts.status, "published"), ne(posts.type, "daily_roundup")))
       .orderBy(desc(posts.publishedAt))
       .limit(limit),
     getOrigin(),
@@ -165,17 +166,6 @@ async function SocialPostList({ limit }: { limit: number }) {
                       })}`}
                   </p>
                 )}
-              </div>
-              <div className="mt-3 border-t border-border pt-3">
-                <p className="mb-2 text-xs text-muted">
-                  Share the article link directly (Facebook/X show their own
-                  preview card — Instagram doesn&apos;t support link-sharing, so
-                  use the copied caption + saved photo there instead):
-                </p>
-                <ShareButtons
-                  url={`${origin}/posts/${row.slug}`}
-                  title={row.title}
-                />
               </div>
             </div>
           </div>

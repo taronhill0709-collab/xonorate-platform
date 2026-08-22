@@ -13,6 +13,7 @@
       "dependencies": [
         "npm:@anthropic-ai/sdk@0.115",
         "npm:@auth/drizzle-adapter@^1.11.3",
+        "npm:@netlify/blobs@^10.7.11",
         "npm:@netlify/database@^1.1.0",
         "npm:@netlify/functions@^5.3.0",
         "npm:@tailwindcss/postcss@4",
@@ -40,6 +41,8 @@
         "npm:tailwindcss@4",
         "npm:tsx@^4.23.1",
         "npm:typescript@5",
+        "npm:vite-tsconfig-paths@^6.1.1",
+        "npm:vitest@^4.1.10",
         "npm:zod@^4.4.3"
       ]
     }

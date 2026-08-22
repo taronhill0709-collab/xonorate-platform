@@ -153,6 +153,12 @@ export const cases = pgTable("cases", {
   // render, no dedup. Used to show the attention a case has gotten (we
   // don't secure exonerations ourselves, so this stands in for that).
   viewCount: integer("view_count").notNull().default(0),
+  // Primary citation for this case — e.g. the National Registry of
+  // Exonerations profile URL it was sourced/verified from. Shown publicly
+  // for attribution on cases researched via the NRE candidate pipeline
+  // (nre-case-research.ts); null for manually-entered client cases with no
+  // single external source.
+  sourceUrl: text("source_url"),
   // Admin-controlled display order (ascending) for the cases list and the
   // homepage's featured cases — lower sorts first. Ties (the common case,
   // since every row defaults to 0 until reordered) fall back to createdAt.

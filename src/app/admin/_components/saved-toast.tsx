@@ -7,6 +7,7 @@ const MESSAGES: Record<string, string> = {
   "1": "Saved",
   deleted: "Deleted",
   posted: "Posted",
+  discarded: "Discarded",
 };
 
 /** Mounted once in the admin layout. Any admin action that redirects back

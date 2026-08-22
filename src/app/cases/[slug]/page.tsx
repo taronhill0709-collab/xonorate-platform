@@ -178,6 +178,20 @@ export default async function CaseDetailPage({
             {SPOTLIGHT_CASE_LABEL}
           </p>
         )}
+        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+          <span>Convicted of {conviction.charge}</span>
+          {exoneration && (
+            <span>
+              {conviction.year} → {exoneration.year}
+            </span>
+          )}
+          {exoneration && conviction.year && exoneration.year - conviction.year > 0 && (
+            <span className="font-semibold text-brand">
+              {exoneration.year - conviction.year} year
+              {exoneration.year - conviction.year === 1 ? "" : "s"} lost
+            </span>
+          )}
+        </p>
 
         {caseRow.photoUrl ? (
           <Image
@@ -256,6 +270,16 @@ export default async function CaseDetailPage({
                 <dd className="text-foreground">{exoneration.whatLedToExoneration}</dd>
               </div>
             </dl>
+            {caseRow.sourceUrl && (
+              <a
+                href={caseRow.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block text-xs text-muted underline decoration-dotted underline-offset-2 hover:text-brand"
+              >
+                Source: National Registry of Exonerations ↗
+              </a>
+            )}
           </section>
         )}
 

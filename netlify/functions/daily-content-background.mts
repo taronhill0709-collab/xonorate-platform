@@ -1,11 +1,5 @@
 import { generateDailyPost } from "../../src/lib/content-pipeline";
 
-// Number of independent draft candidates to generate per run. Each call
-// re-queries spotlight eligibility fresh, so if a case qualifies it's only
-// spotlighted once per batch — later calls in the same batch naturally fall
-// back to roundups instead of repeating it.
-const CANDIDATES_PER_RUN = 1;
-
 // Background function: 15-minute execution budget (vs 30s for regular/scheduled
 // functions), which the research + writing pass genuinely needs. Triggered by
 // daily-content-trigger.mts, not called directly by users.
@@ -16,20 +10,18 @@ async function handler(req: Request) {
     return;
   }
 
-  for (let i = 1; i <= CANDIDATES_PER_RUN; i++) {
-    try {
-      const result = await generateDailyPost();
-      console.log(
-        `[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) generated ${result.type} draft "${result.title}" (${result.id}) — pending admin review`,
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      // Idempotency errors are not failures — log them as info to avoid noise
-      if (message.includes("already generated today")) {
-        console.log(`[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) ${message}`);
-      } else {
-        console.error(`[daily-content-background] (${i}/${CANDIDATES_PER_RUN}) generation failed`, err);
-      }
+  try {
+    const result = await generateDailyPost();
+    console.log(
+      `[daily-content-background] generated roundup draft "${result.title}" (${result.id}) — pending admin review`,
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Idempotency errors are not failures — log them as info to avoid noise
+    if (message.includes("already generated today")) {
+      console.log(`[daily-content-background] ${message}`);
+    } else {
+      console.error("[daily-content-background] generation failed", err);
     }
   }
 }

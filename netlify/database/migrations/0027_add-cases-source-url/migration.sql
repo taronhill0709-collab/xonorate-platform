@@ -1,0 +1,1 @@
+ALTER TABLE "cases" ADD COLUMN "source_url" text;
