@@ -44,7 +44,7 @@ export default function Image() {
             color: "#f2ece0",
           }}
         >
-          Advocating for the wrongfully convicted
+          When the System Gets It Wrong, We Fight to Make It Right.
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>

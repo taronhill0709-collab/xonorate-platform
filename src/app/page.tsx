@@ -91,12 +91,11 @@ export default async function Home() {
                 Xonorate Media Platform
               </p>
               <h1 className="mt-3 text-balance font-serif text-[2.5rem] leading-[1.15] text-header-foreground sm:text-5xl">
-                We expose injustice. We amplify the{" "}
-                <span className="text-brand">innocent</span>.
+                When the System Gets It Wrong, We Fight to Make It Right.
               </h1>
               <p className="mx-auto mt-5 max-w-md text-header-muted sm:mx-0">
-                Advocating for the wrongfully convicted — client cases, live
-                petitions, and stories of exoneration.
+                Xonorate exposes wrongful convictions, amplifies the voices
+                behind the cases, and mobilizes the public to demand justice.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
                 <Link

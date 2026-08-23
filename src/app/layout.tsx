@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s | Xonorate Media Platform",
   },
   description:
-    "Advocating for the wrongfully convicted — client cases, live petitions, and stories of exoneration.",
+    "Xonorate exposes wrongful convictions, amplifies the voices behind the cases, and mobilizes the public to demand justice.",
   openGraph: {
     siteName: "Xonorate Media Platform",
     type: "website",
