@@ -30,8 +30,8 @@ export default async function AboutPage() {
           a way to be heard.
         </p>
         <p className="mt-4 text-muted">
-          More than 3,600 people have been exonerated in the U.S. since
-          1989, collectively losing over 27,000 years to wrongful
+          More than 3,850 people have been exonerated in the U.S. since
+          1989, collectively losing over 36,000 years to wrongful
           imprisonment — and that number only counts the cases that were
           eventually overturned. Every one of those numbers is a person, a
           family, and a community that had to live with it in the meantime:

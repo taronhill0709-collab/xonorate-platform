@@ -1,23 +1,30 @@
 import { Calendar, Scale, Users } from "lucide-react";
 
 // Sourced from the National Registry of Exonerations (exonerationregistry.org):
-// 3,478 exonerations logged through the end of 2023, plus 147 more in 2024
-// (avg. 13.5 years lost each) — https://www.law.umich.edu/special/exoneration.
+// the site's own homepage banner reported 3,850 exonerations and more than
+// 36,051 years lost since 1989 as of 2026-08-23 (that cumulative count is
+// live and keeps climbing, so it's rounded down here rather than pinned to
+// an exact snapshot). The per-year figure is the most recently closed year,
+// 2025: 97 exonerations, averaging 14.2 years lost each, per the Registry's
+// 2025 Annual Report —
+// https://exonerationregistry.org/sites/exonerationregistry.org/files/documents/2025Exonerations.pdf.
+// Re-check both when this next goes stale; the Registry publishes each
+// year's annual report the following April.
 export const WRONGFUL_CONVICTION_STATS = [
   {
     icon: Scale,
-    value: "3,600+",
+    value: "3,850+",
     label: "Exonerations recorded in the U.S. since 1989",
   },
   {
     icon: Calendar,
-    value: "27,000+",
+    value: "36,000+",
     label: "Years collectively lost to wrongful imprisonment",
   },
   {
     icon: Users,
-    value: "147",
-    label: "People exonerated in 2024 alone, averaging 13.5 years lost each",
+    value: "97",
+    label: "People exonerated in 2025 alone, averaging 14.2 years lost each",
   },
 ] as const;
 
