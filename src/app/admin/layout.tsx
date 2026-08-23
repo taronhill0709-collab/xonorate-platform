@@ -49,7 +49,7 @@ export default async function AdminLayout({
           >
             X<span className="text-brand">o</span>norate
           </Link>
-          <p className="font-mono text-[11px] tracking-widest text-header-muted uppercase">
+          <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
             Admin
           </p>
         </div>

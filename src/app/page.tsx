@@ -65,6 +65,7 @@ export default async function Home() {
       isClient: cases.isClient,
       convictionDetails: cases.convictionDetails,
       exonerationDetails: cases.exonerationDetails,
+      timeServed: cases.timeServed,
     })
     .from(cases)
     .where(eq(cases.status, "exonerated"))
@@ -326,13 +327,13 @@ export default async function Home() {
                     )}
                   </div>
                   <div className="p-4">
-                    <span className="inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                    <span className="inline-block border border-brand/50 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase">
                       {CASE_STATUS_LABEL[c.status] ?? c.status}
                     </span>
                     <p className="mt-2 font-serif text-lg text-header-foreground">
                       {c.clientName}
                     </p>
-                    <p className="mt-1 font-mono text-xs text-header-muted uppercase">
+                    <p className="mt-1 font-mono text-xs font-bold text-header-label uppercase">
                       {c.state}
                     </p>
                     <p className="mt-2 text-xs text-header-muted">
@@ -365,7 +366,7 @@ export default async function Home() {
 
         <section className="border-t border-header-border bg-header-background py-16">
           <div className="mx-auto w-full max-w-6xl px-6">
-            <p className="font-mono text-xs tracking-widest text-brand uppercase">Take action</p>
+            <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">Take action</p>
             <h2 className="mt-2 font-serif text-3xl text-header-foreground">
               Be part of the solution.
             </h2>
@@ -431,7 +432,12 @@ export default async function Home() {
                   const conviction = row.convictionDetails as ConvictionDetails;
                   const exoneration = row.exonerationDetails as ExonerationDetails;
                   const teaser = exoneration?.whatLedToExoneration || row.summary;
-                  const yearsLost =
+                  // Prefer the attorney-entered time-served figure over the
+                  // conviction→exoneration year gap — the year math misses
+                  // pretrial detention (e.g. Taron Hill spent ~2 years in
+                  // county jail awaiting trial before his conviction year),
+                  // so it understates the real total.
+                  const yearsLostFallback =
                     exoneration?.year && conviction.year
                       ? exoneration.year - conviction.year
                       : null;
@@ -456,27 +462,29 @@ export default async function Home() {
                         )}
                       </div>
                       <div className="p-4">
-                        <span className="inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                        <span className="inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase">
                           Exonerated
                         </span>
                         {!row.isClient && (
-                          <span className="ml-2 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                          <span className="ml-2 font-mono text-xs font-bold tracking-wide text-header-label uppercase">
                             {SPOTLIGHT_CASE_LABEL}
                           </span>
                         )}
                         <p className="mt-2 line-clamp-2 font-serif text-lg text-header-foreground">
                           {row.clientName}
                         </p>
-                        <p className="mt-1 font-mono text-xs text-header-muted uppercase">
+                        <p className="mt-1 font-mono text-xs font-bold text-header-label uppercase">
                           {row.state}
                         </p>
                         <p className="mt-2 line-clamp-2 text-sm text-header-muted">
                           {teaser}
                         </p>
                         <div className="mt-3 flex items-center justify-between text-xs">
-                          {yearsLost != null && yearsLost > 0 ? (
+                          {row.timeServed ? (
+                            <span className="font-semibold text-brand">{row.timeServed} lost</span>
+                          ) : yearsLostFallback != null && yearsLostFallback > 0 ? (
                             <span className="font-semibold text-brand">
-                              {yearsLost} year{yearsLost === 1 ? "" : "s"} lost
+                              {yearsLostFallback} year{yearsLostFallback === 1 ? "" : "s"} lost
                             </span>
                           ) : (
                             <span />
@@ -494,7 +502,7 @@ export default async function Home() {
 
         {platformStats.length > 0 && (
           <section className="mx-auto w-full max-w-3xl px-6 py-16">
-            <p className="font-mono text-xs tracking-widest text-brand uppercase">
+            <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
               Our own record
             </p>
             <h2 className="mt-2 font-serif text-2xl text-foreground">

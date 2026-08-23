@@ -41,16 +41,16 @@ export default async function AdminCasesPage() {
           <thead>
             <tr className="border-b border-border">
               <th className="py-2 font-medium" />
-              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+              <th className="py-2 font-mono text-xs font-bold tracking-widest text-label uppercase">
                 Client
               </th>
-              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+              <th className="py-2 font-mono text-xs font-bold tracking-widest text-label uppercase">
                 State
               </th>
-              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+              <th className="py-2 font-mono text-xs font-bold tracking-widest text-label uppercase">
                 Status
               </th>
-              <th className="py-2 font-mono text-[0.68rem] font-normal tracking-widest text-muted uppercase">
+              <th className="py-2 font-mono text-xs font-bold tracking-widest text-label uppercase">
                 Views
               </th>
               <th className="py-2 font-medium" />
@@ -69,7 +69,7 @@ export default async function AdminCasesPage() {
                 <td className="py-3 font-medium text-foreground">
                   {row.clientName}
                   {!row.isClient && (
-                    <span className="ml-2 inline-flex items-center border border-border px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted uppercase">
+                    <span className="ml-2 inline-flex items-center border border-border px-1.5 py-0.5 font-mono text-xs font-bold tracking-wide text-label uppercase">
                       Spotlight
                     </span>
                   )}

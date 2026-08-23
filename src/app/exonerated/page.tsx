@@ -34,6 +34,7 @@ export default async function ExoneratedIndexPage() {
       isClient: cases.isClient,
       convictionDetails: cases.convictionDetails,
       exonerationDetails: cases.exonerationDetails,
+      timeServed: cases.timeServed,
       sourceUrl: cases.sourceUrl,
       contributingFactorTags: cases.contributingFactorTags,
       dnaInvolved: cases.dnaInvolved,
@@ -60,7 +61,10 @@ export default async function ExoneratedIndexPage() {
               const conviction = row.convictionDetails as ConvictionDetails;
               const exoneration = row.exonerationDetails as ExonerationDetails;
               const teaser = exoneration?.whatLedToExoneration || row.summary;
-              const yearsLost =
+              // Prefer the attorney-entered time-served figure over the
+              // conviction→exoneration year gap — the year math misses
+              // pretrial detention, so it understates the real total.
+              const yearsLostFallback =
                 exoneration?.year && conviction.year ? exoneration.year - conviction.year : null;
               return (
                 <li
@@ -110,10 +114,15 @@ export default async function ExoneratedIndexPage() {
                           {exoneration?.year ? ` → ${exoneration.year}` : ""}
                         </span>
                       )}
-                      {yearsLost != null && yearsLost > 0 && (
-                        <span className="font-semibold text-brand">
-                          {yearsLost} year{yearsLost === 1 ? "" : "s"} lost
-                        </span>
+                      {row.timeServed ? (
+                        <span className="font-semibold text-brand">{row.timeServed} lost</span>
+                      ) : (
+                        yearsLostFallback != null &&
+                        yearsLostFallback > 0 && (
+                          <span className="font-semibold text-brand">
+                            {yearsLostFallback} year{yearsLostFallback === 1 ? "" : "s"} lost
+                          </span>
+                        )
                       )}
                     </div>
 
@@ -124,13 +133,13 @@ export default async function ExoneratedIndexPage() {
                         {((row.contributingFactorTags as string[] | null) ?? []).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                            className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase"
                           >
                             {tag}
                           </span>
                         ))}
                         {row.dnaInvolved && (
-                          <span className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase">
+                          <span className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase">
                             DNA evidence
                           </span>
                         )}

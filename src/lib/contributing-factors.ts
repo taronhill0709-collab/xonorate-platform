@@ -7,6 +7,7 @@ export const CONTRIBUTING_FACTOR_TAGS = [
   "Mistaken witness identification",
   "False confession",
   "Perjury or false accusation",
+  "Jailhouse informants",
   "False or misleading forensic evidence",
   "Official misconduct",
   "Inadequate legal defense",

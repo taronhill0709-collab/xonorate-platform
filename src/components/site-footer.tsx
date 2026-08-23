@@ -108,7 +108,7 @@ export async function SiteFooter() {
           </div>
 
           <div>
-            <p className="font-mono text-xs tracking-widest text-header-muted uppercase">
+            <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
               Menu
             </p>
             <ul className="mt-3 space-y-2">
@@ -126,7 +126,7 @@ export async function SiteFooter() {
           </div>
 
           <div>
-            <p className="font-mono text-xs tracking-widest text-header-muted uppercase">
+            <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
               Get Involved
             </p>
             <ul className="mt-3 space-y-2">

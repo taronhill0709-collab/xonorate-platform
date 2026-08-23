@@ -110,7 +110,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <p className="font-mono text-xs tracking-widest text-brand uppercase">Overview</p>
+      <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">Overview</p>
       <h1 className="mt-1 font-serif text-2xl text-foreground">Dashboard</h1>
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {tiles.map((tile) => {
@@ -119,7 +119,7 @@ export default async function AdminDashboardPage() {
               <p className="font-serif text-3xl font-extrabold tracking-tight text-brand tabular-nums">
                 {tile.value}
               </p>
-              <p className="mt-1 font-mono text-[11px] tracking-wide text-muted uppercase">
+              <p className="mt-1 font-mono text-xs font-bold tracking-wide text-label uppercase">
                 {tile.label}
               </p>
             </>

@@ -30,6 +30,15 @@
   --band-accent: #c99a44;
   --link: #4a9cb0;
   --link-strong: #6bb8cc;
+  /* A brighter, bolder-reading tan for tiny uppercase micro-labels (dt
+     field labels, status/tag badges) — --muted is shared with regular
+     secondary body copy that's fine at its current contrast, but that
+     same tone at 10-12px, all-caps, and letter-spaced reads as too thin
+     and low-contrast to be legible. Same value serves both dark
+     surfaces (page background and header background are both
+     near-black, so one tone covers both). */
+  --label: #d9cba9;
+  --header-label: #d9cba9;
 }
 
 @theme inline {
@@ -47,6 +56,8 @@
   --color-header-foreground: var(--header-foreground);
   --color-header-muted: var(--header-muted);
   --color-header-border: var(--header-border);
+  --color-label: var(--label);
+  --color-header-label: var(--header-label);
   --color-band-background: var(--band-background);
   --color-band-foreground: var(--band-foreground);
   --color-band-accent: var(--band-accent);

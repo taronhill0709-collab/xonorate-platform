@@ -186,7 +186,7 @@ export default async function CaseDetailPage({
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <p className="font-mono text-xs tracking-widest text-brand uppercase">
+        <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
           {CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status} · {caseRow.state}
           {caseRow.county ? `, ${caseRow.county} County` : ""}
         </p>
@@ -194,7 +194,7 @@ export default async function CaseDetailPage({
           {caseRow.clientName}
         </h1>
         {!caseRow.isClient && (
-          <p className="mt-2 inline-flex items-center border border-border px-2 py-0.5 font-mono text-[11px] tracking-wide text-muted uppercase">
+          <p className="mt-2 inline-flex items-center border border-border px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-label uppercase">
             {SPOTLIGHT_CASE_LABEL}
           </p>
         )}
@@ -203,12 +203,6 @@ export default async function CaseDetailPage({
           {exoneration && (
             <span>
               {conviction.year} → {exoneration.year}
-            </span>
-          )}
-          {exoneration && conviction.year && exoneration.year - conviction.year > 0 && (
-            <span className="font-semibold text-brand">
-              {exoneration.year - conviction.year} year
-              {exoneration.year - conviction.year === 1 ? "" : "s"} lost
             </span>
           )}
         </p>
@@ -232,7 +226,7 @@ export default async function CaseDetailPage({
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border border-border p-5 text-sm sm:grid-cols-3">
             {caseDetailFacts.map(([label, value]) => (
               <div key={label}>
-                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   {label}
                 </dt>
                 <dd className="mt-0.5 text-foreground">{value}</dd>
@@ -264,36 +258,36 @@ export default async function CaseDetailPage({
 
         <section className="mt-10">
           <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-            <span className="font-mono text-sm font-normal text-brand">{convictionRoman}.</span>
+            <span className="font-mono text-sm font-bold text-brand">{convictionRoman}.</span>
             The conviction
           </h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="border-b border-border pb-3">
-              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">Charge</dt>
+              <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">Charge</dt>
               <dd className="mt-0.5 text-foreground">{conviction.charge}</dd>
             </div>
             <div className="border-b border-border pb-3">
-              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+              <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                 Year convicted
               </dt>
               <dd className="mt-0.5 text-foreground">{conviction.year}</dd>
             </div>
             <div className="border-b border-border pb-3">
-              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+              <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                 Sentence
               </dt>
               <dd className="mt-0.5 text-foreground">{conviction.sentence}</dd>
             </div>
             {caseRow.timeServed && (
               <div className="border-b border-border pb-3">
-                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   Time served
                 </dt>
                 <dd className="mt-0.5 text-foreground">{caseRow.timeServed}</dd>
               </div>
             )}
             <div>
-              <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+              <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                 What contributed to the conviction
               </dt>
               <dd className="mt-0.5 text-foreground">{conviction.contributingFactors}</dd>
@@ -304,7 +298,7 @@ export default async function CaseDetailPage({
               {contributingFactorTags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                  className="inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase"
                 >
                   {tag}
                 </span>
@@ -316,20 +310,20 @@ export default async function CaseDetailPage({
         {exoneration && (
           <section className="mt-10">
             <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-              <span className="font-mono text-sm font-normal text-brand">
+              <span className="font-mono text-sm font-bold text-brand">
                 {exonerationRoman}.
               </span>
               Exoneration
             </h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="border-b border-border pb-3">
-                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   Year exonerated
                 </dt>
                 <dd className="mt-0.5 text-foreground">{exoneration.year}</dd>
               </div>
               <div>
-                <dt className="font-mono text-[11px] tracking-wide text-muted uppercase">
+                <dt className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   What led to exoneration
                 </dt>
                 <dd className="mt-0.5 text-foreground">{exoneration.whatLedToExoneration}</dd>
@@ -351,7 +345,7 @@ export default async function CaseDetailPage({
         {hasImpact && impact && (
           <section id="impact" className="mt-10 scroll-mt-20">
             <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-              <span className="font-mono text-sm font-normal text-brand">{impactRoman}.</span>
+              <span className="font-mono text-sm font-bold text-brand">{impactRoman}.</span>
               The cost
             </h2>
             {impact.stats.length > 0 && (
@@ -368,7 +362,7 @@ export default async function CaseDetailPage({
             )}
             {impact.familyImpact && (
               <div className="mt-5">
-                <h3 className="font-mono text-xs tracking-wide text-muted uppercase">
+                <h3 className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   Impact on family
                 </h3>
                 <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">
@@ -378,7 +372,7 @@ export default async function CaseDetailPage({
             )}
             {impact.communityImpact && (
               <div className="mt-5">
-                <h3 className="font-mono text-xs tracking-wide text-muted uppercase">
+                <h3 className="font-mono text-xs font-bold tracking-wide text-label uppercase">
                   Impact on community
                 </h3>
                 <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">
@@ -392,7 +386,7 @@ export default async function CaseDetailPage({
         {claimCategories.map((category, ci) => (
           <section key={category.title} className="mt-10">
             <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-              <span className="font-mono text-sm font-normal text-brand">
+              <span className="font-mono text-sm font-bold text-brand">
                 {categoryRomans[ci]}.
               </span>
               {category.title}
@@ -412,7 +406,7 @@ export default async function CaseDetailPage({
 
         <section className="mt-10">
           <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-            <span className="font-mono text-sm font-normal text-brand">{documentsRoman}.</span>
+            <span className="font-mono text-sm font-bold text-brand">{documentsRoman}.</span>
             Documents
           </h2>
           {documents.length === 0 ? (
@@ -437,8 +431,8 @@ export default async function CaseDetailPage({
                       <span
                         className={
                           doc.status === "on_file"
-                            ? "inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
-                            : "inline-flex items-center border border-border px-2 py-0.5 font-mono text-[10px] tracking-wide text-muted uppercase"
+                            ? "inline-flex items-center border border-brand/50 bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase"
+                            : "inline-flex items-center border border-border px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-label uppercase"
                         }
                       >
                         {doc.status === "on_file" ? "On file" : "Needed"}
@@ -453,7 +447,7 @@ export default async function CaseDetailPage({
 
         <section className="mt-10">
           <h2 className="flex items-baseline gap-2 font-serif text-lg text-foreground">
-            <span className="font-mono text-sm font-normal text-brand">{takeActionRoman}.</span>
+            <span className="font-mono text-sm font-bold text-brand">{takeActionRoman}.</span>
             Take action
           </h2>
           {petition ? (

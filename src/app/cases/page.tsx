@@ -64,7 +64,7 @@ export default async function CasesIndexPage() {
           <div className="mx-auto w-full max-w-6xl px-6">
             {activeCases.length > 0 && (
               <section className="py-14">
-                <p className="font-mono text-xs tracking-widest text-brand uppercase">
+                <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
                   Still fighting
                 </p>
                 <h2 className="mt-2 font-serif text-2xl text-foreground">Active cases</h2>
@@ -73,7 +73,7 @@ export default async function CasesIndexPage() {
             )}
             {exoneratedCases.length > 0 && (
               <section className="border-t border-border py-14">
-                <p className="font-mono text-xs tracking-widest text-brand uppercase">
+                <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
                   Justice restored
                 </p>
                 <h2 className="mt-2 font-serif text-2xl text-foreground">Exonerated</h2>
@@ -132,19 +132,19 @@ function CaseGrid({ rows, seedOffset }: { rows: CaseRow[]; seedOffset: number })
               <span
                 className={
                   row.status === "exonerated"
-                    ? "inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
-                    : "inline-block border border-brand/50 px-2 py-0.5 font-mono text-[10px] tracking-wide text-brand uppercase"
+                    ? "inline-block border border-brand bg-brand/10 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase"
+                    : "inline-block border border-brand/50 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase"
                 }
               >
                 {CASE_STATUS_LABEL[row.status] ?? row.status}
               </span>
               {!row.isClient && (
-                <span className="ml-2 font-mono text-[10px] tracking-wide text-muted uppercase">
+                <span className="ml-2 font-mono text-xs font-bold tracking-wide text-label uppercase">
                   {SPOTLIGHT_CASE_LABEL}
                 </span>
               )}
               <p className="mt-2 font-serif text-xl text-foreground">{row.clientName}</p>
-              <p className="mt-1 font-mono text-xs text-muted uppercase">
+              <p className="mt-1 font-mono text-xs font-bold text-label uppercase">
                 {row.state}
                 {row.county ? `, ${row.county} County` : ""}
               </p>
