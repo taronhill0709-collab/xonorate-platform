@@ -5,7 +5,7 @@
  * primary for buttons/links/CTAs, a dedicated ink-blue for inline citation
  * links (kept distinct from gold so "clickable reference" never reads as
  * a decorative brand accent), Public Sans headings over Source Sans 3
- * body/UI text, Space Mono for labels/data. One fixed theme — no light/dark
+ * body/UI text, IBM Plex Mono for labels/data. One fixed theme — no light/dark
  * OS switching. See src/app/page.tsx's stats section for the one deliberate
  * exception (a light paper-toned band) — that's hand-coded there, not a
  * token, since every other section stays dark.
@@ -65,7 +65,7 @@
   --color-link-strong: var(--link-strong);
   --font-sans: var(--font-source-sans);
   --font-serif: var(--font-public-sans);
-  --font-mono: var(--font-space-mono);
+  --font-mono: var(--font-ibm-plex-mono);
   --font-display: var(--font-public-sans);
 }
 

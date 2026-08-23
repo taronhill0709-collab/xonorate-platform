@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Public_Sans, Source_Sans_3, Space_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Public_Sans, Source_Sans_3 } from "next/font/google";
 import { Providers } from "./providers";
 import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
@@ -10,8 +10,8 @@ const sourceSans3 = Source_Sans_3({
   weight: ["400", "500", "600", "700"],
 });
 
-const spaceMono = Space_Mono({
-  variable: "--font-space-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
   weight: ["400", "700"],
 });
@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSans3.variable} ${spaceMono.variable} ${publicSans.variable} h-full antialiased`}
+      className={`${sourceSans3.variable} ${ibmPlexMono.variable} ${publicSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>{children}</Providers>
