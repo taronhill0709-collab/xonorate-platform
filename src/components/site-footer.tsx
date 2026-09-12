@@ -24,17 +24,21 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// Simplified to match the reference design's slim single-row footer — the
-// same 5 primary sections as the header nav, plus Contact (submit-inquiry
-// is the real contact path). Petitions/Exonerated/Resources are still real
-// pages; they're just not repeated as top-level chrome anymore.
+// Per the user's explicit footer layout (2026-09-12): lead with the
+// Xonorate brand itself, not "Xonorate Media Platform" — that name is
+// demoted to a small attribution line so it stops competing with the
+// brand. "Investigations" links to the Newsroom's daily-roundup filter
+// (NEWSROOM_TOPICS' "daily_roundup" topic) rather than a separate page,
+// since that's the real destination for that label. About/Contact are
+// intentionally dropped from this row (About stays in the header nav;
+// Contact/submit-inquiry stays reachable from Take Action and the About
+// page) — this footer is deliberately narrower than the last one.
 const FOOTER_LINKS = [
   { href: "/cases", label: "Cases" },
-  { href: "/news", label: "News" },
-  { href: "/issues", label: "The Issues" },
+  { href: "/news", label: "Newsroom" },
+  { href: "/news?type=daily_roundup", label: "Investigations" },
+  { href: "/issues", label: "Issues" },
   { href: "/take-action", label: "Take Action" },
-  { href: "/about", label: "About" },
-  { href: "/submit-inquiry", label: "Contact" },
 ];
 
 export async function SiteFooter() {
@@ -66,74 +70,80 @@ export async function SiteFooter() {
       </section>
 
       <footer className="border-t border-header-border bg-header-background">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-6 sm:flex-row sm:justify-between">
-          <Link href="/" className="flex flex-col">
-            <span className="flex items-center gap-1">
-              <XonorateMark className="h-5 w-5 shrink-0 text-brand" />
-              <span className="font-display text-lg leading-none font-bold tracking-tight text-header-foreground uppercase">
-                onorate
-              </span>
-            </span>
-            <span className="mt-0.5 block text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase">
-              Truth. Justice. Accountability.
-            </span>
-          </Link>
-
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            {FOOTER_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-              >
-                {link.label}
+        <div className="mx-auto w-full max-w-6xl px-6 py-10">
+          <div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
+            <div>
+              <Link href="/" className="flex flex-col">
+                <span className="flex items-center gap-1">
+                  <XonorateMark className="h-6 w-6 shrink-0 text-brand" />
+                  <span className="font-display text-xl leading-none font-bold tracking-tight text-header-foreground uppercase">
+                    onorate
+                  </span>
+                </span>
+                <span className="mt-1 block text-xs font-semibold tracking-wide text-header-muted uppercase">
+                  Wrongful Convictions. Exposed.
+                </span>
               </Link>
-            ))}
-          </nav>
 
-          <div className="flex items-center gap-4">
+              <nav className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+                {FOOTER_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
             {(settings?.facebookUrl || settings?.instagramUrl) && (
-              <div className="flex gap-3">
-                {settings.facebookUrl && (
-                  <a
-                    href={settings.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Xonorate on Facebook"
-                    className="text-header-muted transition hover:text-header-foreground"
-                  >
-                    <FacebookIcon className="h-[16px] w-[16px]" />
-                  </a>
-                )}
-                {settings.instagramUrl && (
-                  <a
-                    href={settings.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Xonorate on Instagram"
-                    className="text-header-muted transition hover:text-header-foreground"
-                  >
-                    <InstagramIcon className="h-[16px] w-[16px]" />
-                  </a>
-                )}
+              <div className="sm:text-right">
+                <p className="text-xs font-bold tracking-widest text-header-muted uppercase">
+                  Follow Xonorate
+                </p>
+                <div className="mt-2 flex gap-3 sm:justify-end">
+                  {settings.instagramUrl && (
+                    <a
+                      href={settings.instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Xonorate on Instagram"
+                      className="text-header-muted transition hover:text-header-foreground"
+                    >
+                      <InstagramIcon className="h-[18px] w-[18px]" />
+                    </a>
+                  )}
+                  {settings.facebookUrl && (
+                    <a
+                      href={settings.facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Xonorate on Facebook"
+                      className="text-header-muted transition hover:text-header-foreground"
+                    >
+                      <FacebookIcon className="h-[18px] w-[18px]" />
+                    </a>
+                  )}
+                </div>
               </div>
             )}
-            <p className="hidden text-[10px] font-bold tracking-widest text-header-muted uppercase lg:block">
-              Expose. Educate. Empower.
-            </p>
           </div>
-        </div>
 
-        <div className="border-t border-header-border">
-          <div className="mx-auto w-full max-w-6xl px-6 py-5">
-            <p className="text-xs text-header-muted">
+          <div className="mt-10 border-t border-header-border pt-6">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-mono text-xs text-header-muted">© {year} XONORATE</p>
+              <p className="text-xs text-header-muted">Xonorate Media Platform</p>
+            </div>
+            <p className="mt-2 text-xs text-header-muted">
+              Privacy · Terms · Accessibility
+            </p>
+            <p className="mt-3 max-w-2xl text-xs text-header-muted">
               Xonorate does not adjudicate guilt or innocence — that
               evaluation belongs to the attorneys and innocence organizations
               we work with, based on the evidence in each case. No claim of
               innocence made here is a guarantee.
-            </p>
-            <p className="mt-2 font-mono text-xs text-header-muted">
-              © {year} Xonorate Media Platform. All rights reserved.
             </p>
           </div>
         </div>
