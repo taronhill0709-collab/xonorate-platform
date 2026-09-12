@@ -556,17 +556,19 @@ export default async function Home() {
                           {row.state}
                         </p>
                         <p className="line-clamp-2 text-sm text-muted">{teaser}</p>
-                        <div className="mt-1 flex items-center justify-between text-xs">
+                        <div className="mt-1 flex items-center justify-between gap-3 text-xs">
                           {row.timeServed ? (
-                            <span className="font-semibold text-brand">{row.timeServed} lost</span>
+                            <span className="truncate font-semibold text-brand">
+                              {row.timeServed.split("(")[0].trim()} lost
+                            </span>
                           ) : yearsLostFallback != null && yearsLostFallback > 0 ? (
-                            <span className="font-semibold text-brand">
+                            <span className="truncate font-semibold text-brand">
                               {yearsLostFallback} year{yearsLostFallback === 1 ? "" : "s"} lost
                             </span>
                           ) : (
                             <span />
                           )}
-                          <span className="font-bold text-brand uppercase">Read the case →</span>
+                          <span className="shrink-0 font-bold text-brand uppercase">Read the case →</span>
                         </div>
                       </div>
                     </Link>
