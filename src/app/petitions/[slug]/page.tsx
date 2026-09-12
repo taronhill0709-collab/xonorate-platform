@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { ShareButtons } from "@/components/share-buttons";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, petitionSlugHistory, petitions, petitionUpdates, signatures } from "@/db/schema";
@@ -168,35 +169,38 @@ export default async function PetitionDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <div className="min-w-0">
-          {linkedCase && (
-            <Link
-              href={`/cases/${linkedCase.slug}`}
-              className="text-xs font-medium uppercase tracking-wide text-brand hover:underline"
-            >
-              For {linkedCase.clientName}
-            </Link>
-          )}
-          <h1 className="mt-1 font-serif text-3xl text-foreground">{petition.title}</h1>
+      <main className="flex-1 bg-background">
+        <div className="border-b border-header-border bg-header-background">
+          <div className="mx-auto w-full max-w-3xl px-6 py-14">
+            {linkedCase && (
+              <Link
+                href={`/cases/${linkedCase.slug}`}
+                className="text-xs font-bold tracking-widest text-brand uppercase hover:underline"
+              >
+                For {linkedCase.clientName}
+              </Link>
+            )}
+            <h1 className="mt-1 font-serif text-3xl text-header-foreground sm:text-4xl">
+              {petition.title}
+            </h1>
+            <p className="mt-3 text-sm text-header-muted">
+              Xonorate Media
+              {linkedCase && <> on behalf of the {linkedCase.clientName} family</>}.
+            </p>
+            {petition.recipientName && (
+              <span className="mt-3 inline-flex items-center border border-brand/50 bg-brand-light px-3 py-1 font-mono text-xs font-bold tracking-wide text-brand uppercase">
+                Addressed to {petition.recipientName}
+              </span>
+            )}
+          </div>
         </div>
 
-        <p className="mt-4 text-sm text-muted">
-          Xonorate Media
-          {linkedCase && <> on behalf of the {linkedCase.clientName} family</>}.
-        </p>
-
-        {petition.recipientName && (
-          <span className="mt-4 inline-flex items-center rounded-full bg-brand-light px-3 py-1 text-sm text-brand">
-            Addressed to {petition.recipientName}
-          </span>
-        )}
-
-        <p className="mt-4 whitespace-pre-line text-foreground">{petition.askText}</p>
+        <div className="mx-auto w-full max-w-3xl px-6 py-14">
+        <p className="whitespace-pre-line text-lg text-foreground">{petition.askText}</p>
 
         <div className="mt-6">
-          <div className="h-2 rounded-full bg-muted-background">
-            <div className="h-2 rounded-full bg-brand" style={{ width: `${pct}%` }} />
+          <div className="h-2 bg-muted-background">
+            <div className="h-2 bg-brand" style={{ width: `${pct}%` }} />
           </div>
           <p className="mt-1 text-sm text-muted">
             {signatureCount.toLocaleString()} of {petition.goalCount.toLocaleString()} signatures
@@ -211,7 +215,7 @@ export default async function PetitionDetailPage({
           </p>
         </div>
 
-        <div id="sign" className="mt-8 scroll-mt-20 rounded-lg border border-border p-5">
+        <div id="sign" className="mt-8 scroll-mt-20 border border-border p-5">
           <PetitionSignForm
             petitionId={petition.id}
             petitionUrl={`${origin}/petitions/${slug}`}
@@ -282,7 +286,9 @@ export default async function PetitionDetailPage({
         )}
 
         <CommentSection targetType="petition" targetId={petition.id} />
+        </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

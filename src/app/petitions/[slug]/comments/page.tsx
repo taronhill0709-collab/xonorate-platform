@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { petitions, signatures } from "@/db/schema";
@@ -60,47 +61,57 @@ export default async function PetitionCommentsPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <Link href={`/petitions/${slug}`} className="text-sm text-brand underline">
-          ← Back to petition
-        </Link>
-        <h1 className="mt-3 font-serif text-2xl text-foreground">
-          Why people are signing
-        </h1>
-        <p className="mt-1 text-sm text-muted">{petition.title}</p>
+      <main className="flex-1 bg-background">
+        <div className="border-b border-header-border bg-header-background">
+          <div className="mx-auto w-full max-w-3xl px-6 py-14">
+            <Link
+              href={`/petitions/${slug}`}
+              className="text-xs font-bold tracking-widest text-brand uppercase hover:underline"
+            >
+              ← Back to petition
+            </Link>
+            <h1 className="mt-2 font-serif text-3xl text-header-foreground">
+              Why people are signing
+            </h1>
+            <p className="mt-1 text-header-muted">{petition.title}</p>
+          </div>
+        </div>
 
-        {signers.length === 0 ? (
-          <p className="mt-8 text-sm text-muted">No comments yet.</p>
-        ) : (
-          <ul className="mt-8 space-y-4">
-            {signers.map((s, i) => (
-              <li
-                key={i}
-                className={
-                  s.pinned
-                    ? "border-l-2 border-brand bg-brand-light/40 py-2 pl-4 text-sm"
-                    : "border-l-2 border-border pl-4 text-sm"
-                }
-              >
-                {s.pinned && (
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand">
-                    Pinned
+        <div className="mx-auto w-full max-w-3xl px-6 py-14">
+          {signers.length === 0 ? (
+            <p className="text-sm text-muted">No comments yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {signers.map((s, i) => (
+                <li
+                  key={i}
+                  className={
+                    s.pinned
+                      ? "border-l-2 border-brand bg-brand-light/40 py-2 pl-4 text-sm"
+                      : "border-l-2 border-border pl-4 text-sm"
+                  }
+                >
+                  {s.pinned && (
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-brand">
+                      Pinned
+                    </p>
+                  )}
+                  <p className="text-foreground">&ldquo;{s.comment}&rdquo;</p>
+                  <p className="mt-1 text-muted">
+                    — {formatSignerName(s.displayName)} ·{" "}
+                    {s.createdAt.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
                   </p>
-                )}
-                <p className="text-foreground">&ldquo;{s.comment}&rdquo;</p>
-                <p className="mt-1 text-muted">
-                  — {formatSignerName(s.displayName)} ·{" "}
-                  {s.createdAt.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

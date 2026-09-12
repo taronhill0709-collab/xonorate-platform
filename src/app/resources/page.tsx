@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
@@ -28,8 +29,8 @@ function ResourceCard({
         : {})}
       className={
         tone === "crisis"
-          ? "block rounded-lg border border-accent bg-accent/10 p-5 shadow-sm transition hover:shadow-md"
-          : "block rounded-lg border border-border p-5 shadow-sm transition hover:border-brand hover:shadow-md"
+          ? "block border border-accent bg-accent/10 p-5 transition hover:border-accent"
+          : "block border border-border p-5 transition hover:border-brand"
       }
     >
       <p className="font-serif text-lg text-foreground">{name}</p>
@@ -37,8 +38,8 @@ function ResourceCard({
       <p
         className={
           tone === "crisis"
-            ? "mt-2 text-xs font-semibold uppercase tracking-wide text-accent"
-            : "mt-2 text-xs font-medium uppercase tracking-wide text-brand"
+            ? "mt-2 font-mono text-xs font-bold tracking-wide text-accent uppercase"
+            : "mt-2 font-mono text-xs font-bold tracking-wide text-brand uppercase"
         }
       >
         {meta ?? href.replace(/^https?:\/\//, "").replace(/\/$/, "")}
@@ -124,7 +125,7 @@ const SECTIONS = [
           specific state&apos;s card directly.
         </p>
 
-        <p className="rounded-md border border-border bg-muted-background p-4 text-sm text-muted">
+        <p className="border border-border bg-muted-background p-4 text-sm text-muted">
           This section is general public education, not legal advice, and it
           is not a substitute for talking to a lawyer about a specific
           situation. If you or someone you know is currently involved in a
@@ -205,7 +206,7 @@ const SECTIONS = [
           href="https://innocencenetwork.org/network-members/"
         />
 
-        <div className="rounded-md border border-border p-4">
+        <div className="border border-border p-4">
           <p className="text-sm font-medium text-foreground">
             Do you qualify for help from an innocence organization?
           </p>
@@ -486,17 +487,31 @@ export default function ResourcesPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
-        <h1 className="font-serif text-3xl text-foreground">Resources</h1>
-        <p className="mt-4 text-muted">
-          For people navigating a wrongful conviction, their families, and
-          anyone who wants to understand — or push for reform of — the
-          system that makes wrongful conviction possible.
-        </p>
+      <main className="flex-1 bg-background">
+        <div className="border-b border-header-border bg-header-background">
+          <div className="mx-auto w-full max-w-3xl px-6 py-14">
+            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
+              Resources
+            </p>
+            <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
+              Resources
+            </h1>
+            <p className="mt-2 max-w-xl text-header-muted">
+              For people navigating a wrongful conviction, their families,
+              and anyone who wants to understand — or push for reform of —
+              the system that makes wrongful conviction possible.
+            </p>
+          </div>
+        </div>
 
-        <nav className="mt-8 flex flex-wrap gap-x-4 gap-y-2 border-y border-border py-4 text-sm">
+        <div className="mx-auto w-full max-w-2xl px-6 py-14">
+        <nav className="flex flex-wrap gap-x-4 gap-y-2 border-y border-border py-4 text-sm">
           {SECTIONS.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="text-brand underline">
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="text-xs font-bold tracking-wide text-brand uppercase hover:underline"
+            >
               {s.title}
             </a>
           ))}
@@ -505,9 +520,9 @@ export default function ResourcesPage() {
         <div className="mt-10 space-y-12">
           {SECTIONS.map((s) => (
             <section key={s.id} id={s.id} className="scroll-mt-20">
-              <h2 className="font-serif text-xl text-foreground">
+              <p className="text-xs font-bold tracking-widest text-brand uppercase">
                 {s.title}
-              </h2>
+              </p>
               <div className="mt-3 space-y-3 text-muted">{s.body}</div>
             </section>
           ))}
@@ -519,7 +534,9 @@ export default function ResourcesPage() {
           consulting a licensed attorney or medical professional about a
           specific situation.
         </p>
+        </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

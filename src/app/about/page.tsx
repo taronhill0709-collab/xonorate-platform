@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getFounderCase } from "@/lib/founder";
 
@@ -20,9 +21,20 @@ export default async function AboutPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
-        <h1 className="font-serif text-3xl text-foreground">About Xonorate</h1>
-        <p className="mt-4 text-muted">
+      <main className="flex-1 bg-background">
+        <div className="border-b border-header-border bg-header-background">
+          <div className="mx-auto w-full max-w-3xl px-6 py-14">
+            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
+              About
+            </p>
+            <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
+              About Xonorate
+            </h1>
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-2xl px-6 py-14">
+        <p className="text-lg text-foreground">
           Xonorate exists because a conviction isn&apos;t the end of the
           story for the people it gets wrong. We document individual cases
           in detail — the evidence, the record, the people behind it — and
@@ -51,18 +63,18 @@ export default async function AboutPage() {
         </p>
 
         {founderCase && (
-          <div className="mt-10 flex flex-col items-center gap-5 rounded-xl border border-brand/30 bg-brand-light/40 p-6 text-center sm:flex-row sm:text-left">
+          <div className="mt-10 flex flex-col items-center gap-5 border border-brand/30 bg-brand-light/40 p-6 text-center sm:flex-row sm:text-left">
             {founderCase.photoUrl ? (
               <Image
                 src={founderCase.photoUrl}
                 alt={founderCase.clientName}
                 width={112}
                 height={112}
-                className="h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-brand/40"
+                className="h-24 w-24 shrink-0 object-cover ring-4 ring-brand/40"
                 unoptimized
               />
             ) : (
-              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-muted-background ring-4 ring-brand/40">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center bg-muted-background ring-4 ring-brand/40">
                 <span className="font-serif text-2xl text-muted">
                   {founderCase.clientName.charAt(0)}
                 </span>
@@ -85,7 +97,7 @@ export default async function AboutPage() {
               </p>
               <Link
                 href={`/cases/${founderCase.slug}`}
-                className="mt-3 inline-block text-sm font-medium text-brand underline"
+                className="mt-3 inline-block text-sm font-bold tracking-wide text-brand uppercase hover:underline"
               >
                 Read his case
               </Link>
@@ -93,12 +105,12 @@ export default async function AboutPage() {
           </div>
         )}
 
-        <h2 className="mt-10 font-serif text-xl text-foreground">
+        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
           What we do
         </h2>
         <ul className="mt-4 space-y-3 text-muted">
           <li>
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground">
               Document cases —
             </span>{" "}
             we build a public record for each client: the conviction, the
@@ -106,14 +118,14 @@ export default async function AboutPage() {
             exoneration.
           </li>
           <li>
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground">
               Run petitions —
             </span>{" "}
             live campaigns addressed to the specific officials and bodies
             who have the power to act on a case, not a generic audience.
           </li>
           <li>
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground">
               Report the news —
             </span>{" "}
             daily coverage of wrongful-conviction cases, policy, and reform
@@ -122,7 +134,7 @@ export default async function AboutPage() {
           </li>
         </ul>
 
-        <h2 className="mt-10 font-serif text-xl text-foreground">
+        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
           How we work with attorneys
         </h2>
         <p className="mt-4 text-muted">
@@ -137,7 +149,7 @@ export default async function AboutPage() {
           like documented can reach out through the inquiry form below.
         </p>
 
-        <h2 className="mt-10 font-serif text-xl text-foreground">
+        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
           How we work with families and organizations
         </h2>
         <p className="mt-4 text-muted">
@@ -148,7 +160,7 @@ export default async function AboutPage() {
           known: the facts of the conviction, and the toll it&apos;s taken
           on the people closest to it. We also point families toward the
           established{" "}
-          <Link href="/resources#innocence-organizations" className="text-brand underline">
+          <Link href="/resources#innocence-organizations" className="text-link underline hover:text-link-strong">
             innocence organizations and legal resources
           </Link>{" "}
           already doing casework in their state, since that legal
@@ -163,7 +175,7 @@ export default async function AboutPage() {
           organizations on a case.
         </p>
 
-        <h2 className="mt-10 font-serif text-xl text-foreground">
+        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
           Have a case to share?
         </h2>
         <p className="mt-4 text-muted">
@@ -173,11 +185,13 @@ export default async function AboutPage() {
         </p>
         <Link
           href="/submit-case"
-          className="mt-4 inline-block rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90"
+          className="mt-4 inline-block bg-brand px-5 py-2.5 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent"
         >
           Submit a case
         </Link>
+        </div>
       </main>
+      <SiteFooter />
     </>
   );
 }
