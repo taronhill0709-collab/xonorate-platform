@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { XonorateMark } from "@/components/xonorate-mark";
 
 // lucide-react dropped brand icons — these are small enough to hand-draw.
 function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -23,22 +24,17 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-const MENU_LINKS = [
+// Simplified to match the reference design's slim single-row footer — the
+// same 5 primary sections as the header nav, plus Contact (submit-inquiry
+// is the real contact path). Petitions/Exonerated/Resources are still real
+// pages; they're just not repeated as top-level chrome anymore.
+const FOOTER_LINKS = [
   { href: "/cases", label: "Cases" },
-  { href: "/news", label: "Newsroom" },
+  { href: "/news", label: "News" },
   { href: "/issues", label: "The Issues" },
-  { href: "/petitions", label: "Petitions" },
-  { href: "/impact", label: "The Human Cost" },
-  { href: "/exonerated", label: "Exonerated" },
-  { href: "/resources", label: "Resources" },
+  { href: "/take-action", label: "Take Action" },
   { href: "/about", label: "About" },
-];
-
-const GET_INVOLVED_LINKS = [
-  { href: "/take-action", label: "Take action" },
-  { href: "/submit-case", label: "Submit a case" },
-  { href: "/submit-inquiry", label: "Submit an inquiry" },
-  { href: "/login", label: "Sign in" },
+  { href: "/submit-inquiry", label: "Contact" },
 ];
 
 export async function SiteFooter() {
@@ -70,20 +66,34 @@ export async function SiteFooter() {
       </section>
 
       <footer className="border-t border-header-border bg-header-background">
-        <div className="mx-auto w-full max-w-6xl px-6 py-12">
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          <div className="col-span-2 sm:col-span-1">
-            <Link
-              href="/"
-              className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase"
-            >
-              X<span className="text-brand">o</span>norate
-            </Link>
-            <p className="mt-2 text-sm text-header-muted">
-              Giving a Voice to the Voiceless.
-            </p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-6 sm:flex-row sm:justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <XonorateMark className="h-6 w-6 shrink-0 text-header-foreground" />
+            <span>
+              <span className="block font-display text-lg leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
+                X<span className="text-brand">o</span>norate
+              </span>
+              <span className="mt-0.5 block text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase">
+                Truth. Justice. Accountability.
+              </span>
+            </span>
+          </Link>
+
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            {FOOTER_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
             {(settings?.facebookUrl || settings?.instagramUrl) && (
-              <div className="mt-4 flex gap-3">
+              <div className="flex gap-3">
                 {settings.facebookUrl && (
                   <a
                     href={settings.facebookUrl}
@@ -92,7 +102,7 @@ export async function SiteFooter() {
                     aria-label="Xonorate on Facebook"
                     className="text-header-muted transition hover:text-header-foreground"
                   >
-                    <FacebookIcon className="h-[18px] w-[18px]" />
+                    <FacebookIcon className="h-[16px] w-[16px]" />
                   </a>
                 )}
                 {settings.instagramUrl && (
@@ -103,58 +113,26 @@ export async function SiteFooter() {
                     aria-label="Xonorate on Instagram"
                     className="text-header-muted transition hover:text-header-foreground"
                   >
-                    <InstagramIcon className="h-[18px] w-[18px]" />
+                    <InstagramIcon className="h-[16px] w-[16px]" />
                   </a>
                 )}
               </div>
             )}
-          </div>
-
-          <div>
-            <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
-              Menu
+            <p className="hidden text-[10px] font-bold tracking-widest text-header-muted uppercase lg:block">
+              Expose. Educate. Empower.
             </p>
-            <ul className="mt-3 space-y-2">
-              {MENU_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-header-muted transition hover:text-header-foreground"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
-              Get Involved
-            </p>
-            <ul className="mt-3 space-y-2">
-              {GET_INVOLVED_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-header-muted transition hover:text-header-foreground"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
 
-          <div className="mt-10 border-t border-header-border pt-6">
+        <div className="border-t border-header-border">
+          <div className="mx-auto w-full max-w-6xl px-6 py-5">
             <p className="text-xs text-header-muted">
               Xonorate does not adjudicate guilt or innocence — that
               evaluation belongs to the attorneys and innocence organizations
               we work with, based on the evidence in each case. No claim of
               innocence made here is a guarantee.
             </p>
-            <p className="mt-3 font-mono text-xs text-header-muted">
+            <p className="mt-2 font-mono text-xs text-header-muted">
               © {year} Xonorate Media Platform. All rights reserved.
             </p>
           </div>

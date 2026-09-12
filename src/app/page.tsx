@@ -1,5 +1,14 @@
 import { asc, count, desc, eq, ne } from "drizzle-orm";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  FileText,
+  Heart,
+  Megaphone,
+  Share2,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { RedactedPhoto } from "@/components/redacted-photo";
@@ -13,7 +22,6 @@ import {
   WRONGFUL_CONVICTION_CAUSES,
   WRONGFUL_CONVICTION_STATS,
 } from "@/lib/national-exoneration-stats";
-import { excerptFromMarkdown } from "@/lib/post-excerpt";
 import { PUBLIC_POST_TYPE_LABEL } from "@/lib/post-type";
 import { getPlatformStats } from "@/lib/platform-stats";
 
@@ -99,7 +107,7 @@ export default async function Home() {
     .from(posts)
     .where(eq(posts.status, "published"))
     .orderBy(asc(posts.sortOrder), desc(posts.createdAt))
-    .limit(3);
+    .limit(4);
 
   const platformStats = await getPlatformStats();
   const founderCase = await getFounderCase();
@@ -117,13 +125,15 @@ export default async function Home() {
     (s) => s.label === "Petition signatures collected",
   );
   const impactStats = [
-    { value: WRONGFUL_CONVICTION_STATS[0].value, label: "Exonerations nationwide" },
-    { value: WRONGFUL_CONVICTION_STATS[1].value, label: "Years lost nationwide" },
+    { icon: Users, value: WRONGFUL_CONVICTION_STATS[0].value, label: "Exonerations nationwide" },
+    { icon: Clock, value: WRONGFUL_CONVICTION_STATS[1].value, label: "Years lost to wrongful convictions" },
     {
+      icon: FileText,
       value: signaturesStat?.value ?? "0",
-      label: "Petition signatures on Xonorate",
+      label: "Petition signatures",
     },
     {
+      icon: Megaphone,
       value: activeCaseCount.toLocaleString(),
       label: activeCaseCount === 1 ? "Active case" : "Active cases",
     },
@@ -157,7 +167,9 @@ export default async function Home() {
               Wrongful convictions. Exposed.
             </p>
             <h1 className="mt-4 max-w-4xl font-serif text-[2.75rem] leading-[0.95] text-header-foreground sm:text-[4.25rem] lg:text-[5.25rem]">
-              When the system gets it wrong, we make sure the world knows.
+              When the system gets it wrong,{" "}
+              <span className="text-header-muted">we make sure</span> the
+              world knows.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-header-muted">
               Xonorate is a media and advocacy platform exposing wrongful
@@ -167,9 +179,9 @@ export default async function Home() {
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/cases"
-                className="bg-brand px-7 py-3 text-sm font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
+                className="inline-flex items-center gap-2 bg-brand px-7 py-3 text-sm font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
               >
-                Explore cases
+                Explore cases <ArrowRight size={16} />
               </Link>
               <Link
                 href="/take-action"
@@ -184,16 +196,19 @@ export default async function Home() {
         {/* SECTION 02 — IMPACT STATISTICS. Two cited national figures beside
             two live counts from Xonorate's own database — never a
             dashboard, just large numerals over a hairline rule. */}
-        <section className="border-t border-header-border bg-header-background">
-          <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-8 px-6 py-14 sm:grid-cols-4">
+        <section className="border-t border-b border-header-border bg-header-background">
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-2 divide-y divide-header-border px-6 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
             {impactStats.map((stat) => (
-              <div key={stat.label} className="border-t-2 border-brand pt-4">
-                <dd className="font-serif text-4xl text-header-foreground tabular-nums sm:text-5xl">
-                  {stat.value}
-                </dd>
-                <dt className="mt-2 text-xs font-semibold tracking-wide text-header-muted uppercase">
-                  {stat.label}
-                </dt>
+              <div key={stat.label} className="flex items-center gap-3 py-6 sm:justify-center sm:px-6">
+                <stat.icon className="h-6 w-6 shrink-0 text-header-muted" aria-hidden strokeWidth={1.5} />
+                <div>
+                  <dd className="font-serif text-2xl text-header-foreground tabular-nums sm:text-3xl">
+                    {stat.value}
+                  </dd>
+                  <dt className="mt-0.5 text-[11px] font-semibold tracking-wide text-header-muted uppercase">
+                    {stat.label}
+                  </dt>
+                </div>
               </div>
             ))}
           </div>
@@ -270,66 +285,70 @@ export default async function Home() {
                 View all cases <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredCases.map((c, i) => (
-                <Link
-                  key={c.id}
-                  href={`/cases/${c.slug}`}
-                  className="group flex flex-col border border-header-border"
-                >
-                  <div className="relative aspect-4/3 w-full overflow-hidden">
-                    {c.photoUrl ? (
-                      <Image
-                        src={c.photoUrl}
-                        alt={c.clientName}
-                        fill
-                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                        unoptimized
-                      />
-                    ) : (
-                      <RedactedPhoto seed={i} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-brand uppercase">
+            <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-3">
+              {featuredCases.map((c, i) => {
+                // A handful of timeServed values are long attorney-entered
+                // narratives with a parenthetical aside — truncate to the
+                // short headline figure for this card's big numeral; the
+                // case page itself still has the full detail.
+                const timeServedHeadline = c.timeServed?.split("(")[0].trim();
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/cases/${c.slug}`}
+                    className="group flex border border-header-border"
+                  >
+                    <div className="relative aspect-3/4 w-2/5 shrink-0 overflow-hidden">
+                      {c.photoUrl ? (
+                        <Image
+                          src={c.photoUrl}
+                          alt={c.clientName}
+                          fill
+                          sizes="(min-width: 1024px) 15vw, 40vw"
+                          className="object-cover transition duration-500 group-hover:scale-105"
+                          unoptimized
+                        />
+                      ) : (
+                        <RedactedPhoto seed={i} />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col justify-center gap-1 p-5">
+                      <p className="font-serif text-xl text-header-foreground">{c.clientName}</p>
+                      {timeServedHeadline && (
+                        <p className="font-serif text-2xl text-header-foreground">
+                          {timeServedHeadline}
+                        </p>
+                      )}
+                      <p className="text-xs font-semibold tracking-wide text-header-muted uppercase">
+                        {c.state} · {c.charge}
+                      </p>
+                      <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-brand uppercase">
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
                         {CASE_STATUS_LABEL[c.status] ?? c.status}
                       </span>
-                      <p className="mt-1.5 font-serif text-xl text-white">
-                        {c.clientName}
-                      </p>
+                      <span className="mt-3 inline-block w-fit border border-header-border px-3 py-1.5 text-xs font-bold tracking-wide text-header-foreground uppercase transition group-hover:border-brand">
+                        View case →
+                      </span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 bg-muted-background px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-mono text-xs font-bold tracking-wide text-label uppercase">
-                        {c.state} · {c.charge}
-                      </p>
-                      {c.timeServed && (
-                        <p className="mt-1 text-sm text-muted">{c.timeServed} served</p>
-                      )}
-                    </div>
-                    <span className="shrink-0 text-xs font-bold text-brand uppercase">
-                      View case →
-                    </span>
-                  </div>
-                </Link>
-              ))}
-              <div className="flex flex-col justify-center gap-3 border border-header-border bg-header-border/20 p-6">
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="mt-5 flex flex-col items-start justify-between gap-4 border border-header-border bg-header-border/20 p-6 sm:flex-row sm:items-center">
+              <div>
                 <h3 className="font-serif text-xl text-header-foreground">
                   Know someone wrongfully convicted?
                 </h3>
-                <p className="text-sm text-header-muted">
+                <p className="mt-1 text-sm text-header-muted">
                   Submitting a case is the first step toward review.
                 </p>
-                <Link
-                  href="/submit-case"
-                  className="mt-1 inline-flex w-fit items-center gap-1 bg-brand px-4 py-2 text-xs font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
-                >
-                  Submit a case →
-                </Link>
               </div>
+              <Link
+                href="/submit-case"
+                className="inline-flex w-fit shrink-0 items-center gap-1 bg-brand px-5 py-2.5 text-xs font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
+              >
+                Submit a case →
+              </Link>
             </div>
           </div>
         </section>
@@ -356,20 +375,16 @@ export default async function Home() {
                   View newsroom <ArrowRight size={14} />
                 </Link>
               </div>
-              <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {latestPosts.map((post) => (
-                  <Link
-                    key={post.id}
-                    href={`/news/${post.slug}`}
-                    className="group flex flex-col border border-header-border"
-                  >
-                    <div className="relative aspect-video w-full overflow-hidden">
+                  <Link key={post.id} href={`/news/${post.slug}`} className="group flex flex-col">
+                    <div className="relative aspect-4/3 w-full overflow-hidden">
                       {post.imageUrl ? (
                         <Image
                           src={post.imageUrl}
                           alt=""
                           fill
-                          sizes="(min-width: 640px) 33vw, 100vw"
+                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                           className="object-cover transition duration-500 group-hover:scale-105"
                           unoptimized
                         />
@@ -377,15 +392,15 @@ export default async function Home() {
                         <div className="h-full w-full bg-muted-background" />
                       )}
                     </div>
-                    <div className="flex flex-1 flex-col gap-2 bg-muted-background px-4 py-3">
-                      <p className="font-mono text-xs font-bold tracking-wide text-label uppercase">
+                    <div className="flex flex-1 flex-col gap-1.5 pt-3">
+                      <p className="text-[11px] font-semibold tracking-wide text-header-muted uppercase">
                         {PUBLIC_POST_TYPE_LABEL[post.type] ?? post.type}
-                        {" · "}
-                        {NEWSROOM_DATE_FORMAT.format(post.publishedAt ?? post.createdAt)}
                       </p>
-                      <p className="font-serif text-lg text-header-foreground">{post.title}</p>
-                      <p className="line-clamp-2 flex-1 text-sm text-header-muted">
-                        {excerptFromMarkdown(post.body)}
+                      <p className="line-clamp-3 font-serif text-lg text-header-foreground">
+                        {post.title}
+                      </p>
+                      <p className="mt-auto font-mono text-[11px] text-header-muted uppercase">
+                        {NEWSROOM_DATE_FORMAT.format(post.publishedAt ?? post.createdAt)}
                       </p>
                     </div>
                   </Link>
@@ -508,38 +523,36 @@ export default async function Home() {
             <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
               You can help change a case.
             </h2>
-            <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden border border-header-border bg-header-border sm:grid-cols-2 lg:grid-cols-4">
-              <Link href="/petitions" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
-                <span className="font-mono text-xs text-brand">01</span>
-                <h3 className="font-serif text-lg text-header-foreground">Sign a petition</h3>
-                <p className="text-sm text-header-muted">
-                  Add your voice to a case demanding review.
-                </p>
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <Link href="/take-action" className="border border-header-border p-6 transition hover:border-brand/50">
+                <FileText className="h-7 w-7 text-brand" aria-hidden strokeWidth={1.5} />
+                <h3 className="mt-4 font-serif text-lg text-header-foreground">Sign a petition</h3>
+                <p className="mt-1 text-sm text-header-muted">Add your voice.</p>
               </Link>
-              <Link href="/cases" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
-                <span className="font-mono text-xs text-brand">02</span>
-                <h3 className="font-serif text-lg text-header-foreground">Share a case</h3>
-                <p className="text-sm text-header-muted">
+              <Link href="/take-action" className="border border-header-border p-6 transition hover:border-brand/50">
+                <Share2 className="h-7 w-7 text-brand" aria-hidden strokeWidth={1.5} />
+                <h3 className="mt-4 font-serif text-lg text-header-foreground">Share a case</h3>
+                <p className="mt-1 text-sm text-header-muted">
                   Put the story in front of more people.
                 </p>
               </Link>
-              <Link href="/submit-case" className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background">
-                <span className="font-mono text-xs text-brand">03</span>
-                <h3 className="font-serif text-lg text-header-foreground">Submit a case</h3>
-                <p className="text-sm text-header-muted">
-                  Tell Xonorate about a conviction that doesn&apos;t hold up.
+              <Link href="/submit-case" className="border border-header-border p-6 transition hover:border-brand/50">
+                <Users className="h-7 w-7 text-brand" aria-hidden strokeWidth={1.5} />
+                <h3 className="mt-4 font-serif text-lg text-header-foreground">Submit a case</h3>
+                <p className="mt-1 text-sm text-header-muted">
+                  Tell us about a potential wrongful conviction.
                 </p>
               </Link>
               <a
                 href="https://cash.app/$xonorate"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col gap-3 bg-header-background p-6 transition hover:bg-muted-background"
+                className="border border-header-border p-6 transition hover:border-brand/50"
               >
-                <span className="font-mono text-xs text-brand">04</span>
-                <h3 className="font-serif text-lg text-header-foreground">Support the fight</h3>
-                <p className="text-sm text-header-muted">
-                  Support the investigative and advocacy work itself.
+                <Heart className="h-7 w-7 text-brand" aria-hidden strokeWidth={1.5} />
+                <h3 className="mt-4 font-serif text-lg text-header-foreground">Support the fight</h3>
+                <p className="mt-1 text-sm text-header-muted">
+                  Help fund investigative and advocacy work.
                 </p>
               </a>
             </div>
@@ -683,18 +696,20 @@ export default async function Home() {
         )}
 
         {/* SECTION 06 — MISSION / BRAND STATEMENT */}
-        <section className="border-t border-header-border bg-header-background py-24">
-          <div className="mx-auto max-w-3xl px-6 text-center">
-            <h2 className="font-serif text-4xl text-header-foreground sm:text-5xl">
-              A more just tomorrow is possible.
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-header-muted">
-              Together, we can expose the truth, restore lives, and hold the
-              system accountable.
-            </p>
+        <section className="border-t border-header-border bg-header-background py-10">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-serif text-2xl text-header-foreground sm:text-3xl">
+                A more just tomorrow is possible.
+              </h2>
+              <p className="mt-1 text-header-muted">
+                Together, we can expose the truth, restore lives, and hold
+                the system accountable.
+              </p>
+            </div>
             <Link
               href="/signup"
-              className="mt-8 inline-flex items-center gap-2 text-sm font-bold tracking-widest text-brand uppercase transition hover:text-accent"
+              className="inline-flex shrink-0 items-center gap-2 bg-brand px-6 py-3 text-sm font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent"
             >
               Join the movement <ArrowRight size={16} />
             </Link>

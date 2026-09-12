@@ -1,15 +1,22 @@
-import { ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { MobileNav } from "@/components/mobile-nav";
 import { SignOutButton } from "@/components/sign-out-button";
+import { XonorateMark } from "@/components/xonorate-mark";
 
-const RESOURCE_LINKS = [
-  { href: "/resources#know-your-rights", label: "Know Your Rights" },
-  { href: "/resources#innocence-organizations", label: "Innocence Organizations" },
-  { href: "/resources#legal-resources", label: "Legal Resources" },
-  { href: "/resources#justice-reform", label: "Justice Reform" },
-  { href: "/resources#support-services", label: "Support Services" },
+// Simplified per the Xonorate 2.0 brief's nav spec: Cases / News / The
+// Issues / Take Action / About, plus account links and the Submit a Case
+// button. Petitions, Exonerated, Resources, and Submit an inquiry were
+// dropped from the top-level nav — they're still real pages, reachable via
+// the footer, the Take Action page (which lists petitions directly), and
+// Cases' own status filter (which includes Exonerated).
+const PRIMARY_LINKS = [
+  { href: "/cases", label: "Cases" },
+  { href: "/news", label: "News" },
+  { href: "/issues", label: "The Issues" },
+  { href: "/take-action", label: "Take Action" },
+  { href: "/about", label: "About" },
 ] as const;
 
 export async function SiteHeader() {
@@ -17,71 +24,15 @@ export async function SiteHeader() {
 
   const navLinks = (
     <>
-      <Link
-        href="/cases"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        Cases
-      </Link>
-      <Link
-        href="/petitions"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        Petitions
-      </Link>
-      <Link
-        href="/exonerated"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        Exonerated
-      </Link>
-      <Link
-        href="/news"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        News
-      </Link>
-      <Link
-        href="/issues"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        The Issues
-      </Link>
-      <Link
-        href="/take-action"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        Take Action
-      </Link>
-      <details className="group relative">
-        <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
-          Resources
-          <ChevronDown size={14} className="transition group-open:rotate-180" />
-        </summary>
-        <div className="mt-2 flex flex-col gap-2 sm:absolute sm:z-30 sm:mt-3 sm:w-56 sm:gap-1 sm:border sm:border-header-border sm:bg-header-background sm:p-2 sm:shadow-lg">
-          {RESOURCE_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-xs font-semibold tracking-wide text-header-muted uppercase transition hover:text-header-foreground sm:px-2 sm:py-1.5 sm:hover:bg-white/5"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </details>
-      <Link
-        href="/about"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        About
-      </Link>
-      <Link
-        href="/submit-inquiry"
-        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
-      >
-        Submit an inquiry
-      </Link>
+      {PRIMARY_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+        >
+          {link.label}
+        </Link>
+      ))}
       {session?.user ? (
         <>
           <Link
@@ -109,6 +60,13 @@ export async function SiteHeader() {
         </Link>
       )}
       <Link
+        href="/search"
+        aria-label="Search"
+        className="text-header-muted transition hover:text-header-foreground"
+      >
+        <Search size={16} />
+      </Link>
+      <Link
         href="/submit-case"
         className="bg-brand px-4 py-2 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent sm:ml-2"
       >
@@ -120,11 +78,16 @@ export async function SiteHeader() {
   return (
     <header className="relative border-b border-header-border bg-header-background">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
-        <Link
-          href="/"
-          className="font-display text-2xl font-bold tracking-[0.06em] text-header-foreground uppercase"
-        >
-          X<span className="text-brand">o</span>norate
+        <Link href="/" className="flex items-center gap-2.5">
+          <XonorateMark className="h-7 w-7 text-header-foreground" />
+          <span>
+            <span className="block font-display text-2xl leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
+              X<span className="text-brand">o</span>norate
+            </span>
+            <span className="mt-0.5 hidden text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase sm:block">
+              Truth. Justice. Accountability.
+            </span>
+          </span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm sm:flex">
           {navLinks}
