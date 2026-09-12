@@ -1,4 +1,5 @@
 import { desc } from "drizzle-orm";
+import Link from "next/link";
 import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { generalInquiries } from "@/db/schema";
@@ -13,9 +14,9 @@ export default async function AdminInquiriesPage() {
       <h1 className="font-serif text-2xl text-foreground">Inquiries</h1>
       <p className="mt-1 text-sm text-muted">
         General questions and messages — not full case submissions. See{" "}
-        <a href="/admin/case-submissions" className="text-brand underline">
+        <Link href="/admin/case-submissions" className="text-brand underline">
           Case submissions
-        </a>{" "}
+        </Link>{" "}
         for those. Replying below emails the sender directly at the address they submitted.
       </p>
       {rows.length === 0 ? (
