@@ -29,7 +29,7 @@ export default async function SettingsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-md flex-1 px-6 py-16">
+      <main id="main-content" className="mx-auto w-full max-w-md flex-1 px-6 py-16">
         <h1 className="font-serif text-3xl text-foreground">Account settings</h1>
         <p className="mt-2 text-sm text-muted">{session.user.email}</p>
 

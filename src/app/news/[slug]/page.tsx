@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/comment-section";
+import { JsonLd } from "@/components/json-ld";
 import { MarkdownBody } from "@/components/markdown-body";
 import { ShareButtons } from "@/components/share-buttons";
 import { SiteFooter } from "@/components/site-footer";
@@ -86,7 +87,20 @@ export default async function NewsArticlePage({
   return (
     <>
       <SiteHeader />
-      <main className="flex-1 bg-background">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: excerptFromMarkdown(post.body),
+          image: post.imageUrl ? [new URL(post.imageUrl, origin).toString()] : undefined,
+          datePublished: (post.publishedAt ?? post.createdAt).toISOString(),
+          author: { "@type": "Organization", name: "Xonorate Media Platform" },
+          publisher: { "@type": "Organization", name: "Xonorate Media Platform" },
+          mainEntityOfPage: `${origin}/news/${slug}`,
+        }}
+      />
+      <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
             <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">

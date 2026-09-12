@@ -142,7 +142,7 @@ export default async function Home() {
   return (
     <div className="relative flex flex-1 flex-col">
       <SiteHeader />
-      <main className="relative flex-1">
+      <main id="main-content" className="relative flex-1">
         {/* SECTION 01 — HERO. Full-bleed documentary photograph (or a plain
             dark field when no hero image has been set in /admin/settings)
             under a dark gradient, headline anchored to the bottom like an

@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-3xl text-foreground">
             Welcome, {session.user.name ?? session.user.email}

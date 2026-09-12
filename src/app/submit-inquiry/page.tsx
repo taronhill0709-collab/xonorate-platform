@@ -5,7 +5,7 @@ export default function SubmitInquiryPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-xl flex-1 px-6 py-16">
+      <main id="main-content" className="mx-auto w-full max-w-xl flex-1 px-6 py-16">
         <h1 className="font-serif text-3xl text-foreground">Submit an inquiry</h1>
         <p className="mt-2 text-sm text-muted">
           Have a general question, tip, or something else you&apos;d like to ask us? Send a

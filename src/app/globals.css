@@ -77,6 +77,49 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Admin scope — deliberately distinct from the public brand (Xonorate 2.0
+   brief #16: "keep the public-facing brand and admin UI visually
+   distinct"). Every admin page already consumes the same background/
+   brand/font-* tokens as the public site, so overriding them once here —
+   scoped to the wrapper div in admin/layout.tsx — recolors the entire
+   admin surface to a plain, light, functional internal-tool palette
+   without touching any individual admin page. Blue instead of red so an
+   admin control never reads as "this is a live public action," and
+   font-serif/font-display fall back to the same plain Source Sans as
+   body text instead of the cinematic condensed display face. */
+.admin-scope {
+  --background: #f5f5f4;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --muted-background: #ffffff;
+  --border: #e4e4e7;
+  --brand: #2563eb;
+  --brand-foreground: #ffffff;
+  --brand-light: #dbeafe;
+  --accent: #1d4ed8;
+  --accent-foreground: #ffffff;
+  --header-background: #18181b;
+  --header-foreground: #f5f5f4;
+  --header-muted: #a1a1aa;
+  --header-border: #27272a;
+  --band-background: #f5f5f4;
+  --band-foreground: #18181b;
+  --band-accent: #2563eb;
+  --link: #2563eb;
+  --link-strong: #1d4ed8;
+  --label: #52525b;
+  --header-label: #d4d4d8;
+  --font-serif: var(--font-source-sans);
+  --font-display: var(--font-source-sans);
+}
+
+.admin-scope .font-serif {
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: normal;
+  font-weight: 700;
+}
+
 /* The editorial headline treatment — every h1/h2/h3-level heading in the
    site uses this via the font-serif Tailwind class (kept as the class name
    for continuity with existing markup, even though the underlying face is
@@ -87,4 +130,18 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.01em;
   line-height: 1.05;
+}
+
+/* Respect the OS-level reduced-motion preference — every hover/transition
+   effect on the site (card lift, image zoom, color fades) becomes instant
+   instead of animated. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

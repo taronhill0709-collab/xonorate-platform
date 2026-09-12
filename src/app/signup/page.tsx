@@ -6,7 +6,7 @@ export default function SignupPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16">
+      <main id="main-content" className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16">
         <h1 className="font-serif text-3xl text-foreground">Create your account</h1>
         <p className="mt-2 text-sm text-muted">
           Track the petitions you&apos;ve signed and the cases you&apos;re supporting.

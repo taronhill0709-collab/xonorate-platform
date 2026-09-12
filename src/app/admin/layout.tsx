@@ -40,14 +40,14 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-full flex-1">
+    <div className="admin-scope flex min-h-screen flex-1">
       <aside className="w-56 shrink-0 border-r border-header-border bg-header-background">
         <div className="px-5 py-6">
           <Link
             href="/"
-            className="font-display text-lg font-bold tracking-[0.06em] text-header-foreground uppercase"
+            className="font-display text-lg font-bold tracking-wide text-header-foreground"
           >
-            X<span className="text-brand">o</span>norate
+            Xonorate
           </Link>
           <p className="font-mono text-xs font-bold tracking-widest text-header-label uppercase">
             Admin

@@ -5,7 +5,7 @@ export default function SubmitCasePage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-xl flex-1 px-6 py-16">
+      <main id="main-content" className="mx-auto w-full max-w-xl flex-1 px-6 py-16">
         <h1 className="font-serif text-3xl text-foreground">Submit a case</h1>
         <p className="mt-2 text-sm text-muted">
           If you believe a loved one was wrongfully convicted, tell us about their case. Our

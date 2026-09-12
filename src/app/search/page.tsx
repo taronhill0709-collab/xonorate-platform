@@ -50,7 +50,7 @@ export default async function SearchPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+      <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <p className="text-xs font-semibold tracking-widest text-brand uppercase">Search</p>
         <h1 className="mt-2 font-serif text-3xl text-foreground sm:text-4xl">
           {query ? `Results for "${query}"` : "Search Xonorate"}

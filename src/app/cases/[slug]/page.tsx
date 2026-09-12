@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
+import { JsonLd } from "@/components/json-ld";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { ShareButtons } from "@/components/share-buttons";
@@ -193,7 +194,21 @@ export default async function CaseDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="flex-1 bg-background">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: `${caseRow.clientName} — ${CASE_STATUS_LABEL[caseRow.status] ?? caseRow.status}`,
+          description: caseRow.summary,
+          image: caseRow.photoUrl ? [new URL(caseRow.photoUrl, origin).toString()] : undefined,
+          datePublished: caseRow.createdAt.toISOString(),
+          dateModified: caseRow.updatedAt.toISOString(),
+          author: { "@type": "Organization", name: "Xonorate Media Platform" },
+          publisher: { "@type": "Organization", name: "Xonorate Media Platform" },
+          mainEntityOfPage: `${origin}/cases/${slug}`,
+        }}
+      />
+      <main id="main-content" className="flex-1 bg-background">
         {/* HEADER — name, headline stat, status, large photo */}
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto grid w-full max-w-5xl gap-8 px-6 py-14 sm:grid-cols-[1fr_auto] sm:items-end">

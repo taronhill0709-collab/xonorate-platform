@@ -21,7 +21,7 @@ export default async function AboutPage() {
   return (
     <>
       <SiteHeader />
-      <main className="flex-1 bg-background">
+      <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
             <p className="text-xs font-semibold tracking-widest text-brand uppercase">

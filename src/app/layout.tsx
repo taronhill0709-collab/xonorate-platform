@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, IBM_Plex_Mono, Source_Sans_3 } from "next/font/google";
 import { Providers } from "./providers";
+import { JsonLd } from "@/components/json-ld";
 import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
@@ -47,12 +48,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const origin = getSiteOrigin();
   return (
     <html
       lang="en"
       className={`${sourceSans3.variable} ${ibmPlexMono.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Xonorate Media Platform",
+            url: origin,
+            description:
+              "Xonorate exposes wrongful convictions, amplifies the voices behind the cases, and mobilizes the public to demand justice.",
+            slogan: "Truth. Justice. Accountability.",
+          }}
+        />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-brand-foreground focus:uppercase"
+        >
+          Skip to main content
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>
