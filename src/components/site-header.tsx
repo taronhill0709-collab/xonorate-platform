@@ -79,10 +79,10 @@ export async function SiteHeader() {
     <header className="relative border-b border-header-border bg-header-background">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <XonorateMark className="h-7 w-7 text-header-foreground" />
+          <XonorateMark className="h-7 w-7 text-brand" />
           <span>
             <span className="block font-display text-2xl leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
-              X<span className="text-brand">o</span>norate
+              <span className="text-brand">o</span>norate
             </span>
             <span className="mt-0.5 hidden text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase sm:block">
               Truth. Justice. Accountability.

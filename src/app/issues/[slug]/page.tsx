@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Eyebrow } from "@/components/eyebrow";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -59,9 +60,7 @@ export default async function IssueDetailPage({
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              The issues
-            </p>
+            <Eyebrow text="The issues" />
             <h1 className="mt-2 font-serif text-4xl text-header-foreground sm:text-5xl">
               {issue.title}
             </h1>
@@ -92,9 +91,7 @@ export default async function IssueDetailPage({
 
           {relatedCases.length > 0 && (
             <section className="mt-12">
-              <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                Related Xonorate cases
-              </p>
+              <Eyebrow text="Related Xonorate cases" />
               <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {relatedCases.map((c, i) => (
                   <Link

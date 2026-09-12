@@ -2,6 +2,7 @@ import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -73,9 +74,7 @@ export default async function NewsroomPage({
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-6xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              Xonorate Newsroom
-            </p>
+            <Eyebrow text="Xonorate Newsroom" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               Investigate. Inform. Empower.
             </h1>
@@ -123,9 +122,7 @@ export default async function NewsroomPage({
             <>
               {featured && (
                 <section className="mt-10">
-                  <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                    Featured investigation
-                  </p>
+                  <Eyebrow text="Featured investigation" />
                   <Link href={`/news/${featured.slug}`} className="group mt-4 grid gap-6 sm:grid-cols-2">
                     <div className="relative aspect-video w-full overflow-hidden border border-header-border sm:aspect-auto">
                       {featured.imageUrl ? (
@@ -161,7 +158,7 @@ export default async function NewsroomPage({
 
               {rest.length > 0 && (
                 <section className="mt-14 border-t border-border pt-10">
-                  <p className="text-xs font-bold tracking-widest text-brand uppercase">Latest</p>
+                  <Eyebrow text="Latest" />
                   <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {rest.map((post) => (
                       <Link
@@ -202,9 +199,7 @@ export default async function NewsroomPage({
 
               {caseDevelopments.length > 0 && (
                 <section className="mt-14 border-t border-border pt-10">
-                  <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                    Case developments
-                  </p>
+                  <Eyebrow text="Case developments" />
                   <div className="mt-6 divide-y divide-border border-t border-b border-border">
                     {caseDevelopments.map((post) => {
                       const relatedCase = post.caseId ? caseNameById.get(post.caseId) : null;

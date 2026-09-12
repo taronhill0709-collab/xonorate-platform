@@ -68,10 +68,10 @@ export async function SiteFooter() {
       <footer className="border-t border-header-border bg-header-background">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-6 sm:flex-row sm:justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <XonorateMark className="h-6 w-6 shrink-0 text-header-foreground" />
+            <XonorateMark className="h-6 w-6 shrink-0 text-brand" />
             <span>
               <span className="block font-display text-lg leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
-                X<span className="text-brand">o</span>norate
+                <span className="text-brand">o</span>norate
               </span>
               <span className="mt-0.5 block text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase">
                 Truth. Justice. Accountability.

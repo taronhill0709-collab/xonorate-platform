@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/comment-section";
+import { Eyebrow } from "@/components/eyebrow";
 import { JsonLd } from "@/components/json-ld";
 import { MarkdownBody } from "@/components/markdown-body";
 import { ShareButtons } from "@/components/share-buttons";
@@ -145,9 +146,7 @@ export default async function NewsArticlePage({
 
           {relatedCase && (
             <section className="mt-10 border border-border bg-muted-background p-6">
-              <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                Related case
-              </p>
+              <Eyebrow text="Related case" />
               <p className="mt-2 font-serif text-2xl text-foreground">
                 {relatedCase.clientName}
               </p>

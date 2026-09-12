@@ -1,6 +1,7 @@
 import { and, eq, ilike, or } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -51,7 +52,7 @@ export default async function SearchPage({
     <>
       <SiteHeader />
       <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <p className="text-xs font-semibold tracking-widest text-brand uppercase">Search</p>
+        <Eyebrow text="Search" />
         <h1 className="mt-2 font-serif text-3xl text-foreground sm:text-4xl">
           {query ? `Results for "${query}"` : "Search Xonorate"}
         </h1>
@@ -80,7 +81,7 @@ export default async function SearchPage({
 
         {caseResults.length > 0 && (
           <section className="mt-10">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">Cases</p>
+            <Eyebrow text="Cases" />
             <ul className="mt-3 divide-y divide-border border-t border-b border-border">
               {caseResults.map((c) => (
                 <li key={c.id}>
@@ -101,7 +102,7 @@ export default async function SearchPage({
 
         {postResults.length > 0 && (
           <section className="mt-10">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">Newsroom</p>
+            <Eyebrow text="Newsroom" />
             <ul className="mt-3 divide-y divide-border border-t border-b border-border">
               {postResults.map((p) => (
                 <li key={p.id}>
@@ -122,7 +123,7 @@ export default async function SearchPage({
 
         {issueResults.length > 0 && (
           <section className="mt-10">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">The Issues</p>
+            <Eyebrow text="The Issues" />
             <ul className="mt-3 divide-y divide-border border-t border-b border-border">
               {issueResults.map((issue) => (
                 <li key={issue.slug}>

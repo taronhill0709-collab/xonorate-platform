@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getFounderCase } from "@/lib/founder";
@@ -24,9 +25,7 @@ export default async function AboutPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              About
-            </p>
+            <Eyebrow text="About" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               About Xonorate
             </h1>
@@ -81,8 +80,8 @@ export default async function AboutPage() {
               </div>
             )}
             <div>
-              <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
-                <ShieldCheck size={14} />
+              <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-header-muted uppercase">
+                <ShieldCheck size={14} className="text-brand" />
                 Our founder
               </p>
               <p className="mt-2 text-muted">
@@ -105,9 +104,7 @@ export default async function AboutPage() {
           </div>
         )}
 
-        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
-          What we do
-        </h2>
+        <Eyebrow as="h2" text="What we do" className="mt-12" />
         <ul className="mt-4 space-y-3 text-muted">
           <li>
             <span className="font-semibold text-foreground">
@@ -134,9 +131,7 @@ export default async function AboutPage() {
           </li>
         </ul>
 
-        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
-          How we work with attorneys
-        </h2>
+        <Eyebrow as="h2" text="How we work with attorneys" className="mt-12" />
         <p className="mt-4 text-muted">
           When a client already has legal representation, we build the
           public case page directly from the record the legal team has
@@ -149,9 +144,7 @@ export default async function AboutPage() {
           like documented can reach out through the inquiry form below.
         </p>
 
-        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
-          How we work with families and organizations
-        </h2>
+        <Eyebrow as="h2" text="How we work with families and organizations" className="mt-12" />
         <p className="mt-4 text-muted">
           Not every case comes to us with an attorney already attached —
           sometimes a family is pursuing a case on their own, between
@@ -175,9 +168,7 @@ export default async function AboutPage() {
           organizations on a case.
         </p>
 
-        <h2 className="mt-12 text-xs font-bold tracking-widest text-brand uppercase">
-          Have a case to share?
-        </h2>
+        <Eyebrow as="h2" text="Have a case to share?" className="mt-12" />
         <p className="mt-4 text-muted">
           Whether you&apos;re an attorney with a client&apos;s case file
           ready to go, or a family member navigating this without one yet,

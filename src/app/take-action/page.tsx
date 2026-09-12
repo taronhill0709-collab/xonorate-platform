@@ -2,6 +2,7 @@ import { asc, desc, ne } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { ShareButtons } from "@/components/share-buttons";
 import { SiteFooter } from "@/components/site-footer";
@@ -45,9 +46,7 @@ export default async function TakeActionPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-6xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              Take action
-            </p>
+            <Eyebrow text="Take action" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               You can help change a case.
             </h1>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -33,9 +34,7 @@ export default async function IssuesIndexPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-6xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              The issues
-            </p>
+            <Eyebrow text="The issues" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               Why wrongful convictions happen
             </h1>

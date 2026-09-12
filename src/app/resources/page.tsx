@@ -1,3 +1,4 @@
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
@@ -490,9 +491,7 @@ export default function ResourcesPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              Resources
-            </p>
+            <Eyebrow text="Resources" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               Resources
             </h1>
@@ -520,9 +519,7 @@ export default function ResourcesPage() {
         <div className="mt-10 space-y-12">
           {SECTIONS.map((s) => (
             <section key={s.id} id={s.id} className="scroll-mt-20">
-              <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                {s.title}
-              </p>
+              <Eyebrow text={s.title} />
               <div className="mt-3 space-y-3 text-muted">{s.body}</div>
             </section>
           ))}

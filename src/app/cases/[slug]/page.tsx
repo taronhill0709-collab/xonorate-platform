@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CommentSection } from "@/components/comment-section";
+import { Eyebrow } from "@/components/eyebrow";
 import { JsonLd } from "@/components/json-ld";
 import { PetitionSignForm } from "@/components/petition-sign-form";
 import { RedactedPhoto } from "@/components/redacted-photo";
@@ -285,7 +286,7 @@ export default async function CaseDetailPage({
 
           {/* THE CASE */}
           <section className="mt-12">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">The case</p>
+            <Eyebrow text="The case" />
             <p className="mt-3 whitespace-pre-line text-lg text-foreground">{caseRow.summary}</p>
 
             {caseDetailFacts.length > 0 && (
@@ -325,9 +326,7 @@ export default async function CaseDetailPage({
 
           {/* WHY IT MATTERS — the systemic failure behind this conviction */}
           <section className="mt-12">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">
-              Why it matters
-            </p>
+            <Eyebrow text="Why it matters" />
             <p className="mt-3 text-lg text-foreground">{conviction.contributingFactors}</p>
             {contributingFactorTags.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
@@ -346,9 +345,7 @@ export default async function CaseDetailPage({
           {/* THE EVIDENCE */}
           {claimCategories.length > 0 && (
             <section className="mt-12">
-              <p className="text-xs font-bold tracking-widest text-brand uppercase">
-                The evidence
-              </p>
+              <Eyebrow text="The evidence" />
               <div className="mt-4 space-y-8">
                 {claimCategories.map((category) => (
                   <div key={category.title}>
@@ -372,7 +369,7 @@ export default async function CaseDetailPage({
           {/* THE COST */}
           {hasImpact && impact && (
             <section id="impact" className="mt-12 scroll-mt-20">
-              <p className="text-xs font-bold tracking-widest text-brand uppercase">The cost</p>
+              <Eyebrow text="The cost" />
               {impact.stats.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-x-8 gap-y-4">
                   {impact.stats.map((stat, i) => (
@@ -408,9 +405,7 @@ export default async function CaseDetailPage({
 
           {/* CASE TIMELINE */}
           <section className="mt-12">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">
-              Case timeline
-            </p>
+            <Eyebrow text="Case timeline" />
             <ol className="mt-6 border-l-2 border-border pl-6">
               {timelineEvents.map((event, i) => (
                 <li key={i} className="relative pb-8 last:pb-0">
@@ -432,7 +427,7 @@ export default async function CaseDetailPage({
 
           {/* DOCUMENTS */}
           <section className="mt-12">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">Documents</p>
+            <Eyebrow text="Documents" />
             {documents.length === 0 ? (
               <p className="mt-3 border border-dashed border-border p-4 text-sm text-muted">
                 No documents listed yet.
@@ -471,9 +466,7 @@ export default async function CaseDetailPage({
 
           {/* WHAT XONORATE IS ASKING */}
           <section className="mt-12">
-            <p className="text-xs font-bold tracking-widest text-brand uppercase">
-              What Xonorate is asking
-            </p>
+            <Eyebrow text="What Xonorate is asking" />
             {petition ? (
               <div className="mt-4 border border-border bg-muted-background p-5">
                 <p className="font-serif text-xl text-foreground">{petition.title}</p>

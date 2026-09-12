@@ -2,6 +2,7 @@ import { asc, desc } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
@@ -44,9 +45,7 @@ export default async function ImpactPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-14">
-            <p className="text-xs font-semibold tracking-widest text-brand uppercase">
-              The human cost
-            </p>
+            <Eyebrow text="The human cost" />
             <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
               Wrongful conviction doesn&apos;t end with the person convicted.
             </h1>
@@ -98,9 +97,7 @@ export default async function ImpactPage() {
         {platformStats.length > 0 && (
           <section className="border-b border-header-border bg-header-background py-16">
             <div className="mx-auto w-full max-w-3xl px-6">
-              <p className="text-center text-xs font-bold tracking-widest text-brand uppercase">
-                Xonorate&apos;s cases, by the numbers
-              </p>
+              <Eyebrow text="Xonorate&apos;s cases, by the numbers" align="center" />
               <p className="mt-2 text-center text-sm text-header-muted">
                 Counted live from our own case files — not a national estimate.
               </p>
@@ -132,9 +129,7 @@ export default async function ImpactPage() {
 
         <section className="border-b border-header-border bg-background py-16">
           <div className="mx-auto w-full max-w-3xl px-6">
-            <p className="text-center text-xs font-bold tracking-widest text-brand uppercase">
-              Each number is a family
-            </p>
+            <Eyebrow text="Each number is a family" align="center" />
             <h2 className="mt-2 text-center font-serif text-2xl text-foreground">
               The people behind our cases
             </h2>

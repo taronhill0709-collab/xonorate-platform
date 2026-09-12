@@ -1,23 +1,14 @@
 import { asc, count, desc, eq, ne } from "drizzle-orm";
-import {
-  ArrowRight,
-  Clock,
-  FileText,
-  Heart,
-  Megaphone,
-  Share2,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { ArrowRight, Clock, FileText, Heart, Megaphone, Share2, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Eyebrow } from "@/components/eyebrow";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, posts, siteSettings } from "@/db/schema";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
-import { getFounderCase } from "@/lib/founder";
 import {
   WRONGFUL_CONVICTION_CAUSES,
   WRONGFUL_CONVICTION_STATS,
@@ -110,7 +101,6 @@ export default async function Home() {
     .limit(4);
 
   const platformStats = await getPlatformStats();
-  const founderCase = await getFounderCase();
   const [settings] = await db
     .select({ heroImageUrl: siteSettings.heroImageUrl })
     .from(siteSettings)
@@ -165,7 +155,7 @@ export default async function Home() {
             <div className="absolute inset-0 bg-gradient-to-t from-header-background via-header-background/60 to-header-background/30" />
           </div>
           <div className="relative mx-auto flex min-h-[80vh] w-full max-w-6xl flex-col justify-end px-6 pt-32 pb-16 sm:pb-20">
-            <p className="text-xs font-bold tracking-[0.25em] text-brand uppercase">
+            <p className="text-xs font-bold tracking-[0.25em] text-header-muted uppercase">
               Wrongful convictions. Exposed.
             </p>
             <h1 className="mt-4 max-w-4xl font-serif text-[2.75rem] leading-[0.95] text-header-foreground sm:text-[4.25rem] lg:text-[5.25rem]">
@@ -216,55 +206,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {founderCase && (
-          <section className="border-t border-header-border bg-header-background/60 py-12">
-            <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
-              {founderCase.photoUrl ? (
-                <Image
-                  src={founderCase.photoUrl}
-                  alt={founderCase.clientName}
-                  width={160}
-                  height={160}
-                  className="h-32 w-32 shrink-0 object-cover ring-4 ring-brand/40 sm:h-40 sm:w-40"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-32 w-32 shrink-0 items-center justify-center bg-muted-background ring-4 ring-brand/40 sm:h-40 sm:w-40">
-                  <span className="font-serif text-3xl text-header-muted">
-                    {founderCase.clientName.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <div>
-                <p className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-brand uppercase">
-                  <ShieldCheck size={14} />
-                  Our founder
-                </p>
-                <p className="mt-2 max-w-2xl text-sm text-header-muted">
-                  <strong className="font-semibold text-header-foreground">
-                    {founderCase.clientName}
-                  </strong>{" "}
-                  spent 16 years in a New Jersey prison for a double homicide he
-                  didn&apos;t commit. He was exonerated in 2021 after the
-                  state&apos;s Conviction Review Unit found he never should have
-                  been convicted in the first place — and walked out having
-                  learned firsthand how long a wrongful conviction can sit
-                  unexamined, and what it actually takes to get one looked at
-                  again. He founded Xonorate so other wrongfully convicted
-                  people don&apos;t have to wait 16 years for someone to
-                  listen.
-                </p>
-                <Link
-                  href={`/cases/${founderCase.slug}`}
-                  className="mt-3 inline-block text-sm font-semibold text-brand hover:underline"
-                >
-                  Read his story →
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
         {/* SECTION 03 — FEATURED CASES. Editorial dossier cards: full-bleed
             photography with the name/status overlaid on a dark gradient
             (documentary-title treatment), a data strip below — no rounded
@@ -273,9 +214,7 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-6">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
-                  Featured cases
-                </p>
+                <Eyebrow text="Featured cases" />
                 <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
                   Real people. Real cases. Real change.
                 </h2>
@@ -363,9 +302,7 @@ export default async function Home() {
             <div className="mx-auto w-full max-w-6xl px-6">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
-                    Xonorate newsroom
-                  </p>
+                  <Eyebrow text="Xonorate newsroom" />
                   <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
                     Investigate. Inform. Empower.
                   </h2>
@@ -418,9 +355,7 @@ export default async function Home() {
             the whole page. */}
         <section aria-labelledby="wrongful-conviction-heading" className="border-t border-header-border bg-band-background">
           <div className="mx-auto w-full max-w-4xl px-6 py-16">
-            <p className="text-center text-xs font-semibold tracking-widest text-band-accent uppercase">
-              Why this work matters
-            </p>
+            <Eyebrow text="Why this work matters" align="center" />
             <h2
               id="wrongful-conviction-heading"
               className="mx-auto mt-2 max-w-xl text-center font-serif text-3xl text-band-foreground"
@@ -435,22 +370,7 @@ export default async function Home() {
               the review it deserves.
             </p>
 
-            <dl className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-3">
-              {WRONGFUL_CONVICTION_STATS.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <stat.icon className="mx-auto h-7 w-7 text-brand" aria-hidden />
-                  <dt className="sr-only">{stat.label}</dt>
-                  <dd className="mt-3 font-serif text-5xl text-band-foreground tabular-nums">
-                    {stat.value}
-                  </dd>
-                  <p className="mx-auto mt-3 max-w-[22ch] text-base font-semibold text-header-muted">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </dl>
-
-            <div className="mt-12 border-t border-header-border pt-10">
+            <div className="mt-10 border-t border-header-border pt-10">
               <h3 className="text-center font-serif text-lg text-band-foreground">
                 Leading causes of wrongful conviction
               </h3>
@@ -521,7 +441,7 @@ export default async function Home() {
         {/* SECTION 05 — TAKE ACTION */}
         <section className="border-t border-header-border bg-header-background py-16">
           <div className="mx-auto w-full max-w-6xl px-6">
-            <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">Take action</p>
+            <Eyebrow text="Take action" />
             <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
               You can help change a case.
             </h2>
@@ -565,9 +485,7 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-6">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold tracking-widest text-band-accent uppercase">
-                  Justice restored
-                </p>
+                <Eyebrow text="Justice restored" />
                 <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
                   Exonerated
                 </h2>
@@ -662,9 +580,7 @@ export default async function Home() {
         {platformStats.length > 0 && (
           <section className="border-t border-header-border bg-header-background py-16">
             <div className="mx-auto w-full max-w-3xl px-6">
-              <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
-                Our own record
-              </p>
+              <Eyebrow text="Our own record" />
               <h2 className="mt-2 font-serif text-2xl text-header-foreground">
                 Our impact so far
               </h2>
