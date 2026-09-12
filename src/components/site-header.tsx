@@ -47,6 +47,12 @@ export async function SiteHeader() {
       >
         The Issues
       </Link>
+      <Link
+        href="/take-action"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+      >
+        Take Action
+      </Link>
       <details className="group relative">
         <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
           Resources

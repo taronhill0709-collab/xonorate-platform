@@ -172,7 +172,7 @@ export default async function Home() {
                 Explore cases
               </Link>
               <Link
-                href="/petitions"
+                href="/take-action"
                 className="border border-header-foreground/30 px-7 py-3 text-sm font-bold tracking-wide text-header-foreground uppercase transition hover:border-header-foreground"
               >
                 Take action
