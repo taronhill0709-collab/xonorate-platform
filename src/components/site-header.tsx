@@ -35,6 +35,12 @@ export async function SiteHeader() {
       >
         Exonerated
       </Link>
+      <Link
+        href="/news"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+      >
+        News
+      </Link>
       <details className="group relative">
         <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
           Resources

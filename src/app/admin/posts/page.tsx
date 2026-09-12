@@ -17,7 +17,7 @@ export default async function AdminPostsPage() {
       <h1 className="font-serif text-2xl text-foreground">Roundup</h1>
       <p className="mt-1 text-sm text-muted">
         Daily wrongful-conviction news, researched and drafted for your review each morning.
-        Admin-only — nothing here ever appears on the public site.
+        Publish a draft to send it live on the public Newsroom at /news.
       </p>
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">
