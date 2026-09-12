@@ -1,44 +1,46 @@
 @import "tailwindcss";
 
 /*
- * "Xonorate Noir" brand palette: warm near-black background, brass/gold
- * primary for buttons/links/CTAs, a dedicated ink-blue for inline citation
- * links (kept distinct from gold so "clickable reference" never reads as
- * a decorative brand accent), Public Sans headings over Source Sans 3
- * body/UI text, IBM Plex Mono for labels/data. One fixed theme — no light/dark
- * OS switching. See src/app/page.tsx's stats section for the one deliberate
- * exception (a light paper-toned band) — that's hand-coded there, not a
- * token, since every other section stays dark.
+ * "Xonorate 2.0" brand palette — Cinematic Investigative Editorial, full
+ * dark foundation: near-black is the background everywhere (not just the
+ * header/hero), a bold editorial red is the sole action/urgency accent
+ * (buttons, active-case badges, stat numerals, CTAs) used sparingly rather
+ * than flooded, and a dedicated ink-teal marks inline citation links so
+ * "clickable reference" never reads as a decorative brand accent. Barlow
+ * Condensed carries every headline (hero, section heads, case names, the
+ * wordmark) — bold, uppercase, condensed, documentary-title register —
+ * over Source Sans 3 body/UI text and IBM Plex Mono for labels/data. One
+ * fixed theme — no light/dark OS switching.
  */
 :root {
-  --background: #14120e;
-  --foreground: #f2ece0;
-  --muted: #a99c81;
-  --muted-background: #1e1a13;
-  --border: #3a3324;
-  --brand: #c99a44;
-  --brand-foreground: #14120e;
-  --brand-light: #2a2116;
-  --accent: #e3b866;
-  --accent-foreground: #14120e;
-  --header-background: #100e0b;
-  --header-foreground: #f2ece0;
-  --header-muted: #a99c81;
-  --header-border: #241f16;
-  --band-background: #1a170f;
-  --band-foreground: #f2ece0;
-  --band-accent: #c99a44;
-  --link: #4a9cb0;
-  --link-strong: #6bb8cc;
-  /* A brighter, bolder-reading tan for tiny uppercase micro-labels (dt
+  --background: #0a0a09;
+  --foreground: #f4f3f0;
+  --muted: #98958c;
+  --muted-background: #141412;
+  --border: #292823;
+  --brand: #d11f2c;
+  --brand-foreground: #ffffff;
+  --brand-light: #2a1214;
+  --accent: #ef4655;
+  --accent-foreground: #ffffff;
+  --header-background: #050505;
+  --header-foreground: #f4f3f0;
+  --header-muted: #98958c;
+  --header-border: #1c1c1a;
+  --band-background: #121211;
+  --band-foreground: #f4f3f0;
+  --band-accent: #d11f2c;
+  --link: #4fb3c9;
+  --link-strong: #7cc9db;
+  /* A brighter, bolder-reading neutral for tiny uppercase micro-labels (dt
      field labels, status/tag badges) — --muted is shared with regular
      secondary body copy that's fine at its current contrast, but that
      same tone at 10-12px, all-caps, and letter-spaced reads as too thin
      and low-contrast to be legible. Same value serves both dark
      surfaces (page background and header background are both
      near-black, so one tone covers both). */
-  --label: #d9cba9;
-  --header-label: #d9cba9;
+  --label: #cecbc1;
+  --header-label: #cecbc1;
 }
 
 @theme inline {
@@ -64,9 +66,9 @@
   --color-link: var(--link);
   --color-link-strong: var(--link-strong);
   --font-sans: var(--font-source-sans);
-  --font-serif: var(--font-public-sans);
+  --font-serif: var(--font-barlow-condensed);
   --font-mono: var(--font-ibm-plex-mono);
-  --font-display: var(--font-public-sans);
+  --font-display: var(--font-barlow-condensed);
 }
 
 body {
@@ -75,7 +77,14 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* The editorial headline treatment — every h1/h2/h3-level heading in the
+   site uses this via the font-serif Tailwind class (kept as the class name
+   for continuity with existing markup, even though the underlying face is
+   now the condensed display font rather than a serif). Uppercase + tight
+   leading reads as a documentary title card / breaking-news chyron at any
+   size; normal-case body and label text is untouched. */
 .font-serif {
-  text-transform: capitalize;
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
 }

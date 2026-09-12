@@ -14,7 +14,7 @@ const BAR_PATTERNS = [
 export function RedactedPhoto({ seed = 0 }: { seed?: number }) {
   const widths = BAR_PATTERNS[seed % BAR_PATTERNS.length];
   return (
-    <div className="relative flex h-full w-full flex-col justify-center gap-2 overflow-hidden bg-gradient-to-br from-[#221d13] to-background p-4">
+    <div className="relative flex h-full w-full flex-col justify-center gap-2 overflow-hidden bg-gradient-to-br from-[#1c1c1a] to-background p-4">
       {widths.map((w, i) => (
         <div
           key={i}

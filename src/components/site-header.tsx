@@ -19,33 +19,33 @@ export async function SiteHeader() {
     <>
       <Link
         href="/cases"
-        className="text-header-muted transition hover:text-header-foreground"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
       >
         Cases
       </Link>
       <Link
         href="/petitions"
-        className="text-header-muted transition hover:text-header-foreground"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
       >
         Petitions
       </Link>
       <Link
         href="/exonerated"
-        className="text-header-muted transition hover:text-header-foreground"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
       >
         Exonerated
       </Link>
       <details className="group relative">
-        <summary className="flex cursor-pointer list-none items-center gap-1 text-header-muted transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
           Resources
           <ChevronDown size={14} className="transition group-open:rotate-180" />
         </summary>
-        <div className="mt-2 flex flex-col gap-2 sm:absolute sm:z-30 sm:mt-3 sm:w-56 sm:gap-1 sm:rounded-md sm:border sm:border-header-border sm:bg-header-background sm:p-2 sm:shadow-lg">
+        <div className="mt-2 flex flex-col gap-2 sm:absolute sm:z-30 sm:mt-3 sm:w-56 sm:gap-1 sm:border sm:border-header-border sm:bg-header-background sm:p-2 sm:shadow-lg">
           {RESOURCE_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-header-muted transition hover:text-header-foreground sm:rounded sm:px-2 sm:py-1.5 sm:hover:bg-white/5"
+              className="text-xs font-semibold tracking-wide text-header-muted uppercase transition hover:text-header-foreground sm:px-2 sm:py-1.5 sm:hover:bg-white/5"
             >
               {link.label}
             </Link>
@@ -54,19 +54,13 @@ export async function SiteHeader() {
       </details>
       <Link
         href="/about"
-        className="text-header-muted transition hover:text-header-foreground"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
       >
         About
       </Link>
       <Link
-        href="/submit-case"
-        className="text-header-muted transition hover:text-header-foreground"
-      >
-        Submit a case
-      </Link>
-      <Link
         href="/submit-inquiry"
-        className="text-header-muted transition hover:text-header-foreground"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
       >
         Submit an inquiry
       </Link>
@@ -74,28 +68,34 @@ export async function SiteHeader() {
         <>
           <Link
             href="/dashboard"
-            className="text-header-muted transition hover:text-header-foreground"
+            className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
           >
             Dashboard
           </Link>
           {session.user.role === "admin" && (
             <Link
               href="/admin"
-              className="text-header-muted transition hover:text-header-foreground"
+              className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
             >
               Admin
             </Link>
           )}
-          <SignOutButton className="text-header-muted hover:text-header-foreground" />
+          <SignOutButton className="text-xs font-bold tracking-widest text-header-muted uppercase hover:text-header-foreground" />
         </>
       ) : (
         <Link
           href="/login"
-          className="text-header-muted transition hover:text-header-foreground"
+          className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
         >
           Sign in
         </Link>
       )}
+      <Link
+        href="/submit-case"
+        className="bg-brand px-4 py-2 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent sm:ml-2"
+      >
+        Submit a case
+      </Link>
     </>
   );
 
