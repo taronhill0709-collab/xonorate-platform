@@ -149,17 +149,19 @@ export default async function Home() {
             opening title card. */}
         <section className="relative overflow-hidden bg-header-background">
           <div className="absolute inset-0">
-            {settings?.heroImageUrl && (
-              <Image
-                src={settings.heroImageUrl}
-                alt=""
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover opacity-60"
-                unoptimized
-              />
-            )}
+            <Image
+              src={settings?.heroImageUrl || "/images/hero-courthouse.png"}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover opacity-60"
+              // Admin-uploaded hero photos come from an arbitrary external
+              // URL (case-photo-storage), so those skip Next's optimizer;
+              // the bundled default is a local asset and gets fully
+              // optimized (responsive sizes, modern formats).
+              unoptimized={Boolean(settings?.heroImageUrl)}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-header-background via-header-background/60 to-header-background/30" />
           </div>
           <div className="relative mx-auto flex min-h-[80vh] w-full max-w-6xl flex-col justify-end px-6 pt-32 pb-16 sm:pb-20">
