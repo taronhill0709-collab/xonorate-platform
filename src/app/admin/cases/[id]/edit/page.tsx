@@ -35,6 +35,7 @@ import {
   generateCaseImpact,
   saveCaseImpact,
   setHomepageFeaturedVideo,
+  toggleDocumentPublicSource,
   toggleDocumentStatus,
   unfeatureHomepageVideo,
   updateCase,
@@ -444,6 +445,14 @@ export default async function EditCasePage({
       </form>
 
       <h2 className="mt-10 font-serif text-lg text-foreground">Documents</h2>
+      <p className="mt-1 text-sm text-muted">
+        Internal by default — most of these are attorney/court materials (affidavits, medical
+        records, forensic reports) Xonorate doesn&apos;t publish. Mark a specific document
+        &ldquo;Public source&rdquo; only when it&apos;s a genuine public citation (a news article,
+        an official press release, the NRE profile) — those appear in the case page&apos;s
+        &ldquo;Sources &amp; records&rdquo; section. Collection status is separate: it just tracks
+        what Xonorate has actually collected versus what&apos;s still outstanding.
+      </p>
       {documents.length === 0 ? (
         <p className="mt-2 text-sm text-muted">No documents yet.</p>
       ) : (
@@ -451,7 +460,8 @@ export default async function EditCasePage({
           <thead className="text-muted">
             <tr className="border-b border-border">
               <th className="py-2 font-medium">Title</th>
-              <th className="py-2 font-medium">Status</th>
+              <th className="py-2 font-medium">Collection status</th>
+              <th className="py-2 font-medium">Public source?</th>
               <th className="py-2 font-medium">File</th>
               <th className="py-2 font-medium" />
             </tr>
@@ -461,7 +471,14 @@ export default async function EditCasePage({
               <tr key={doc.id} className="border-b border-border">
                 <td className="py-2 text-foreground">{doc.title}</td>
                 <td className="py-2 text-foreground">
-                  {doc.status === "on_file" ? "On file" : "Needed"}
+                  {doc.status === "on_file" ? "Collected" : "Outstanding"}
+                </td>
+                <td className="py-2 text-foreground">
+                  {doc.isPublicSource ? (
+                    <span className="font-medium text-brand">Public</span>
+                  ) : (
+                    <span className="text-muted">Private</span>
+                  )}
                 </td>
                 <td className="py-2 text-foreground">
                   {doc.fileUrl ? (
@@ -472,13 +489,21 @@ export default async function EditCasePage({
                     "—"
                   )}
                 </td>
-                <td className="py-2 text-right">
+                <td className="py-2 text-right whitespace-nowrap">
                   <form
                     action={toggleDocumentStatus.bind(null, id, doc.id)}
                     className="inline"
                   >
                     <button type="submit" className="text-brand underline">
-                      Toggle
+                      Mark {doc.status === "on_file" ? "outstanding" : "collected"}
+                    </button>
+                  </form>{" "}
+                  <form
+                    action={toggleDocumentPublicSource.bind(null, id, doc.id)}
+                    className="inline"
+                  >
+                    <button type="submit" className="text-brand underline">
+                      Mark {doc.isPublicSource ? "private" : "public"}
                     </button>
                   </form>{" "}
                   <form action={deleteDocument.bind(null, id, doc.id)} className="inline">
@@ -502,12 +527,23 @@ export default async function EditCasePage({
         </div>
         <div>
           <label htmlFor="doc-status" className="block text-sm font-medium text-foreground">
-            Status
+            Collection status
           </label>
           <Select id="doc-status" name="status" defaultValue="needed">
-            <option value="needed">Needed</option>
-            <option value="on_file">On file</option>
+            <option value="needed">Outstanding</option>
+            <option value="on_file">Collected</option>
           </Select>
+        </div>
+        <div className="flex items-center gap-2 pb-2">
+          <input
+            id="doc-public"
+            name="isPublicSource"
+            type="checkbox"
+            className="h-4 w-4 rounded border-border"
+          />
+          <label htmlFor="doc-public" className="text-sm text-foreground">
+            Public source (safe to cite on the case page)
+          </label>
         </div>
         <div>
           <label htmlFor="doc-url" className="block text-sm font-medium text-foreground">

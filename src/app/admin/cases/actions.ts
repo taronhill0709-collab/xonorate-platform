@@ -481,7 +481,14 @@ const documentSchema = z.object({
   title: z.string().min(1),
   status: z.enum(documentStatusEnum.enumValues),
   fileUrl: z.string().url().optional().or(z.literal("")),
+  isPublicSource: z.string().optional(),
 });
+
+async function revalidateDocumentPages(caseId: string) {
+  const [row] = await db.select({ slug: cases.slug }).from(cases).where(eq(cases.id, caseId)).limit(1);
+  revalidatePath(`/admin/cases/${caseId}/edit`);
+  if (row) revalidatePath(`/cases/${row.slug}`);
+}
 
 export async function addDocument(caseId: string, formData: FormData) {
   await requireAdmin();
@@ -493,16 +500,17 @@ export async function addDocument(caseId: string, formData: FormData) {
     title: data.title,
     status: data.status,
     fileUrl: data.fileUrl || null,
+    isPublicSource: Boolean(data.isPublicSource),
   });
 
-  revalidatePath(`/admin/cases/${caseId}/edit`);
+  await revalidateDocumentPages(caseId);
   redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }
 
 export async function deleteDocument(caseId: string, documentId: string) {
   await requireAdmin();
   await db.delete(caseDocuments).where(eq(caseDocuments.id, documentId));
-  revalidatePath(`/admin/cases/${caseId}/edit`);
+  await revalidateDocumentPages(caseId);
   redirect(`/admin/cases/${caseId}/edit?saved=deleted`);
 }
 
@@ -581,6 +589,30 @@ export async function toggleDocumentStatus(caseId: string, documentId: string) {
     .where(eq(caseDocuments.id, documentId));
 
   revalidatePath(`/admin/cases/${caseId}/edit`);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+/** Flips whether a document is cited publicly in the case page's "Sources
+ * & records" section. Defaults to off for every new document — an admin
+ * must deliberately opt a specific document in, since most case documents
+ * (affidavits, medical records, forensic reports) are attorney/court
+ * materials Xonorate does not publish; only genuine public citations (a
+ * news article, an official press release, the NRE profile) belong here. */
+export async function toggleDocumentPublicSource(caseId: string, documentId: string) {
+  await requireAdmin();
+  const [doc] = await db
+    .select({ isPublicSource: caseDocuments.isPublicSource })
+    .from(caseDocuments)
+    .where(eq(caseDocuments.id, documentId))
+    .limit(1);
+  if (!doc) return;
+
+  await db
+    .update(caseDocuments)
+    .set({ isPublicSource: !doc.isPublicSource })
+    .where(eq(caseDocuments.id, documentId));
+
+  await revalidateDocumentPages(caseId);
   redirect(`/admin/cases/${caseId}/edit?saved=1`);
 }
 

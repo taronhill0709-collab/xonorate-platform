@@ -1,0 +1,1 @@
+ALTER TABLE "case_documents" ADD COLUMN "is_public_source" boolean DEFAULT false NOT NULL;

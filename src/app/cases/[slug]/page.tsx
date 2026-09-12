@@ -125,12 +125,6 @@ export default async function CaseDetailPage({
     .where(eq(cases.id, caseRow.id))
     .catch(() => {});
 
-  const documents = await db
-    .select()
-    .from(caseDocuments)
-    .where(eq(caseDocuments.caseId, caseRow.id))
-    .orderBy(caseDocuments.sortOrder);
-
   const [petition] = await db
     .select()
     .from(petitions)
@@ -146,6 +140,16 @@ export default async function CaseDetailPage({
           .where(and(eq(signatures.petitionId, petition.id), eq(signatures.verified, true)))
       )[0]?.value ?? 0) + petition.startingSignatureCount
     : 0;
+
+  // Only documents an admin has explicitly opted in as a public citation —
+  // see the isPublicSource comment on the schema. Everything else in
+  // case_documents (affidavits, medical records, forensic reports) stays
+  // internal to /admin/cases.
+  const publicSourceDocuments = await db
+    .select({ id: caseDocuments.id, title: caseDocuments.title, fileUrl: caseDocuments.fileUrl })
+    .from(caseDocuments)
+    .where(and(eq(caseDocuments.caseId, caseRow.id), eq(caseDocuments.isPublicSource, true)))
+    .orderBy(caseDocuments.sortOrder);
 
   const developments = await db
     .select()
@@ -270,10 +274,6 @@ export default async function CaseDetailPage({
     awaiting_review: "This case is awaiting formal review by the responsible authority.",
     exonerated: "This case has been resolved — the conviction was vacated.",
   };
-
-  const documentsWithLinks = documents.filter(
-    (doc): doc is typeof doc & { fileUrl: string } => Boolean(doc.fileUrl),
-  );
 
   // Only ever lists sections that actually exist for this case — an empty
   // Case Developments or Related Reporting section isn't in the nav at all.
@@ -763,12 +763,16 @@ export default async function CaseDetailPage({
             </div>
           </section>
 
-          {/* SOURCES & RECORDS — subtle, secondary, optional. Case
-              documents remain fully intact in the database and in
-              /admin/cases — this just stops making "view PDF" the primary
-              way to understand a case. Hidden entirely when there's
-              nothing publicly linkable to show. */}
-          {(documentsWithLinks.length > 0 || caseRow.sourceUrl) && (
+          {/* SOURCES & RECORDS — subtle, secondary, optional. Cites the
+              public NRE profile this case was sourced from (if any) plus
+              any case documents an admin has explicitly opted in as a
+              public citation — never case documents by default. Most
+              case_documents rows (affidavits, medical records, forensic
+              reports) are attorney/court materials Xonorate does not
+              publish; they stay fully manageable in /admin/cases without
+              ever appearing here unless marked "Public source". Hidden
+              entirely when there's nothing public to cite. */}
+          {(caseRow.sourceUrl || publicSourceDocuments.some((doc) => doc.fileUrl)) && (
             <section className="mt-16 border-t border-border pt-8">
               <Eyebrow text="Sources & records" />
               <p className="mt-2 max-w-lg text-xs text-muted">
@@ -788,18 +792,20 @@ export default async function CaseDetailPage({
                     </a>
                   </li>
                 )}
-                {documentsWithLinks.map((doc) => (
-                  <li key={doc.id}>
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-xs text-link uppercase hover:text-link-strong"
-                    >
-                      {doc.title} ↗
-                    </a>
-                  </li>
-                ))}
+                {publicSourceDocuments
+                  .filter((doc): doc is typeof doc & { fileUrl: string } => Boolean(doc.fileUrl))
+                  .map((doc) => (
+                    <li key={doc.id}>
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-xs text-link uppercase hover:text-link-strong"
+                      >
+                        {doc.title} ↗
+                      </a>
+                    </li>
+                  ))}
               </ul>
             </section>
           )}

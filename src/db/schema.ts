@@ -221,6 +221,14 @@ export const caseDocuments = pgTable("case_documents", {
   title: text("title").notNull(),
   status: documentStatusEnum("status").notNull().default("needed"),
   fileUrl: text("file_url"),
+  // Most case_documents rows are attorney/court materials (affidavits,
+  // medical records, forensic reports) Xonorate does not publish — this
+  // table also holds a few genuinely public citations (a news article, an
+  // official press release, the NRE profile) for cases entered before
+  // `cases.sourceUrl` existed. Defaults to false (private) so a newly added
+  // document never surfaces on the public case page by accident; an admin
+  // must explicitly mark a specific row as a public source.
+  isPublicSource: boolean("is_public_source").notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
