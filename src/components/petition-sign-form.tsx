@@ -40,7 +40,7 @@ export function PetitionSignForm({
     const freshlySigned = alreadyConfirmed || justSigned;
     return (
       <div className="space-y-4">
-        <p className="rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
+        <p className="border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
           Thanks for signing — your signature has been confirmed and counted.
         </p>
         <div>
@@ -59,7 +59,7 @@ export function PetitionSignForm({
 
   if (status.kind === "sent") {
     return (
-      <p className="rounded-md border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
+      <p className="border border-border bg-brand-light px-4 py-3 text-sm text-foreground">
         Check {status.email} for a confirmation link. Your signature counts once confirmed.
       </p>
     );
@@ -97,7 +97,7 @@ export function PetitionSignForm({
           name="displayName"
           required
           defaultValue={session?.user?.name ?? ""}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          className="mt-1 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
       </div>
       {!session?.user && (
@@ -110,7 +110,7 @@ export function PetitionSignForm({
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="mt-1 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
           <p className="mt-1 text-xs text-muted">
             We&apos;ll send a one-time confirmation link — it&apos;s never shown publicly.
@@ -125,14 +125,14 @@ export function PetitionSignForm({
           id="comment"
           name="comment"
           rows={3}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          className="mt-1 w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
       </div>
-      {status.kind === "error" && <p className="text-sm text-red-600">{status.message}</p>}
+      {status.kind === "error" && <p className="text-sm text-brand">{status.message}</p>}
       <button
         type="submit"
         disabled={status.kind === "loading"}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-60"
+        className="bg-brand px-5 py-2.5 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent disabled:opacity-60"
       >
         Sign the petition
       </button>

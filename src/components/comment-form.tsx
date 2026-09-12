@@ -43,14 +43,14 @@ export function CommentForm({
         rows={3}
         required
         placeholder="Share your thoughts…"
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+        className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
       />
-      {status.kind === "error" && <p className="text-sm text-red-600">{status.message}</p>}
+      {status.kind === "error" && <p className="text-sm text-brand">{status.message}</p>}
       {status.kind === "posted" && <p className="text-sm text-muted">Posted.</p>}
       <button
         type="submit"
         disabled={status.kind === "loading"}
-        className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90 disabled:opacity-60"
+        className="bg-brand px-5 py-2.5 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent disabled:opacity-60"
       >
         Post comment
       </button>

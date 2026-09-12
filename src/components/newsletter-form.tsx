@@ -40,18 +40,18 @@ export function NewsletterForm() {
           name="email"
           required
           placeholder="Enter your email"
-          className="w-full rounded-md border border-header-border bg-header-background px-3 py-2 text-sm text-header-foreground placeholder:text-header-muted focus:border-band-accent focus:outline-none"
+          className="w-full border border-header-border bg-header-background px-3 py-2 text-sm text-header-foreground placeholder:text-header-muted focus:border-band-accent focus:outline-none"
         />
         <button
           type="submit"
           disabled={status.kind === "loading"}
-          className="shrink-0 rounded-md bg-brand px-5 py-2 text-sm font-medium text-brand-foreground transition hover:opacity-90 disabled:opacity-60"
+          className="shrink-0 border border-brand-foreground/40 bg-header-background px-5 py-2 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:border-brand-foreground disabled:opacity-60"
         >
           {status.kind === "loading" ? "Subscribing…" : "Subscribe"}
         </button>
       </form>
       {status.kind === "error" && (
-        <p className="mt-2 text-xs text-red-400">{status.message}</p>
+        <p className="mt-2 text-xs text-header-foreground">{status.message}</p>
       )}
     </div>
   );
