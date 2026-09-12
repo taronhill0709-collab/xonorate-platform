@@ -75,8 +75,8 @@ export function CasesBrowser({ rows }: { rows: CaseBrowserRow[] }) {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 border border-header-border bg-muted-background p-5 sm:flex-row sm:flex-wrap sm:items-center">
-        <label className="flex-1 sm:min-w-64">
+      <div className="flex flex-col gap-4 border border-header-border bg-muted-background p-5">
+        <label className="block">
           <span className="sr-only">Search cases</span>
           <input
             type="search"
@@ -86,51 +86,53 @@ export function CasesBrowser({ rows }: { rows: CaseBrowserRow[] }) {
             className="w-full border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-brand focus:outline-none"
           />
         </label>
-        <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-          State
-          <select
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            className="border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-          >
-            <option value="all">All</option>
-            {states.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-          Status
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-          >
-            <option value="all">All</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {CASE_STATUS_LABEL[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-          Conviction
-          <select
-            value={charge}
-            onChange={(e) => setCharge(e.target.value)}
-            className="border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-          >
-            <option value="all">All</option>
-            {charges.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
+            State
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
+            >
+              <option value="all">All</option>
+              {states.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
+            Status
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
+            >
+              <option value="all">All</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {CASE_STATUS_LABEL[s]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
+            Conviction
+            <select
+              value={charge}
+              onChange={(e) => setCharge(e.target.value)}
+              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
+            >
+              <option value="all">All</option>
+              {charges.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         {(query || activeFilterCount > 0) && (
           <button
             type="button"
@@ -140,9 +142,9 @@ export function CasesBrowser({ rows }: { rows: CaseBrowserRow[] }) {
               setStatus("all");
               setCharge("all");
             }}
-            className="text-xs font-bold tracking-wide text-brand uppercase hover:text-accent"
+            className="self-start text-xs font-bold tracking-wide text-brand uppercase hover:text-accent"
           >
-            Clear
+            Clear filters
           </button>
         )}
       </div>
