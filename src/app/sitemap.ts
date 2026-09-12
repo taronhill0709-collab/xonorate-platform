@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
 import { cases, petitions, posts } from "@/db/schema";
+import { ISSUES } from "@/lib/issues";
 import { getSiteOrigin } from "@/lib/site-url";
 
 // Must be generated per-request, not at build time — the build environment's
@@ -31,6 +32,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/impact`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${origin}/exonerated`, changeFrequency: "daily", priority: 0.8 },
     { url: `${origin}/news`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${origin}/issues`, changeFrequency: "monthly", priority: 0.7 },
+    ...ISSUES.map((issue) => ({
+      url: `${origin}/issues/${issue.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
     ...caseRows.map((c) => ({
       url: `${origin}/cases/${c.slug}`,
       lastModified: c.updatedAt,
