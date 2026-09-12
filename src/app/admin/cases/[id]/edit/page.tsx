@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { caseDocuments, cases } from "@/db/schema";
+import { caseDocuments, caseUpdates, caseVideos, cases } from "@/db/schema";
 import {
   Field,
   FileInput,
@@ -26,12 +26,19 @@ import {
   type InnocenceClaim,
 } from "@/lib/innocence-claim";
 import {
+  addCaseUpdate,
+  addCaseVideo,
   addDocument,
+  deleteCaseUpdate,
+  deleteCaseVideo,
   deleteDocument,
   generateCaseImpact,
   saveCaseImpact,
+  setHomepageFeaturedVideo,
   toggleDocumentStatus,
+  unfeatureHomepageVideo,
   updateCase,
+  updateCaseVideoMetrics,
 } from "../../actions";
 
 type ConvictionDetails = {
@@ -51,10 +58,10 @@ export default async function EditCasePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ photoError?: string }>;
+  searchParams: Promise<{ photoError?: string; videoError?: string }>;
 }) {
   const { id } = await params;
-  const { photoError } = await searchParams;
+  const { photoError, videoError } = await searchParams;
 
   const [caseRow] = await db.select().from(cases).where(eq(cases.id, id)).limit(1);
   if (!caseRow) notFound();
@@ -64,6 +71,18 @@ export default async function EditCasePage({
     .from(caseDocuments)
     .where(eq(caseDocuments.caseId, id))
     .orderBy(caseDocuments.sortOrder);
+
+  const videos = await db
+    .select()
+    .from(caseVideos)
+    .where(eq(caseVideos.caseId, id))
+    .orderBy(asc(caseVideos.sortOrder), asc(caseVideos.createdAt));
+
+  const updates = await db
+    .select()
+    .from(caseUpdates)
+    .where(eq(caseUpdates.caseId, id))
+    .orderBy(desc(caseUpdates.createdAt));
 
   const conviction = caseRow.convictionDetails as ConvictionDetails;
   const exoneration = caseRow.exonerationDetails as ExonerationDetails;
@@ -80,6 +99,8 @@ export default async function EditCasePage({
   const addDocumentWithId = addDocument.bind(null, id);
   const generateCaseImpactWithId = generateCaseImpact.bind(null, id);
   const saveCaseImpactWithId = saveCaseImpact.bind(null, id);
+  const addCaseVideoWithId = addCaseVideo.bind(null, id);
+  const addCaseUpdateWithId = addCaseUpdate.bind(null, id);
 
   return (
     <div className="max-w-2xl">
@@ -96,6 +117,11 @@ export default async function EditCasePage({
       {photoError && (
         <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {photoError}
+        </p>
+      )}
+      {videoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {videoError}
         </p>
       )}
 
@@ -490,6 +516,249 @@ export default async function EditCasePage({
           <TextInput id="doc-url" name="fileUrl" type="url" />
         </div>
         <SubmitButton>Add document</SubmitButton>
+      </form>
+
+      <h2 className="mt-10 font-serif text-lg text-foreground">Top-performing videos</h2>
+      <p className="mt-1 text-sm text-muted">
+        Facebook/Instagram clips for this case, with engagement pulled by hand from Meta Business
+        Suite. The top row is the main clip shown on the case page; the rest render as &ldquo;more
+        clips.&rdquo; One video across the whole platform can be featured on the homepage.
+      </p>
+      {videos.length === 0 ? (
+        <p className="mt-2 text-sm text-muted">No videos yet.</p>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {videos.map((video) => {
+            const updateMetricsForVideo = updateCaseVideoMetrics.bind(null, id, video.id);
+            return (
+              <div key={video.id} className="rounded-md border border-border p-4">
+                <div className="flex items-start gap-4">
+                  {video.thumbnailUrl ? (
+                    <Image
+                      src={video.thumbnailUrl}
+                      alt=""
+                      width={72}
+                      height={128}
+                      className="h-32 w-[72px] shrink-0 rounded object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-32 w-[72px] shrink-0 items-center justify-center rounded border border-dashed border-border text-center text-[10px] text-muted">
+                      No thumb
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-foreground">{video.title}</p>
+                    <p className="text-xs text-muted uppercase">
+                      {video.platform}
+                      {video.postedAt &&
+                        ` · posted ${video.postedAt.toLocaleDateString("en-US")}`}
+                    </p>
+                    <a
+                      href={video.postUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-brand underline"
+                    >
+                      Open post ↗
+                    </a>
+
+                    <form
+                      action={updateMetricsForVideo}
+                      className="mt-3 flex flex-wrap items-end gap-3"
+                    >
+                      <div className="w-24">
+                        <label className="block text-xs font-medium text-foreground">Views</label>
+                        <NumberInput name="views" defaultValue={video.views} />
+                      </div>
+                      <div className="w-24">
+                        <label className="block text-xs font-medium text-foreground">Likes</label>
+                        <NumberInput name="likes" defaultValue={video.likes} />
+                      </div>
+                      <div className="w-24">
+                        <label className="block text-xs font-medium text-foreground">Shares</label>
+                        <NumberInput name="shares" defaultValue={video.shares} />
+                      </div>
+                      <div className="w-24">
+                        <label className="block text-xs font-medium text-foreground">
+                          Comments
+                        </label>
+                        <NumberInput name="comments" defaultValue={video.comments} />
+                      </div>
+                      <div className="w-16">
+                        <label className="block text-xs font-medium text-foreground">Order</label>
+                        <NumberInput name="sortOrder" defaultValue={video.sortOrder} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground">
+                          Posted on
+                        </label>
+                        <TextInput
+                          name="postedAt"
+                          type="date"
+                          defaultValue={video.postedAt?.toISOString().slice(0, 10) ?? ""}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground">
+                          {video.thumbnailUrl ? "Replace thumbnail" : "Add thumbnail"}
+                        </label>
+                        <FileInput
+                          name="thumbnail"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted-background"
+                      >
+                        Update
+                      </button>
+                    </form>
+                    {video.metricsUpdatedAt && (
+                      <p className="mt-1 text-xs text-muted">
+                        Metrics as of {video.metricsUpdatedAt.toLocaleDateString("en-US")}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      {video.isHomepageFeatured ? (
+                        <form action={unfeatureHomepageVideo.bind(null, id, video.id)}>
+                          <button type="submit" className="text-xs text-brand underline">
+                            ● Featured on homepage — remove
+                          </button>
+                        </form>
+                      ) : (
+                        <form action={setHomepageFeaturedVideo.bind(null, id, video.id)}>
+                          <button type="submit" className="text-xs text-foreground underline">
+                            Feature on homepage
+                          </button>
+                        </form>
+                      )}
+                      <form action={deleteCaseVideo.bind(null, id, video.id)}>
+                        <button type="submit" className="text-xs text-red-600 underline">
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <form
+        action={addCaseVideoWithId}
+        className="mt-6 flex flex-wrap items-end gap-3 border-t border-border pt-6"
+      >
+        <div>
+          <label htmlFor="video-title" className="block text-sm font-medium text-foreground">
+            Title
+          </label>
+          <TextInput id="video-title" name="title" placeholder="18 Years For Nothing" required />
+        </div>
+        <div>
+          <label htmlFor="video-platform" className="block text-sm font-medium text-foreground">
+            Platform
+          </label>
+          <Select id="video-platform" name="platform" defaultValue="instagram">
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+          </Select>
+        </div>
+        <div>
+          <label htmlFor="video-url" className="block text-sm font-medium text-foreground">
+            Post URL
+          </label>
+          <TextInput id="video-url" name="postUrl" type="url" required />
+        </div>
+        <div>
+          <label htmlFor="video-posted-at" className="block text-sm font-medium text-foreground">
+            Posted on (optional)
+          </label>
+          <TextInput id="video-posted-at" name="postedAt" type="date" />
+        </div>
+        <div>
+          <label htmlFor="video-thumbnail" className="block text-sm font-medium text-foreground">
+            Thumbnail (optional)
+          </label>
+          <FileInput
+            id="video-thumbnail"
+            name="thumbnail"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+          />
+        </div>
+        <div className="w-24">
+          <label htmlFor="video-views" className="block text-sm font-medium text-foreground">
+            Views
+          </label>
+          <NumberInput id="video-views" name="views" defaultValue={0} />
+        </div>
+        <div className="w-24">
+          <label htmlFor="video-likes" className="block text-sm font-medium text-foreground">
+            Likes
+          </label>
+          <NumberInput id="video-likes" name="likes" defaultValue={0} />
+        </div>
+        <div className="w-24">
+          <label htmlFor="video-shares" className="block text-sm font-medium text-foreground">
+            Shares
+          </label>
+          <NumberInput id="video-shares" name="shares" defaultValue={0} />
+        </div>
+        <div className="w-24">
+          <label htmlFor="video-comments" className="block text-sm font-medium text-foreground">
+            Comments
+          </label>
+          <NumberInput id="video-comments" name="comments" defaultValue={0} />
+        </div>
+        <SubmitButton>Add video</SubmitButton>
+      </form>
+
+      <h2 className="mt-10 font-serif text-lg text-foreground">Case developments</h2>
+      <p className="mt-1 text-sm text-muted">
+        Chronological narrative updates shown in the case page&apos;s &ldquo;Case Developments&rdquo;
+        feed. Hidden on the public page until at least one exists.
+      </p>
+      {updates.length === 0 ? (
+        <p className="mt-2 text-sm text-muted">No developments posted yet.</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {updates.map((update) => (
+            <div key={update.id} className="rounded-md border border-border p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-mono text-xs text-muted">
+                    {update.createdAt.toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <p className="mt-1 font-medium text-foreground">{update.headline}</p>
+                  <p className="mt-1 text-sm text-muted">{update.body}</p>
+                </div>
+                <form action={deleteCaseUpdate.bind(null, id, update.id)}>
+                  <button type="submit" className="shrink-0 text-xs text-red-600 underline">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form action={addCaseUpdateWithId} className="mt-6 space-y-3 border-t border-border pt-6">
+        <Field label="Headline" name="headline">
+          <TextInput id="headline" name="headline" required />
+        </Field>
+        <Field label="Description" name="body">
+          <TextArea id="body" name="body" rows={3} required />
+        </Field>
+        <SubmitButton>Post development</SubmitButton>
       </form>
     </div>
   );

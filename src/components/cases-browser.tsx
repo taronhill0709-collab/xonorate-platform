@@ -1,9 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { RedactedPhoto } from "@/components/redacted-photo";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 
 type ConvictionDetails = { charge: string; year: number };
@@ -20,6 +18,7 @@ export type CaseBrowserRow = {
   isClient: boolean;
   timeServed: string | null;
   convictionDetails: unknown;
+  contributingFactorTags: unknown;
 };
 
 const STATUS_OPTIONS = ["active_case", "awaiting_review", "exonerated"] as const;
@@ -41,6 +40,7 @@ export function CasesBrowser({ rows }: { rows: CaseBrowserRow[] }) {
         ...row,
         charge: (row.convictionDetails as ConvictionDetails).charge,
         year: (row.convictionDetails as ConvictionDetails).year,
+        tags: (row.contributingFactorTags as string[] | null) ?? [],
       })),
     [rows],
   );
@@ -71,146 +71,160 @@ export function CasesBrowser({ rows }: { rows: CaseBrowserRow[] }) {
     });
   }, [parsed, query, state, status, charge]);
 
-  const activeFilterCount = [state, status, charge].filter((v) => v !== "all").length;
+  const activeFilterCount = [state, charge].filter((v) => v !== "all").length;
 
   return (
     <div>
-      <div className="flex flex-col gap-4 border border-header-border bg-muted-background p-5">
-        <label className="block">
-          <span className="sr-only">Search cases</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, state, or charge…"
-            className="w-full border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-brand focus:outline-none"
-          />
-        </label>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-            State
-            <select
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-            >
-              <option value="all">All</option>
-              {states.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-            Status
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-            >
-              <option value="all">All</option>
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {CASE_STATUS_LABEL[s]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-xs font-bold tracking-wide text-label uppercase">
-            Conviction
-            <select
-              value={charge}
-              onChange={(e) => setCharge(e.target.value)}
-              className="min-w-0 flex-1 border border-border bg-background px-3 py-2 text-sm font-normal text-foreground normal-case focus:border-brand focus:outline-none"
-            >
-              <option value="all">All</option>
-              {charges.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {(query || activeFilterCount > 0) && (
+      <div className="flex flex-col gap-5 border-t border-header-border pt-6">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, state, or charge…"
+          className="w-full border border-header-border bg-header-background px-4 py-2.5 text-sm text-header-foreground placeholder:text-header-muted focus:border-brand focus:outline-none"
+        />
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            onClick={() => {
-              setQuery("");
-              setState("all");
-              setStatus("all");
-              setCharge("all");
-            }}
-            className="self-start text-xs font-bold tracking-wide text-brand uppercase hover:text-accent"
+            onClick={() => setStatus("all")}
+            className={`border px-4 py-2 font-mono text-[11px] font-bold tracking-wide uppercase ${
+              status === "all"
+                ? "border-brand bg-brand-light text-foreground"
+                : "border-header-border text-header-muted hover:text-header-foreground"
+            }`}
           >
-            Clear filters
+            All cases
           </button>
-        )}
+          {STATUS_OPTIONS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
+              className={`border px-4 py-2 font-mono text-[11px] font-bold tracking-wide uppercase ${
+                status === s
+                  ? "border-brand bg-brand-light text-foreground"
+                  : "border-header-border text-header-muted hover:text-header-foreground"
+              }`}
+            >
+              {CASE_STATUS_LABEL[s]}
+            </button>
+          ))}
+
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className="border border-header-border bg-header-background px-3 py-2 font-mono text-[11px] font-bold tracking-wide text-header-muted uppercase focus:border-brand focus:outline-none"
+          >
+            <option value="all">State: All</option>
+            {states.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <select
+            value={charge}
+            onChange={(e) => setCharge(e.target.value)}
+            className="border border-header-border bg-header-background px-3 py-2 font-mono text-[11px] font-bold tracking-wide text-header-muted uppercase focus:border-brand focus:outline-none"
+          >
+            <option value="all">Conviction: All</option>
+            {charges.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          {(query || status !== "all" || activeFilterCount > 0) && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setState("all");
+                setStatus("all");
+                setCharge("all");
+              }}
+              className="font-mono text-[11px] font-bold tracking-wide text-brand uppercase hover:text-accent"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
-      <p className="mt-4 font-mono text-xs tracking-wide text-muted uppercase">
+      <p className="mt-5 font-mono text-xs tracking-wide text-header-muted uppercase">
         {filtered.length} of {rows.length} case{rows.length === 1 ? "" : "s"}
       </p>
 
       {filtered.length === 0 ? (
-        <p className="mt-8 border border-dashed border-border p-8 text-center text-sm text-muted">
+        <p className="mt-8 border border-dashed border-header-border p-8 text-center text-sm text-header-muted">
           No cases match those filters.
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((row, i) => (
-            <Link
-              key={row.id}
-              href={`/cases/${row.slug}`}
-              className="group flex flex-col border border-header-border"
-            >
-              <div className="relative aspect-4/3 w-full overflow-hidden">
-                {row.photoUrl ? (
-                  <Image
-                    src={row.photoUrl}
-                    alt={row.clientName}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                    unoptimized
+        <div className="mt-6 grid grid-cols-1 gap-px border border-header-border bg-header-border sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((row) => {
+            const yearsHeadline = row.timeServed?.split("(")[0].trim();
+            const yearsLabel = row.status === "exonerated" ? "Years lost" : "Served so far";
+            const intelText =
+              row.tags.length > 0
+                ? row.tags.join(", ")
+                : row.summary;
+            const exonerated = row.status === "exonerated";
+
+            return (
+              <Link
+                key={row.id}
+                href={`/cases/${row.slug}`}
+                className="group flex flex-col bg-header-background p-6 transition hover:bg-[#0a0a09]"
+              >
+                <span
+                  className={`inline-flex w-fit items-center gap-1.5 font-mono text-[10.5px] font-bold tracking-wide uppercase ${
+                    exonerated ? "text-header-label" : "text-brand"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                      exonerated ? "bg-header-label" : "bg-brand"
+                    }`}
+                    aria-hidden
                   />
-                ) : (
-                  <RedactedPhoto seed={i} />
+                  {CASE_STATUS_LABEL[row.status] ?? row.status}
+                </span>
+                <p className="mt-2.5 font-serif text-3xl text-header-foreground">{row.clientName}</p>
+                {!row.isClient && (
+                  <p className="mt-0.5 font-mono text-[10px] font-bold tracking-wide text-header-muted uppercase">
+                    {SPOTLIGHT_CASE_LABEL}
+                  </p>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-4">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-brand uppercase">
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
-                    {CASE_STATUS_LABEL[row.status] ?? row.status}
-                  </span>
-                  <p className="mt-1.5 font-serif text-xl text-white">{row.clientName}</p>
-                  {!row.isClient && (
-                    <p className="mt-0.5 text-[11px] font-bold tracking-wide text-white/60 uppercase">
-                      {SPOTLIGHT_CASE_LABEL}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-1 flex-col gap-2 bg-muted-background px-4 py-3">
-                <p className="font-mono text-xs font-bold tracking-wide text-label uppercase">
+
+                {yearsHeadline && (
+                  <div className="mt-3.5 flex items-baseline gap-2">
+                    <span className="font-serif text-3xl text-brand tabular-nums">{yearsHeadline}</span>
+                    <span className="font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                      {yearsLabel}
+                    </span>
+                  </div>
+                )}
+                <p className="mt-2.5 font-mono text-[11px] tracking-wide text-header-muted uppercase">
                   {row.state}
                   {row.county ? `, ${row.county} County` : ""} · {row.charge}
                 </p>
-                <p className="line-clamp-2 flex-1 text-sm text-muted">{row.summary}</p>
-                <div className="mt-1 flex items-center justify-between gap-3 text-xs">
-                  {row.timeServed ? (
-                    <span className="truncate font-semibold text-brand">
-                      {row.timeServed.split("(")[0].trim()} served
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-                  <span className="shrink-0 font-bold text-brand uppercase">View case →</span>
+
+                <div className="mt-4 border-t border-header-border pt-4">
+                  <p className="font-mono text-[9.5px] tracking-widest text-header-label uppercase">
+                    Case intelligence
+                  </p>
+                  <p className="mt-1.5 line-clamp-3 text-[13.5px] leading-relaxed text-header-muted">
+                    {intelText}
+                  </p>
                 </div>
-              </div>
-            </Link>
-          ))}
+
+                <span className="mt-auto pt-5 font-mono text-[11px] font-bold tracking-wide text-header-foreground uppercase transition group-hover:text-brand">
+                  View case intelligence →
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

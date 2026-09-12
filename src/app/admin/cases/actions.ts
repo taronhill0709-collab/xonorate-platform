@@ -5,7 +5,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { caseDocuments, caseSlugHistory, caseStatusEnum, cases, documentStatusEnum } from "@/db/schema";
+import {
+  caseDocuments,
+  caseSlugHistory,
+  caseStatusEnum,
+  caseUpdates,
+  caseVideos,
+  cases,
+  documentStatusEnum,
+  videoPlatformEnum,
+} from "@/db/schema";
 import {
   type CaseImpact,
   type ImpactFacts,
@@ -19,6 +28,10 @@ import {
   parseStats,
 } from "@/lib/innocence-claim";
 import { InvalidCasePhotoError, uploadCasePhoto } from "@/lib/case-photo-storage";
+import {
+  InvalidCaseVideoThumbnailError,
+  uploadCaseVideoThumbnail,
+} from "@/lib/case-video-thumbnail-storage";
 import {
   getCaseOverviewJobStatus,
   setCaseOverviewJobStatus,
@@ -569,4 +582,179 @@ export async function toggleDocumentStatus(caseId: string, documentId: string) {
 
   revalidatePath(`/admin/cases/${caseId}/edit`);
   redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+// --- Case videos ---
+
+async function revalidateCaseVideoPages(caseId: string) {
+  const [row] = await db
+    .select({ slug: cases.slug })
+    .from(cases)
+    .where(eq(cases.id, caseId))
+    .limit(1);
+  revalidatePath(`/admin/cases/${caseId}/edit`);
+  if (row) revalidatePath(`/cases/${row.slug}`);
+  revalidatePath("/");
+}
+
+const caseVideoSchema = z.object({
+  platform: z.enum(videoPlatformEnum.enumValues),
+  postUrl: z.string().url(),
+  title: z.string().min(1),
+  postedAt: z.string().optional(),
+  views: z.coerce.number().int().min(0).optional(),
+  likes: z.coerce.number().int().min(0).optional(),
+  shares: z.coerce.number().int().min(0).optional(),
+  comments: z.coerce.number().int().min(0).optional(),
+});
+
+export async function addCaseVideo(caseId: string, formData: FormData) {
+  await requireAdmin();
+  const raw = Object.fromEntries(formData.entries());
+  const data = caseVideoSchema.parse(raw);
+
+  const thumbnailFile = formData.get("thumbnail");
+  let thumbnailUrl: string | null = null;
+  if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+    try {
+      thumbnailUrl = await uploadCaseVideoThumbnail(thumbnailFile);
+    } catch (err) {
+      if (err instanceof InvalidCaseVideoThumbnailError) {
+        redirect(`/admin/cases/${caseId}/edit?videoError=${encodeURIComponent(err.message)}`);
+      }
+      throw err;
+    }
+  }
+
+  await db.insert(caseVideos).values({
+    caseId,
+    platform: data.platform,
+    postUrl: data.postUrl,
+    title: data.title,
+    thumbnailUrl,
+    views: data.views ?? 0,
+    likes: data.likes ?? 0,
+    shares: data.shares ?? 0,
+    comments: data.comments ?? 0,
+    postedAt: data.postedAt ? new Date(data.postedAt) : null,
+    metricsUpdatedAt: new Date(),
+  });
+
+  await revalidateCaseVideoPages(caseId);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+export async function deleteCaseVideo(caseId: string, videoId: string) {
+  await requireAdmin();
+  await db.delete(caseVideos).where(eq(caseVideos.id, videoId));
+  await revalidateCaseVideoPages(caseId);
+  redirect(`/admin/cases/${caseId}/edit?saved=deleted`);
+}
+
+const caseVideoMetricsSchema = z.object({
+  views: z.coerce.number().int().min(0),
+  likes: z.coerce.number().int().min(0),
+  shares: z.coerce.number().int().min(0),
+  comments: z.coerce.number().int().min(0),
+  sortOrder: z.coerce.number().int(),
+  postedAt: z.string().optional(),
+});
+
+/** Updates a video's cached engagement numbers, display order, and
+ * optionally its thumbnail — the lightweight "I checked Meta Business
+ * Suite, here's what it says now" action, not a full edit (title/URL/
+ * platform are set once at creation and rarely need to change). */
+export async function updateCaseVideoMetrics(
+  caseId: string,
+  videoId: string,
+  formData: FormData,
+) {
+  await requireAdmin();
+  const raw = Object.fromEntries(formData.entries());
+  const data = caseVideoMetricsSchema.parse(raw);
+
+  const thumbnailFile = formData.get("thumbnail");
+  let thumbnailUrl: string | undefined;
+  if (thumbnailFile instanceof File && thumbnailFile.size > 0) {
+    try {
+      thumbnailUrl = await uploadCaseVideoThumbnail(thumbnailFile);
+    } catch (err) {
+      if (err instanceof InvalidCaseVideoThumbnailError) {
+        redirect(`/admin/cases/${caseId}/edit?videoError=${encodeURIComponent(err.message)}`);
+      }
+      throw err;
+    }
+  }
+
+  await db
+    .update(caseVideos)
+    .set({
+      views: data.views,
+      likes: data.likes,
+      shares: data.shares,
+      comments: data.comments,
+      sortOrder: data.sortOrder,
+      metricsUpdatedAt: new Date(),
+      ...(thumbnailUrl ? { thumbnailUrl } : {}),
+      ...(data.postedAt ? { postedAt: new Date(data.postedAt) } : {}),
+    })
+    .where(eq(caseVideos.id, videoId));
+
+  await revalidateCaseVideoPages(caseId);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+/** Sets this video as the one shown on the homepage's "Seen everywhere"
+ * section, unfeaturing whichever video held that spot before — exactly one
+ * row across the whole platform should ever have isHomepageFeatured = true. */
+export async function setHomepageFeaturedVideo(caseId: string, videoId: string) {
+  await requireAdmin();
+  await db
+    .update(caseVideos)
+    .set({ isHomepageFeatured: false })
+    .where(eq(caseVideos.isHomepageFeatured, true));
+  await db.update(caseVideos).set({ isHomepageFeatured: true }).where(eq(caseVideos.id, videoId));
+  await revalidateCaseVideoPages(caseId);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+export async function unfeatureHomepageVideo(caseId: string, videoId: string) {
+  await requireAdmin();
+  await db.update(caseVideos).set({ isHomepageFeatured: false }).where(eq(caseVideos.id, videoId));
+  await revalidateCaseVideoPages(caseId);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+// --- Case developments (public "Case Developments" feed) ---
+
+const caseUpdateSchema = z.object({
+  headline: z.string().min(1),
+  body: z.string().min(1),
+});
+
+export async function addCaseUpdate(caseId: string, formData: FormData) {
+  await requireAdmin();
+  const raw = Object.fromEntries(formData.entries());
+  const data = caseUpdateSchema.parse(raw);
+
+  await db.insert(caseUpdates).values({
+    caseId,
+    headline: data.headline,
+    body: data.body,
+  });
+
+  const [row] = await db.select({ slug: cases.slug }).from(cases).where(eq(cases.id, caseId)).limit(1);
+  revalidatePath(`/admin/cases/${caseId}/edit`);
+  if (row) revalidatePath(`/cases/${row.slug}`);
+  redirect(`/admin/cases/${caseId}/edit?saved=1`);
+}
+
+export async function deleteCaseUpdate(caseId: string, updateId: string) {
+  await requireAdmin();
+  await db.delete(caseUpdates).where(eq(caseUpdates.id, updateId));
+
+  const [row] = await db.select({ slug: cases.slug }).from(cases).where(eq(cases.id, caseId)).limit(1);
+  revalidatePath(`/admin/cases/${caseId}/edit`);
+  if (row) revalidatePath(`/cases/${row.slug}`);
+  redirect(`/admin/cases/${caseId}/edit?saved=deleted`);
 }

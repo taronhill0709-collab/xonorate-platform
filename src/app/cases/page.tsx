@@ -31,6 +31,7 @@ export default async function CasesIndexPage() {
       isClient: cases.isClient,
       timeServed: cases.timeServed,
       convictionDetails: cases.convictionDetails,
+      contributingFactorTags: cases.contributingFactorTags,
     })
     .from(cases)
     .orderBy(asc(cases.sortOrder), desc(cases.createdAt));
@@ -41,13 +42,13 @@ export default async function CasesIndexPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-6xl px-6 py-14">
-            <Eyebrow text="The archive" />
-            <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
-              Cases
+            <Eyebrow text="Cases" />
+            <h1 className="mt-2 font-serif text-4xl text-header-foreground sm:text-6xl">
+              The cases we&apos;re watching.
             </h1>
-            <p className="mt-2 max-w-xl text-header-muted">
-              The clients we represent, the facts of their cases, and where
-              each one stands. Search, filter, or browse the full record.
+            <p className="mt-3 max-w-xl text-header-muted">
+              Explore wrongful-conviction cases documented by Xonorate — from
+              active legal battles to people who have finally been cleared.
             </p>
             <p className="mt-4 text-sm text-header-muted">
               Looking for active campaigns instead?{" "}

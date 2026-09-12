@@ -62,6 +62,8 @@ export const generalInquiryStatusEnum = pgEnum("general_inquiry_status", [
   "responded",
 ]);
 
+export const videoPlatformEnum = pgEnum("video_platform", ["instagram", "facebook"]);
+
 // --- Auth.js required tables (Drizzle adapter shape) ---
 
 export const users = pgTable("users", {
@@ -195,6 +197,22 @@ export const cases = pgTable("cases", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Chronological staff-written narrative updates for a case's public
+// "Case Developments" feed — distinct from petitionUpdates (petition-scoped
+// only) and from the computed conviction/exoneration Case Timeline. Starts
+// empty for every case; the section is hidden on the public page until the
+// first entry exists.
+export const caseUpdates = pgTable("case_updates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  caseId: uuid("case_id")
+    .notNull()
+    .references(() => cases.id, { onDelete: "cascade" }),
+  headline: text("headline").notNull(),
+  body: text("body").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const caseDocuments = pgTable("case_documents", {
   id: uuid("id").defaultRandom().primaryKey(),
   caseId: uuid("case_id")
@@ -203,6 +221,44 @@ export const caseDocuments = pgTable("case_documents", {
   title: text("title").notNull(),
   status: documentStatusEnum("status").notNull().default("needed"),
   fileUrl: text("file_url"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Case videos (top-performing FB/IG clips) ---
+// Curated social-video content showing the real-world attention a case has
+// gotten. Distinct from the single postedToSocialAt/bufferPostId share flow
+// on `cases` above (that publishes a static photo caption via Buffer, which
+// has no video-asset support) — these videos are produced and posted through
+// Xonorate Media's own separate workflow, so there's no Buffer post to read
+// metrics from. Metrics are entered and refreshed by hand from Meta
+// Business Suite, the same manual-sync spirit as the rest of this app's
+// social numbers.
+
+export const caseVideos = pgTable("case_videos", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  caseId: uuid("case_id")
+    .notNull()
+    .references(() => cases.id, { onDelete: "cascade" }),
+  platform: videoPlatformEnum("platform").notNull(),
+  postUrl: text("post_url").notNull(),
+  title: text("title").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  views: integer("views").notNull().default(0),
+  likes: integer("likes").notNull().default(0),
+  shares: integer("shares").notNull().default(0),
+  comments: integer("comments").notNull().default(0),
+  metricsUpdatedAt: timestamp("metrics_updated_at"),
+  // When this went up on Instagram/Facebook — optional, but enables the
+  // "petition signers since post" stat (a live count of verified signatures
+  // on this case's petition since this timestamp) wherever this video is shown.
+  postedAt: timestamp("posted_at"),
+  // Exactly one row across the whole platform should ever be true — enforced
+  // in setHomepageFeaturedVideo (admin/cases/actions.ts), not at the DB
+  // level. The homepage's "Seen everywhere" section shows this one video.
+  isHomepageFeatured: boolean("is_homepage_featured").notNull().default(false),
+  // Admin-controlled display order within a case (ascending) — the top slot
+  // is the case page's main video; the rest render as the "more clips" grid.
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

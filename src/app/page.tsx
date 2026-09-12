@@ -1,4 +1,4 @@
-import { asc, count, desc, eq, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ne } from "drizzle-orm";
 import { ArrowRight, Clock, FileText, Heart, Megaphone, Share2, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,9 +6,11 @@ import { Eyebrow } from "@/components/eyebrow";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { VideoCard } from "@/components/video-card";
 import { db } from "@/db";
-import { cases, posts, siteSettings } from "@/db/schema";
+import { caseVideos, cases, petitions, posts, signatures, siteSettings } from "@/db/schema";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
+import { formatCompactCount } from "@/lib/format-count";
 import {
   WRONGFUL_CONVICTION_CAUSES,
   WRONGFUL_CONVICTION_STATS,
@@ -60,6 +62,44 @@ export default async function Home() {
     timeServed: c.timeServed,
     isClient: c.isClient,
   }));
+
+  const [featuredVideoRow] = await db
+    .select({
+      video: caseVideos,
+      caseSlug: cases.slug,
+      caseName: cases.clientName,
+    })
+    .from(caseVideos)
+    .innerJoin(cases, eq(caseVideos.caseId, cases.id))
+    .where(eq(caseVideos.isHomepageFeatured, true))
+    .limit(1);
+
+  // Same "real payoff, not just a vanity count" stat as the case page's own
+  // video section — only computed (and only shown) when there's a dated
+  // post and a live petition for that case to check against.
+  let featuredVideoSignersSincePost = 0;
+  if (featuredVideoRow?.video.postedAt) {
+    const [petition] = await db
+      .select({ id: petitions.id })
+      .from(petitions)
+      .where(and(eq(petitions.caseId, featuredVideoRow.video.caseId), eq(petitions.status, "published")))
+      .limit(1);
+    if (petition) {
+      featuredVideoSignersSincePost =
+        (
+          await db
+            .select({ value: count() })
+            .from(signatures)
+            .where(
+              and(
+                eq(signatures.petitionId, petition.id),
+                eq(signatures.verified, true),
+                gt(signatures.createdAt, featuredVideoRow.video.postedAt),
+              ),
+            )
+        )[0]?.value ?? 0;
+    }
+  }
 
   const recentlyExonerated = await db
     .select({
@@ -205,6 +245,100 @@ export default async function Home() {
             ))}
           </div>
         </section>
+
+        {/* SECTION 02.5 — SEEN EVERYWHERE. One admin-picked top-performing
+            video (set via "Feature on homepage" in a case's admin edit
+            page) — skipped entirely until an admin has picked one, same as
+            every other optional homepage section. Placed as its own
+            band-background beat to break up the run of header-background
+            sections around it, the same rhythm "Why this work matters"
+            uses further down the page. */}
+        {featuredVideoRow && (
+          <section className="border-t border-header-border bg-band-background py-16">
+            <div className="mx-auto w-full max-w-6xl px-6">
+              <Eyebrow text="Seen everywhere" />
+              <h2 className="mt-2 font-serif text-4xl text-band-foreground sm:text-5xl">
+                The clip everyone&apos;s watching.
+              </h2>
+              <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[340px_1fr] lg:items-center">
+                <div className="mx-auto w-full max-w-[340px]">
+                  <VideoCard video={featuredVideoRow.video} ribbon="Top performing" />
+                </div>
+                <div>
+                  <p className="max-w-md text-base text-header-muted">
+                    {featuredVideoRow.caseName.split(" ")[0]}&apos;s story has moved{" "}
+                    {formatCompactCount(
+                      Math.max(featuredVideoRow.video.views, featuredVideoRow.video.likes),
+                    )}{" "}
+                    people on Instagram and Facebook — and it&apos;s not just numbers. Every clip
+                    is turning into real pressure for a fresh look at the case.
+                  </p>
+                  <dl className="mt-6 grid grid-cols-2 gap-px border border-header-border bg-header-border sm:grid-cols-3 lg:grid-cols-5">
+                    <div className="bg-band-background p-4">
+                      <dd className="font-mono text-2xl font-bold text-band-foreground tabular-nums">
+                        {formatCompactCount(featuredVideoRow.video.views)}
+                      </dd>
+                      <dt className="mt-1 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                        Views
+                      </dt>
+                    </div>
+                    <div className="bg-band-background p-4">
+                      <dd className="font-mono text-2xl font-bold text-band-foreground tabular-nums">
+                        {formatCompactCount(featuredVideoRow.video.likes)}
+                      </dd>
+                      <dt className="mt-1 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                        Likes
+                      </dt>
+                    </div>
+                    <div className="bg-band-background p-4">
+                      <dd className="font-mono text-2xl font-bold text-band-foreground tabular-nums">
+                        {formatCompactCount(featuredVideoRow.video.shares)}
+                      </dd>
+                      <dt className="mt-1 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                        Shares
+                      </dt>
+                    </div>
+                    <div className="bg-band-background p-4">
+                      <dd className="font-mono text-2xl font-bold text-band-foreground tabular-nums">
+                        {formatCompactCount(featuredVideoRow.video.comments)}
+                      </dd>
+                      <dt className="mt-1 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                        Comments
+                      </dt>
+                    </div>
+                    <div className="bg-band-background p-4">
+                      <dd className="font-mono text-2xl font-bold text-brand tabular-nums">
+                        {featuredVideoSignersSincePost > 0
+                          ? `+${featuredVideoSignersSincePost.toLocaleString()}`
+                          : "—"}
+                      </dd>
+                      <dt className="mt-1 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                        Signers since post
+                      </dt>
+                    </div>
+                  </dl>
+                  <div className="mt-6 flex flex-wrap items-center gap-4">
+                    <Link
+                      href={`/cases/${featuredVideoRow.caseSlug}`}
+                      className="inline-flex items-center gap-2 bg-brand px-6 py-3 text-sm font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
+                    >
+                      View {featuredVideoRow.caseName.split(" ")[0]}&apos;s case →
+                    </Link>
+                    <a
+                      href={featuredVideoRow.video.postUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-link uppercase hover:text-link-strong"
+                    >
+                      View on{" "}
+                      {featuredVideoRow.video.platform === "instagram" ? "Instagram" : "Facebook"} ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* SECTION 03 — FEATURED CASES. Editorial dossier cards: full-bleed
             photography with the name/status overlaid on a dark gradient
