@@ -82,7 +82,7 @@ export async function SiteHeader() {
           <XonorateMark className="h-7 w-7 text-brand" />
           <span>
             <span className="block font-display text-2xl leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
-              <span className="text-brand">o</span>norate
+              onorate
             </span>
             <span className="mt-0.5 hidden text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase sm:block">
               Truth. Justice. Accountability.

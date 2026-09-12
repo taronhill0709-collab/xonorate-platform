@@ -71,7 +71,7 @@ export async function SiteFooter() {
             <XonorateMark className="h-6 w-6 shrink-0 text-brand" />
             <span>
               <span className="block font-display text-lg leading-none font-bold tracking-[0.06em] text-header-foreground uppercase">
-                <span className="text-brand">o</span>norate
+                onorate
               </span>
               <span className="mt-0.5 block text-[9px] font-semibold tracking-[0.2em] text-header-muted uppercase">
                 Truth. Justice. Accountability.

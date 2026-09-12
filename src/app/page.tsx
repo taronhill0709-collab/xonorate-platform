@@ -159,9 +159,9 @@ export default async function Home() {
               Wrongful convictions. Exposed.
             </p>
             <h1 className="mt-4 max-w-4xl font-serif text-[2.75rem] leading-[0.95] text-header-foreground sm:text-[4.25rem] lg:text-[5.25rem]">
-              When the system gets it wrong,{" "}
-              <span className="text-header-muted">we make sure</span> the
-              world knows.
+              When the system gets it wrong,
+              <br />
+              <span className="text-header-muted">We make sure the world knows.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-header-muted">
               Xonorate is a media and advocacy platform exposing wrongful
