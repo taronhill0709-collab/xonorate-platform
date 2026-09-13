@@ -11,16 +11,7 @@ export async function GET(request: Request) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  const rows = await db
-    .select({
-      id: investigations.id,
-      title: investigations.title,
-      status: investigations.status,
-      isFeatured: investigations.isFeatured,
-      publishedAt: investigations.publishedAt,
-      updatedAt: investigations.updatedAt,
-    })
-    .from(investigations);
+  const rows = await db.select().from(investigations);
 
   return Response.json(rows);
 }
