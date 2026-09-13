@@ -332,7 +332,29 @@ export default async function AdminIntelligencePage({
                   </ul>
                 )}
 
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3 text-sm">
+                {lead.contentOpportunity && (
+                  <div className="mt-3">
+                    {lead.contentOpportunity === "investigation" ? (
+                      <form action={startInvestigationFromIntelligence.bind(null, lead.id)}>
+                        <button
+                          type="submit"
+                          className="rounded-md bg-brand px-3 py-1.5 text-xs font-bold tracking-wide text-brand-foreground uppercase transition hover:opacity-90"
+                        >
+                          Suggested: Start investigation →
+                        </button>
+                      </form>
+                    ) : (
+                      <Link
+                        href={`/admin/posts/new?fromIntelligence=${lead.id}&type=${lead.contentOpportunity}`}
+                        className="inline-block rounded-md bg-brand px-3 py-1.5 text-xs font-bold tracking-wide text-brand-foreground uppercase transition hover:opacity-90"
+                      >
+                        Suggested: Create as {POST_TYPE_LABEL[lead.contentOpportunity]} →
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3 text-sm">
                   <a
                     href={lead.sourceUrl}
                     target="_blank"
@@ -342,8 +364,10 @@ export default async function AdminIntelligencePage({
                     Open source →
                   </a>
 
-                  <span className="text-muted">Create with this:</span>
-                  {CREATE_WITH_THIS_POST_TYPES.map((type) => (
+                  <span className="text-muted">
+                    {lead.contentOpportunity ? "Or create as:" : "Create with this:"}
+                  </span>
+                  {CREATE_WITH_THIS_POST_TYPES.filter((type) => type !== lead.contentOpportunity).map((type) => (
                     <Link
                       key={type}
                       href={`/admin/posts/new?fromIntelligence=${lead.id}&type=${type}`}
@@ -352,11 +376,13 @@ export default async function AdminIntelligencePage({
                       {POST_TYPE_LABEL[type]}
                     </Link>
                   ))}
-                  <form action={startInvestigationFromIntelligence.bind(null, lead.id)}>
-                    <button type="submit" className="font-medium text-brand underline">
-                      Start investigation →
-                    </button>
-                  </form>
+                  {lead.contentOpportunity !== "investigation" && (
+                    <form action={startInvestigationFromIntelligence.bind(null, lead.id)}>
+                      <button type="submit" className="font-medium text-brand underline">
+                        Start investigation →
+                      </button>
+                    </form>
+                  )}
 
                   {lead.status !== "rejected" && (
                     <form action={rejectIntelligenceItem.bind(null, lead.id)} className="ml-auto">
