@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 
 export const inputClass =
   "mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
@@ -40,17 +40,18 @@ export function Select(
   return <select {...props} className={inputClass} />;
 }
 
-export function FileInput(
-  props: React.InputHTMLAttributes<HTMLInputElement>,
-) {
-  return (
-    <input
-      type="file"
-      {...props}
-      className="mt-1 block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-foreground file:transition hover:file:opacity-90"
-    />
-  );
-}
+export const FileInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  function FileInput(props, ref) {
+    return (
+      <input
+        type="file"
+        ref={ref}
+        {...props}
+        className="mt-1 block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-foreground file:transition hover:file:opacity-90"
+      />
+    );
+  },
+);
 
 const BADGE_TONES = {
   brand: "bg-brand-light text-brand",

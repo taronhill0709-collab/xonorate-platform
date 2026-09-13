@@ -1,7 +1,7 @@
 import { and, desc, eq, ne } from "drizzle-orm";
 import { SubmitButton } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { cases, intelligenceItems } from "@/db/schema";
+import { cases, intelligenceItems, libraryPhotos } from "@/db/schema";
 import type { ContentDraftInput } from "@/lib/content-draft";
 import { CREATE_WITH_THIS_POST_TYPES } from "@/lib/intelligence";
 import { createPost } from "../actions";
@@ -21,11 +21,11 @@ function toSourceMaterialItem(item: typeof intelligenceItems.$inferSelect): Sour
 export default async function NewPostPage({
   searchParams,
 }: {
-  searchParams: Promise<{ fromIntelligence?: string; type?: string }>;
+  searchParams: Promise<{ fromIntelligence?: string; type?: string; photoError?: string }>;
 }) {
-  const { fromIntelligence, type } = await searchParams;
+  const { fromIntelligence, type, photoError } = await searchParams;
 
-  const [caseRows, sourceItem] = await Promise.all([
+  const [caseRows, sourceItem, libraryPhotoRows] = await Promise.all([
     db.select({ id: cases.id, clientName: cases.clientName }).from(cases).orderBy(cases.clientName),
     fromIntelligence
       ? db
@@ -35,6 +35,7 @@ export default async function NewPostPage({
           .limit(1)
           .then((rows) => rows[0] ?? null)
       : Promise.resolve(null),
+    db.select({ id: libraryPhotos.id, url: libraryPhotos.url, label: libraryPhotos.label }).from(libraryPhotos).orderBy(desc(libraryPhotos.createdAt)),
   ]);
 
   const candidateRows = await db
@@ -64,6 +65,10 @@ export default async function NewPostPage({
     whyThisMatters: sourceItem?.whyThisMatters ?? "",
     whatToWatch: ((sourceItem?.whatToWatch as string[] | undefined) ?? []).join("\n"),
     state: sourceItem?.state ?? "",
+    // Carries over the og:image already fetched from the source story at
+    // discovery time (see fetchSourceImage in content-pipeline.ts) — a
+    // real photo by default instead of nothing, still replaceable below.
+    imageUrl: sourceItem?.sourceImageUrl ?? "",
   };
 
   const draftInput: Omit<ContentDraftInput, "type"> | null = sourceItem
@@ -87,6 +92,11 @@ export default async function NewPostPage({
         This creates a draft — it still needs Approve &amp; Publish from the post page before it goes
         live on the public site.
       </p>
+      {photoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {photoError}
+        </p>
+      )}
 
       <form action={createPost} className="mt-6 space-y-4">
         {sourceItem && <input type="hidden" name="sourceIntelligenceItemId" value={sourceItem.id} />}
@@ -105,6 +115,7 @@ export default async function NewPostPage({
           caseRows={caseRows}
           selectedCaseIds={sourceItem?.suggestedCaseId ? [sourceItem.suggestedCaseId] : []}
           selectedIssueTags={(sourceItem?.issueTags as string[] | undefined) ?? []}
+          libraryPhotos={libraryPhotoRows}
         />
 
         <SubmitButton>Create draft</SubmitButton>

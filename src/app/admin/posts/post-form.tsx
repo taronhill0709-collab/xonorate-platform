@@ -1,6 +1,7 @@
 import { CaseAndIssueFields } from "@/app/admin/_components/case-issue-links";
 import { Field, Select, TextArea, TextInput } from "@/app/admin/_components/field";
 import { POST_TYPE_LABEL } from "@/lib/post-type";
+import { PostPhotoField, type LibraryPhotoOption } from "./photo-field";
 
 export { SourceMaterialSection, type SourceMaterialItem } from "@/app/admin/_components/source-material";
 
@@ -11,6 +12,7 @@ export type PostFormDefaultValues = {
   whyThisMatters: string;
   whatToWatch: string;
   state: string;
+  imageUrl: string;
 };
 
 export function PostFormFields({
@@ -19,12 +21,14 @@ export function PostFormFields({
   caseRows,
   selectedCaseIds,
   selectedIssueTags,
+  libraryPhotos,
 }: {
   availableTypes: string[];
   defaultValues: PostFormDefaultValues;
   caseRows: { id: string; clientName: string }[];
   selectedCaseIds: string[];
   selectedIssueTags: string[];
+  libraryPhotos: LibraryPhotoOption[];
 }) {
   return (
     <>
@@ -40,6 +44,13 @@ export function PostFormFields({
 
       <Field label="Headline" name="title">
         <TextInput id="title" name="title" defaultValue={defaultValues.title} required />
+      </Field>
+
+      <Field
+        label="Photo (optional — shown as the article's thumbnail/header image; carried over from the source story when one was found, but you can replace it or pick from the shared library)"
+        name="photo"
+      >
+        <PostPhotoField defaultImageUrl={defaultValues.imageUrl} libraryPhotos={libraryPhotos} />
       </Field>
 
       <Field label="Body (Markdown)" name="body">

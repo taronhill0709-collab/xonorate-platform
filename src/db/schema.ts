@@ -740,6 +740,20 @@ export const investigationIssueLinks = pgTable(
   (t) => [primaryKey({ columns: [t.investigationId, t.issueTag] })],
 );
 
+// --- Photo library (shared stock photos editors can attach to content) ---
+
+// An internal alternative to a third-party stock-photo API: editors upload
+// generic photos here once (a courthouse exterior, a gavel, a protest crowd)
+// and reuse them across posts/investigations that have no photo of their
+// own from a source article or an upload. Not tied to any one piece of
+// content — see PostFormFields' photo picker for how it's consumed.
+export const libraryPhotos = pgTable("library_photos", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  url: text("url").notNull(),
+  label: text("label").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // --- Site settings (singleton row) ---
 
 export const siteSettings = pgTable("site_settings", {

@@ -2,7 +2,7 @@ import { and, desc, eq, ne, notInArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { SubmitButton } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { cases, contentSources, intelligenceItems, postCaseLinks, postIssueLinks, posts } from "@/db/schema";
+import { cases, contentSources, intelligenceItems, libraryPhotos, postCaseLinks, postIssueLinks, posts } from "@/db/schema";
 import { CREATE_WITH_THIS_POST_TYPES } from "@/lib/intelligence";
 import { POST_STATUS_LABEL, POST_TYPE_LABEL } from "@/lib/post-type";
 import { approvePost, deletePost, removeContentSource, updatePost } from "../actions";
@@ -21,15 +21,18 @@ function toSourceMaterialItem(item: typeof intelligenceItems.$inferSelect): Sour
 
 export default async function AdminPostDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photoError?: string }>;
 }) {
   const { id } = await params;
+  const { photoError } = await searchParams;
 
   const [post] = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
   if (!post) notFound();
 
-  const [caseRows, caseLinkRows, issueLinkRows, attachedSourceRows] = await Promise.all([
+  const [caseRows, caseLinkRows, issueLinkRows, attachedSourceRows, libraryPhotoRows] = await Promise.all([
     db.select({ id: cases.id, clientName: cases.clientName }).from(cases).orderBy(cases.clientName),
     db.select({ caseId: postCaseLinks.caseId }).from(postCaseLinks).where(eq(postCaseLinks.postId, id)),
     db.select({ issueTag: postIssueLinks.issueTag }).from(postIssueLinks).where(eq(postIssueLinks.postId, id)),
@@ -38,6 +41,7 @@ export default async function AdminPostDetailPage({
       .from(contentSources)
       .innerJoin(intelligenceItems, eq(contentSources.intelligenceItemId, intelligenceItems.id))
       .where(and(eq(contentSources.targetType, "post"), eq(contentSources.targetId, id))),
+    db.select({ id: libraryPhotos.id, url: libraryPhotos.url, label: libraryPhotos.label }).from(libraryPhotos).orderBy(desc(libraryPhotos.createdAt)),
   ]);
 
   const attachedItemIds = attachedSourceRows.map((r) => r.item.id);
@@ -59,6 +63,7 @@ export default async function AdminPostDetailPage({
     whyThisMatters: post.whyThisMatters ?? "",
     whatToWatch: ((post.whatToWatch as string[] | null) ?? []).join("\n"),
     state: post.state ?? "",
+    imageUrl: post.imageUrl ?? "",
   };
 
   // Legacy types (daily_roundup, case_spotlight, policy) can't be picked for
@@ -116,6 +121,12 @@ export default async function AdminPostDetailPage({
         </div>
       </div>
 
+      {photoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {photoError}
+        </p>
+      )}
+
       <form action={updatePost.bind(null, post.id)} className="mt-6 space-y-4">
         <SourceMaterialSection
           removableSources={attachedSourceRows.map((r) => ({
@@ -134,6 +145,7 @@ export default async function AdminPostDetailPage({
           caseRows={caseRows}
           selectedCaseIds={caseLinkRows.map((r) => r.caseId)}
           selectedIssueTags={issueLinkRows.map((r) => r.issueTag)}
+          libraryPhotos={libraryPhotoRows}
         />
 
         <SubmitButton>Save changes</SubmitButton>

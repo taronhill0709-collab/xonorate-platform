@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/admin/intelligence", label: "Xonorate Intelligence" },
   { href: "/admin/investigations", label: "Investigations" },
   { href: "/admin/posts", label: "Editorial Content" },
+  { href: "/admin/photos", label: "Photo Library" },
   // Case pipeline.
   { href: "/admin/cases", label: "Cases" },
   { href: "/admin/cases/candidates", label: "Candidates" },
