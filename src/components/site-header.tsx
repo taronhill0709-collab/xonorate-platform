@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { MobileNav } from "@/components/mobile-nav";
@@ -6,11 +6,13 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { XonorateMark } from "@/components/xonorate-mark";
 
 // Simplified per the Xonorate 2.0 brief's nav spec: Cases / Investigates /
-// The Issues / Take Action / About, plus account links and the Submit a
-// Case button. Petitions, Exonerated, Resources, and Submit an inquiry were
+// The Issues / Take Action / Resources / About, plus account links and the
+// Submit a Case button. Petitions, Exonerated, and Submit an inquiry stay
 // dropped from the top-level nav — they're still real pages, reachable via
 // the footer, the Take Action page (which lists petitions directly), and
-// Cases' own status filter (which includes Exonerated).
+// Cases' own status filter (which includes Exonerated). Resources itself
+// was dropped too during the 2.0 nav simplification, then restored (users
+// valued it) as the same dropdown it always was — see RESOURCE_LINKS below.
 // "Investigates" links to /news — that route wasn't renamed (existing
 // article URLs stay valid), only its public identity was.
 const PRIMARY_LINKS = [
@@ -18,7 +20,19 @@ const PRIMARY_LINKS = [
   { href: "/news", label: "Investigates" },
   { href: "/issues", label: "The Issues" },
   { href: "/take-action", label: "Take Action" },
-  { href: "/about", label: "About" },
+] as const;
+
+// Mirrors the section ids on /resources (resources/page.tsx's RESOURCE_SECTIONS)
+// — kept as a separate list rather than importing that page's data, since a
+// server component page module isn't meant to be imported by a shared
+// layout component. Update both if a section is added/renamed/removed.
+const RESOURCE_LINKS = [
+  { href: "/resources#know-your-rights", label: "Know Your Rights" },
+  { href: "/resources#for-families", label: "For Families" },
+  { href: "/resources#innocence-organizations", label: "Innocence Organizations" },
+  { href: "/resources#legal-resources", label: "Legal Resources" },
+  { href: "/resources#justice-reform", label: "Justice Reform" },
+  { href: "/resources#support-services", label: "Support Services" },
 ] as const;
 
 export async function SiteHeader() {
@@ -35,6 +49,29 @@ export async function SiteHeader() {
           {link.label}
         </Link>
       ))}
+      <details className="group relative">
+        <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground [&::-webkit-details-marker]:hidden">
+          Resources
+          <ChevronDown size={14} className="transition group-open:rotate-180" />
+        </summary>
+        <div className="mt-2 flex flex-col gap-2 sm:absolute sm:z-30 sm:mt-3 sm:w-56 sm:gap-1 sm:border sm:border-header-border sm:bg-header-background sm:p-2 sm:shadow-lg">
+          {RESOURCE_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-xs font-semibold tracking-wide text-header-muted uppercase transition hover:text-header-foreground sm:px-2 sm:py-1.5 sm:hover:bg-white/5"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </details>
+      <Link
+        href="/about"
+        className="text-xs font-bold tracking-widest text-header-muted uppercase transition hover:text-header-foreground"
+      >
+        About
+      </Link>
       {session?.user ? (
         <>
           <Link
