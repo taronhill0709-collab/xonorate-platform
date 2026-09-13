@@ -4,10 +4,20 @@ import { eq } from "drizzle-orm";
 import { ImageResponse } from "next/og";
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
+import { getCasePhoto } from "@/lib/case-photo-storage";
 
 export const alt = "Xonorate Media Platform — advocating for the wrongfully convicted";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+// Renders per-request rather than once at build time: the custom hero photo
+// (below) lives in Netlify Blobs, which — unlike the DB — has no build-time
+// context to read from during `next build`'s static generation pass. A
+// build-time render would silently produce a photo-less card (confirmed
+// live: the DB query succeeds at build time, but the photo never resolves).
+export const dynamic = "force-dynamic";
+
+const CASE_PHOTO_PATH_RE = /^\/api\/case-photos\/(.+)$/;
 
 /** Mirrors the homepage hero's own fallback logic (see page.tsx): an
  * admin-uploaded custom hero photo if one is set, otherwise the bundled
@@ -32,7 +42,20 @@ async function resolveHeroImageDataUrl(): Promise<string | null> {
   }
 
   try {
+    // Admin-uploaded hero photos are almost always our own /api/case-photos
+    // route backed by Netlify Blobs (see case-photo-storage.ts) — read the
+    // blob directly instead of fetching our own route over HTTP, which has
+    // no reliable target during static generation and is pointless latency
+    // even when it works. A legacy row could still hold a real external URL,
+    // so that's kept as a fallback.
     if (customUrl) {
+      const blobMatch = customUrl.match(CASE_PHOTO_PATH_RE);
+      if (blobMatch) {
+        const photo = await getCasePhoto(blobMatch[1]);
+        if (!photo) throw new Error(`case photo not found: ${blobMatch[1]}`);
+        return `data:${photo.contentType};base64,${Buffer.from(photo.data).toString("base64")}`;
+      }
+
       const res = await fetch(customUrl);
       if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
       const buffer = await res.arrayBuffer();
