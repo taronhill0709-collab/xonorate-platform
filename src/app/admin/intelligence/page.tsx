@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, ne } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, ne, type SQL } from "drizzle-orm";
 import Link from "next/link";
 import { Badge } from "@/app/admin/_components/field";
 import { startInvestigationFromIntelligence } from "@/app/admin/investigations/actions";
@@ -32,6 +32,43 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   year: "numeric",
 });
+
+// Each dashboard tile that isn't just a status count (see STATUS_TABS above
+// for those) gets its own filter here, so every tile is clickable into the
+// exact subset it's counting — matching the query each one runs in
+// getCounts() below. "Pending review" reuses the existing status=new tab
+// instead of living here, since that count IS just the "New" status.
+const TILE_FILTERS: Record<string, { label: string; where: () => SQL | undefined }> = {
+  today: {
+    label: "Discovered today",
+    where: () => {
+      const todayStart = new Date();
+      todayStart.setUTCHours(0, 0, 0, 0);
+      return gte(intelligenceItems.createdAt, todayStart);
+    },
+  },
+  high_priority: {
+    label: "High priority",
+    where: () =>
+      and(eq(intelligenceItems.editorialSignal, "high_priority"), ne(intelligenceItems.status, "rejected")),
+  },
+  case_development: {
+    label: "Case developments",
+    where: () =>
+      and(
+        eq(intelligenceItems.contentOpportunity, "case_development"),
+        inArray(intelligenceItems.status, ["new", "reviewed"]),
+      ),
+  },
+  investigation: {
+    label: "Investigation opportunities",
+    where: () =>
+      and(
+        eq(intelligenceItems.contentOpportunity, "investigation"),
+        inArray(intelligenceItems.status, ["new", "reviewed"]),
+      ),
+  },
+};
 
 async function getCounts() {
   const todayStart = new Date();
@@ -94,13 +131,15 @@ async function getCounts() {
 export default async function AdminIntelligencePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; filter?: string }>;
 }) {
-  const { status: statusParam } = await searchParams;
+  const { status: statusParam, filter: filterParam } = await searchParams;
+  const activeFilter = filterParam && filterParam in TILE_FILTERS ? filterParam : null;
   const activeTab: StatusTab = STATUS_TABS.some((t) => t.key === statusParam) ? (statusParam as StatusTab) : "active";
 
-  const where =
-    activeTab === "all"
+  const where = activeFilter
+    ? TILE_FILTERS[activeFilter].where()
+    : activeTab === "all"
       ? undefined
       : activeTab === "active"
         ? inArray(intelligenceItems.status, ["new", "reviewed"])
@@ -134,11 +173,19 @@ export default async function AdminIntelligencePage({
   ].sort((a, b) => b.lead.createdAt.getTime() - a.lead.createdAt.getTime());
 
   const tiles = [
-    { label: "Discovered today", value: counts.discoveredToday },
-    { label: "Pending review", value: counts.pendingReview },
-    { label: "High priority", value: counts.highPriority },
-    { label: "Case developments", value: counts.caseDevelopmentOpportunities },
-    { label: "Investigation opportunities", value: counts.investigationOpportunities },
+    { label: "Discovered today", value: counts.discoveredToday, href: "/admin/intelligence?filter=today" },
+    { label: "Pending review", value: counts.pendingReview, href: "/admin/intelligence?status=new" },
+    { label: "High priority", value: counts.highPriority, href: "/admin/intelligence?filter=high_priority" },
+    {
+      label: "Case developments",
+      value: counts.caseDevelopmentOpportunities,
+      href: "/admin/intelligence?filter=case_development",
+    },
+    {
+      label: "Investigation opportunities",
+      value: counts.investigationOpportunities,
+      href: "/admin/intelligence?filter=investigation",
+    },
     { label: "Ready to publish", value: counts.readyToPublish, href: "/admin/posts" },
     { label: "Active investigations", value: counts.activeInvestigations, href: "/admin/investigations" },
   ];
@@ -180,6 +227,15 @@ export default async function AdminIntelligencePage({
         })}
       </div>
 
+      {activeFilter && (
+        <p className="mt-6 text-sm text-muted">
+          Showing: <span className="font-medium text-foreground">{TILE_FILTERS[activeFilter].label}</span> ·{" "}
+          <Link href="/admin/intelligence" className="text-brand underline">
+            Clear filter
+          </Link>
+        </p>
+      )}
+
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <div className="flex flex-wrap gap-2">
           {STATUS_TABS.map((tab) => (
@@ -187,7 +243,7 @@ export default async function AdminIntelligencePage({
               key={tab.key}
               href={tab.key === "active" ? "/admin/intelligence" : `/admin/intelligence?status=${tab.key}`}
               className={`rounded-full px-3 py-1 text-sm transition ${
-                activeTab === tab.key
+                !activeFilter && activeTab === tab.key
                   ? "bg-brand text-brand-foreground"
                   : "border border-border text-muted hover:text-foreground"
               }`}
