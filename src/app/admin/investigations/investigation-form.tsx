@@ -1,5 +1,6 @@
 import { CaseAndIssueFields } from "@/app/admin/_components/case-issue-links";
 import { Field, Select, TextArea, TextInput } from "@/app/admin/_components/field";
+import { PhotoField, type LibraryPhotoOption } from "@/app/admin/_components/photo-field";
 import { investigationStatusEnum } from "@/db/schema";
 import { INVESTIGATION_STATUS_LABEL } from "@/lib/investigation-status";
 
@@ -11,6 +12,7 @@ export type InvestigationFormDefaultValues = {
   body: string;
   status: string;
   heroImageUrl: string;
+  isFeatured: boolean;
   editorialNotes: string;
 };
 
@@ -19,11 +21,13 @@ export function InvestigationFormFields({
   caseRows,
   selectedCaseIds,
   selectedIssueTags,
+  libraryPhotos,
 }: {
   defaultValues: InvestigationFormDefaultValues;
   caseRows: { id: string; clientName: string }[];
   selectedCaseIds: string[];
   selectedIssueTags: string[];
+  libraryPhotos: LibraryPhotoOption[];
 }) {
   return (
     <>
@@ -60,9 +64,28 @@ export function InvestigationFormFields({
         </Select>
       </Field>
 
-      <Field label="Hero image URL (optional)" name="heroImageUrl">
-        <TextInput id="heroImageUrl" name="heroImageUrl" defaultValue={defaultValues.heroImageUrl} />
+      <Field
+        label="Hero photo (optional — shown on the homepage/Investigates and this investigation's own page)"
+        name="photo"
+      >
+        <PhotoField fieldName="heroImageUrl" defaultImageUrl={defaultValues.heroImageUrl} libraryPhotos={libraryPhotos} />
       </Field>
+
+      <label className="flex items-center gap-2 text-sm text-foreground">
+        <input
+          type="checkbox"
+          name="isFeatured"
+          value="true"
+          defaultChecked={defaultValues.isFeatured}
+          className="h-4 w-4 rounded border-border"
+        />
+        Feature this investigation on the homepage and Investigates page
+      </label>
+      <p className="-mt-2 text-xs text-muted">
+        Only one investigation can be featured at a time — checking this unfeatures any other.
+        {!defaultValues.isFeatured &&
+          " If nothing is ever featured, the homepage falls back to whichever published investigation is most recent."}
+      </p>
 
       <Field label="Editorial notes (internal — never shown publicly)" name="editorialNotes">
         <TextArea id="editorialNotes" name="editorialNotes" rows={3} defaultValue={defaultValues.editorialNotes} />

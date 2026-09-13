@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases, investigations, postCaseLinks, posts } from "@/db/schema";
+import { getFeaturedInvestigation } from "@/lib/featured-investigation";
 import { excerptFromMarkdown } from "@/lib/post-excerpt";
 import { NEWSROOM_TOPICS, PUBLIC_POST_TYPE_LABEL } from "@/lib/post-type";
 
@@ -210,20 +211,7 @@ export default async function InvestigatesPage({
   // --- "All" view: the full hierarchy — Featured Investigation, Xonorate
   // Analysis, Case Developments, Latest. ---
 
-  const [featuredInvestigation] = await db
-    .select({
-      id: investigations.id,
-      title: investigations.title,
-      slug: investigations.slug,
-      subtitle: investigations.subtitle,
-      summary: investigations.summary,
-      heroImageUrl: investigations.heroImageUrl,
-      publishedAt: investigations.publishedAt,
-    })
-    .from(investigations)
-    .where(eq(investigations.status, "published"))
-    .orderBy(desc(investigations.publishedAt))
-    .limit(1);
+  const featuredInvestigation = await getFeaturedInvestigation();
 
   const analysisRows = allPublished.filter((p) => p.type === "analysis").slice(0, 4);
 

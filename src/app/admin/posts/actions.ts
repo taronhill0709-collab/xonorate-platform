@@ -6,11 +6,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
 import { postCaseLinks, postIssueLinks, posts, postTypeEnum } from "@/db/schema";
-import { InvalidCasePhotoError, uploadCasePhoto } from "@/lib/case-photo-storage";
+import { InvalidCasePhotoError } from "@/lib/case-photo-storage";
 import type { ContentDraftInput } from "@/lib/content-draft";
 import { getContentDraftJobStatus, setContentDraftJobStatus, type ContentDraftJobStatus } from "@/lib/content-draft-jobs";
 import { attachContentSources, removeContentSourceRow } from "@/lib/content-sources";
 import { requireAdmin } from "@/lib/require-admin";
+import { resolvePhotoUpload } from "@/lib/resolve-photo-upload";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
 const postFormSchema = z.object({
@@ -23,17 +24,6 @@ const postFormSchema = z.object({
   imageUrl: z.string().optional(),
   sourceIntelligenceItemId: z.string().optional(),
 });
-
-/** A newly uploaded file replaces the photo; otherwise the hidden
- * `imageUrl` field (the source's own image, or whatever the post already
- * had) carries forward. Same pattern as cases/actions.ts's photo handling. */
-async function resolvePostImageUrl(formData: FormData, fallbackImageUrl: string | undefined): Promise<string | null> {
-  const photoFile = formData.get("photo");
-  if (photoFile instanceof File && photoFile.size > 0) {
-    return uploadCasePhoto(photoFile);
-  }
-  return fallbackImageUrl?.trim() || null;
-}
 
 function parsePostForm(formData: FormData) {
   const raw = Object.fromEntries(formData.entries());
@@ -70,7 +60,7 @@ export async function createPost(formData: FormData) {
 
   let imageUrl: string | null;
   try {
-    imageUrl = await resolvePostImageUrl(formData, data.imageUrl);
+    imageUrl = await resolvePhotoUpload(formData, data.imageUrl);
   } catch (err) {
     if (err instanceof InvalidCasePhotoError) {
       const params = new URLSearchParams({ type: data.type, photoError: err.message });
@@ -115,7 +105,7 @@ export async function updatePost(postId: string, formData: FormData) {
 
   let imageUrl: string | null;
   try {
-    imageUrl = await resolvePostImageUrl(formData, data.imageUrl);
+    imageUrl = await resolvePhotoUpload(formData, data.imageUrl);
   } catch (err) {
     if (err instanceof InvalidCasePhotoError) {
       redirect(`/admin/posts/${postId}?photoError=${encodeURIComponent(err.message)}`);

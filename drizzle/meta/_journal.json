@@ -253,6 +253,13 @@
       "when": 1789327071728,
       "tag": "0035_green_silver_samurai",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1789330271812,
+      "tag": "0036_stiff_speed",
+      "breakpoints": true
     }
   ]
 }

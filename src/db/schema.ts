@@ -673,6 +673,13 @@ export const investigations = pgTable("investigations", {
   body: text("body"),
   status: investigationStatusEnum("status").notNull().default("idea"),
   heroImageUrl: text("hero_image_url"),
+  // Manually chosen by an editor — the homepage/Investigates "featured
+  // investigation" slot shows this one if set, rather than always
+  // defaulting to whichever published investigation has the most recent
+  // publishedAt. At most one row should have this true at a time (enforced
+  // in the update action, not the DB, matching how post-case/issue links
+  // are managed elsewhere in this codebase).
+  isFeatured: boolean("is_featured").notNull().default(false),
   // Internal production notes — never shown on the public investigation
   // page once one exists, distinct from the public-facing fields above.
   editorialNotes: text("editorial_notes"),

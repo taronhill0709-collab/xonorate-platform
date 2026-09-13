@@ -1,4 +1,4 @@
-import { and, asc, eq, ne, notInArray } from "drizzle-orm";
+import { and, asc, desc, eq, ne, notInArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge, Field, Select, SubmitButton, TextArea, TextInput } from "@/app/admin/_components/field";
 import { SourceMaterialSection, type SourceMaterialItem } from "@/app/admin/_components/source-material";
@@ -13,6 +13,7 @@ import {
   investigationMaterials,
   investigations,
   investigationTimelineEntries,
+  libraryPhotos,
 } from "@/db/schema";
 import { INVESTIGATION_MATERIAL_KIND_LABEL, INVESTIGATION_STATUS_LABEL } from "@/lib/investigation-status";
 import {
@@ -40,15 +41,18 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-US", { month: "short", day: "num
 
 export default async function AdminInvestigationDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photoError?: string }>;
 }) {
   const { id } = await params;
+  const { photoError } = await searchParams;
 
   const [investigation] = await db.select().from(investigations).where(eq(investigations.id, id)).limit(1);
   if (!investigation) notFound();
 
-  const [caseRows, caseLinkRows, issueLinkRows, attachedSourceRows, timelineEntries, materials] = await Promise.all([
+  const [caseRows, caseLinkRows, issueLinkRows, attachedSourceRows, timelineEntries, materials, libraryPhotoRows] = await Promise.all([
     db.select({ id: cases.id, clientName: cases.clientName }).from(cases).orderBy(cases.clientName),
     db
       .select({ caseId: investigationCaseLinks.caseId })
@@ -73,6 +77,7 @@ export default async function AdminInvestigationDetailPage({
       .from(investigationMaterials)
       .where(eq(investigationMaterials.investigationId, id))
       .orderBy(asc(investigationMaterials.sortOrder), asc(investigationMaterials.createdAt)),
+    db.select({ id: libraryPhotos.id, url: libraryPhotos.url, label: libraryPhotos.label }).from(libraryPhotos).orderBy(desc(libraryPhotos.createdAt)),
   ]);
 
   const attachedItemIds = attachedSourceRows.map((r) => r.item.id);
@@ -94,6 +99,7 @@ export default async function AdminInvestigationDetailPage({
     body: investigation.body ?? "",
     status: investigation.status,
     heroImageUrl: investigation.heroImageUrl ?? "",
+    isFeatured: investigation.isFeatured,
     editorialNotes: investigation.editorialNotes ?? "",
   };
 
@@ -103,6 +109,7 @@ export default async function AdminInvestigationDetailPage({
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-brand">
             {INVESTIGATION_STATUS_LABEL[investigation.status] ?? investigation.status}
+            {investigation.isFeatured && " · Featured"}
           </p>
           <h1 className="mt-1 font-serif text-2xl text-foreground">{investigation.title}</h1>
         </div>
@@ -112,6 +119,11 @@ export default async function AdminInvestigationDetailPage({
           </button>
         </form>
       </div>
+      {photoError && (
+        <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {photoError}
+        </p>
+      )}
 
       <form action={updateInvestigation.bind(null, investigation.id)} className="mt-6 space-y-4">
         <SourceMaterialSection
@@ -128,6 +140,7 @@ export default async function AdminInvestigationDetailPage({
           caseRows={caseRows}
           selectedCaseIds={caseLinkRows.map((r) => r.caseId)}
           selectedIssueTags={issueLinkRows.map((r) => r.issueTag)}
+          libraryPhotos={libraryPhotoRows}
         />
 
         <SubmitButton>Save changes</SubmitButton>

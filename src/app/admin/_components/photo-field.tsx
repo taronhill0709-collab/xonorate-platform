@@ -6,16 +6,19 @@ import { FileInput } from "@/app/admin/_components/field";
 
 export type LibraryPhotoOption = { id: string; url: string; label: string };
 
-/** The post photo field: an upload (wins if a new file is chosen — see
- * resolvePostImageUrl in actions.ts), or a pick from the shared photo
- * library (admin/photos) written into the same hidden `imageUrl` field a
- * plain upload would use. A client component because picking a library
- * photo has to update the preview and the hidden field without a page
- * round-trip. */
-export function PostPhotoField({
+/** A photo field shared by posts and investigations: an upload (wins if a
+ * new file is chosen — see resolvePhotoUpload in resolve-photo-upload.ts),
+ * or a pick from the shared photo library (admin/photos) written into the
+ * same hidden field a plain upload would use. A client component because
+ * picking a library photo has to update the preview and the hidden field
+ * without a page round-trip. `fieldName` is the hidden field's name
+ * (posts submit "imageUrl", investigations submit "heroImageUrl"). */
+export function PhotoField({
+  fieldName,
   defaultImageUrl,
   libraryPhotos,
 }: {
+  fieldName: string;
   defaultImageUrl: string;
   libraryPhotos: LibraryPhotoOption[];
 }) {
@@ -25,8 +28,8 @@ export function PostPhotoField({
 
   function chooseLibraryPhoto(url: string) {
     // A library pick should win over whatever file was staged in the file
-    // input — clear it so resolvePostImageUrl (actions.ts) doesn't ignore
-    // this pick in favor of a leftover selected file.
+    // input — clear it so resolvePhotoUpload doesn't ignore this pick in
+    // favor of a leftover selected file.
     if (fileInputRef.current) fileInputRef.current.value = "";
     setImageUrl(url);
     setPickerOpen(false);
@@ -52,7 +55,7 @@ export function PostPhotoField({
         accept="image/jpeg,image/png,image/webp,image/avif"
         onChange={handleFileChange}
       />
-      <input type="hidden" name="imageUrl" value={imageUrl} />
+      <input type="hidden" name={fieldName} value={imageUrl} />
 
       {libraryPhotos.length > 0 && (
         <div className="mt-2">

@@ -8,8 +8,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { VideoCard } from "@/components/video-card";
 import { db } from "@/db";
-import { caseVideos, cases, investigations, petitions, posts, signatures, siteSettings } from "@/db/schema";
+import { caseVideos, cases, petitions, posts, signatures, siteSettings } from "@/db/schema";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
+import { getFeaturedInvestigation } from "@/lib/featured-investigation";
 import { formatCompactCount } from "@/lib/format-count";
 import {
   WRONGFUL_CONVICTION_CAUSES,
@@ -124,18 +125,7 @@ export default async function Home() {
     .from(cases)
     .where(ne(cases.status, "exonerated"));
 
-  const [featuredInvestigation] = await db
-    .select({
-      id: investigations.id,
-      title: investigations.title,
-      slug: investigations.slug,
-      subtitle: investigations.subtitle,
-      heroImageUrl: investigations.heroImageUrl,
-    })
-    .from(investigations)
-    .where(eq(investigations.status, "published"))
-    .orderBy(desc(investigations.publishedAt))
-    .limit(1);
+  const featuredInvestigation = await getFeaturedInvestigation();
 
   const latestPosts = await db
     .select({

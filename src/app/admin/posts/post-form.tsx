@@ -1,7 +1,7 @@
 import { CaseAndIssueFields } from "@/app/admin/_components/case-issue-links";
 import { Field, Select, TextArea, TextInput } from "@/app/admin/_components/field";
+import { PhotoField, type LibraryPhotoOption } from "@/app/admin/_components/photo-field";
 import { POST_TYPE_LABEL } from "@/lib/post-type";
-import { PostPhotoField, type LibraryPhotoOption } from "./photo-field";
 
 export { SourceMaterialSection, type SourceMaterialItem } from "@/app/admin/_components/source-material";
 
@@ -50,7 +50,7 @@ export function PostFormFields({
         label="Photo (optional — shown as the article's thumbnail/header image; carried over from the source story when one was found, but you can replace it or pick from the shared library)"
         name="photo"
       >
-        <PostPhotoField defaultImageUrl={defaultValues.imageUrl} libraryPhotos={libraryPhotos} />
+        <PhotoField fieldName="imageUrl" defaultImageUrl={defaultValues.imageUrl} libraryPhotos={libraryPhotos} />
       </Field>
 
       <Field label="Body (Markdown)" name="body">

@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -15,8 +15,10 @@ import {
   investigationStatusEnum,
   investigationTimelineEntries,
 } from "@/db/schema";
+import { InvalidCasePhotoError } from "@/lib/case-photo-storage";
 import { attachContentSources, removeContentSourceRow } from "@/lib/content-sources";
 import { requireAdmin } from "@/lib/require-admin";
+import { resolvePhotoUpload } from "@/lib/resolve-photo-upload";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
 
 const investigationFormSchema = z.object({
@@ -27,8 +29,22 @@ const investigationFormSchema = z.object({
   body: z.string().optional(),
   status: z.enum(investigationStatusEnum.enumValues),
   heroImageUrl: z.string().optional(),
+  isFeatured: z.string().optional(),
   editorialNotes: z.string().optional(),
 });
+
+/** At most one investigation is featured at a time — unsets every other
+ * row first, same "wholesale replace" approach as setCaseAndIssueLinks
+ * below, so there's never ambiguity about which one the homepage/
+ * Investigates "featured investigation" slot should show. */
+async function setFeatured(investigationId: string, isFeatured: boolean) {
+  if (!isFeatured) {
+    await db.update(investigations).set({ isFeatured: false }).where(eq(investigations.id, investigationId));
+    return;
+  }
+  await db.update(investigations).set({ isFeatured: false }).where(ne(investigations.id, investigationId));
+  await db.update(investigations).set({ isFeatured: true }).where(eq(investigations.id, investigationId));
+}
 
 function parseInvestigationForm(formData: FormData) {
   const raw = Object.fromEntries(formData.entries());
@@ -58,6 +74,16 @@ export async function createInvestigation(formData: FormData) {
   await requireAdmin();
   const data = parseInvestigationForm(formData);
 
+  let heroImageUrl: string | null;
+  try {
+    heroImageUrl = await resolvePhotoUpload(formData, data.heroImageUrl);
+  } catch (err) {
+    if (err instanceof InvalidCasePhotoError) {
+      redirect(`/admin/investigations/new?photoError=${encodeURIComponent(err.message)}`);
+    }
+    throw err;
+  }
+
   const row = await insertWithUniqueSlug(data.title, (slug) =>
     db
       .insert(investigations)
@@ -69,7 +95,7 @@ export async function createInvestigation(formData: FormData) {
         thesis: data.thesis?.trim() || null,
         body: data.body?.trim() || null,
         status: data.status,
-        heroImageUrl: data.heroImageUrl?.trim() || null,
+        heroImageUrl,
         editorialNotes: data.editorialNotes?.trim() || null,
         publishedAt: data.status === "published" ? new Date() : null,
       })
@@ -78,8 +104,11 @@ export async function createInvestigation(formData: FormData) {
 
   await attachContentSources("investigation", row.id, data.additionalSourceIds);
   await setCaseAndIssueLinks(row.id, data.caseIds, data.issueTags);
+  await setFeatured(row.id, Boolean(data.isFeatured));
 
   revalidatePath("/admin/investigations");
+  revalidatePath("/");
+  revalidatePath("/news");
   redirect(`/admin/investigations/${row.id}?saved=1`);
 }
 
@@ -98,6 +127,16 @@ export async function updateInvestigation(investigationId: string, formData: For
   const publishedAt =
     data.status === "published" && existing?.status !== "published" ? new Date() : (existing?.publishedAt ?? null);
 
+  let heroImageUrl: string | null;
+  try {
+    heroImageUrl = await resolvePhotoUpload(formData, data.heroImageUrl);
+  } catch (err) {
+    if (err instanceof InvalidCasePhotoError) {
+      redirect(`/admin/investigations/${investigationId}?photoError=${encodeURIComponent(err.message)}`);
+    }
+    throw err;
+  }
+
   await db
     .update(investigations)
     .set({
@@ -107,7 +146,7 @@ export async function updateInvestigation(investigationId: string, formData: For
       thesis: data.thesis?.trim() || null,
       body: data.body?.trim() || null,
       status: data.status,
-      heroImageUrl: data.heroImageUrl?.trim() || null,
+      heroImageUrl,
       editorialNotes: data.editorialNotes?.trim() || null,
       publishedAt,
       updatedAt: new Date(),
@@ -116,8 +155,11 @@ export async function updateInvestigation(investigationId: string, formData: For
 
   await attachContentSources("investigation", investigationId, data.additionalSourceIds);
   await setCaseAndIssueLinks(investigationId, data.caseIds, data.issueTags);
+  await setFeatured(investigationId, Boolean(data.isFeatured));
 
   revalidatePath("/admin/investigations");
+  revalidatePath("/");
+  revalidatePath("/news");
   revalidatePath(`/admin/investigations/${investigationId}`);
   redirect(`/admin/investigations/${investigationId}?saved=1`);
 }

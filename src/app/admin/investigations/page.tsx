@@ -50,9 +50,12 @@ export default async function AdminInvestigationsPage() {
                   </Link>
                 </td>
                 <td className="py-2">
-                  <Badge tone={INVESTIGATION_STATUS_TONE[row.status]}>
-                    {INVESTIGATION_STATUS_LABEL[row.status] ?? row.status}
-                  </Badge>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge tone={INVESTIGATION_STATUS_TONE[row.status]}>
+                      {INVESTIGATION_STATUS_LABEL[row.status] ?? row.status}
+                    </Badge>
+                    {row.isFeatured && <Badge tone="brand">Featured</Badge>}
+                  </div>
                 </td>
                 <td className="py-2 text-muted">
                   {row.updatedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
