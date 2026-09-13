@@ -107,7 +107,7 @@ export default async function NewPostPage({
           candidateSources={candidateRows.map(toSourceMaterialItem)}
         />
 
-        {draftInput && <DraftBodyButton input={draftInput} />}
+        <DraftBodyButton baseInput={draftInput} />
 
         <PostFormFields
           availableTypes={[...CREATE_WITH_THIS_POST_TYPES]}

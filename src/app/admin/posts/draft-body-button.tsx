@@ -11,6 +11,24 @@ const POLL_INTERVAL_MS = 2500;
 // well short of that and let the editor retry instead.
 const MAX_POLL_ATTEMPTS = 120; // 120 * 2.5s = 5 minutes
 
+/** Reads the manual-source fields from SourceMaterialSection's "Add a
+ * source of your own" fieldset directly off the DOM — the same
+ * uncontrolled-input technique this component already uses for #type/#body.
+ * Needed because a manual source isn't saved (and so has no id to build a
+ * ContentDraftInput from) until the surrounding form is actually submitted;
+ * this lets drafting work off whatever's currently typed in, unsaved. */
+function readManualSourceInput(): Omit<ContentDraftInput, "type"> | null {
+  const sourceUrl = (document.getElementById("manualSourceUrl") as HTMLInputElement | null)?.value.trim();
+  if (!sourceUrl) return null;
+
+  const headline = (document.getElementById("manualSourceHeadline") as HTMLInputElement | null)?.value.trim() || sourceUrl;
+  const sourcePublication =
+    (document.getElementById("manualSourcePublication") as HTMLInputElement | null)?.value.trim() || "Unknown source";
+  const summary = (document.getElementById("manualSourceSummary") as HTMLTextAreaElement | null)?.value.trim() || headline;
+
+  return { headline, sourcePublication, sourceUrl, summary, whyThisMatters: null, issueTags: [], caseName: null };
+}
+
 /** Drafts (or re-drafts) a post's body from its source via Claude,
  * asynchronously — see startContentDraft for why this can't just be a
  * plain Server Action. Reads the current "Content type" select at click
@@ -19,8 +37,13 @@ const MAX_POLL_ATTEMPTS = 120; // 120 * 2.5s = 5 minutes
  * background job finishes — the same uncontrolled-input technique
  * import-overview-form.tsx uses, since these fields have no React state of
  * their own to update. Never saves anything itself; the editor still has
- * to click Save/Create to persist it. */
-export function DraftBodyButton({ input }: { input: Omit<ContentDraftInput, "type"> }) {
+ * to click Save/Create to persist it.
+ *
+ * `baseInput` is the source known server-side (from "Create With This", or
+ * an already-attached source on an existing post) — when there isn't one,
+ * this falls back to whatever's currently typed into the "Add a source of
+ * your own" fields, so drafting works before that source is ever saved. */
+export function DraftBodyButton({ baseInput }: { baseInput: Omit<ContentDraftInput, "type"> | null }) {
   const cancelledRef = useRef(false);
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "ok" | "error" | "pending"; text: string } | null>(null);
@@ -32,6 +55,12 @@ export function DraftBodyButton({ input }: { input: Omit<ContentDraftInput, "typ
   }, []);
 
   async function handleClick() {
+    const input = baseInput ?? readManualSourceInput();
+    if (!input) {
+      setMessage({ tone: "error", text: "Add a source above first — either from Xonorate Intelligence or your own." });
+      return;
+    }
+
     const typeEl = document.getElementById("type") as HTMLSelectElement | null;
     const type = typeEl?.value ?? "news_brief";
     const isDeepType = type === "analysis" || type === "explainer";

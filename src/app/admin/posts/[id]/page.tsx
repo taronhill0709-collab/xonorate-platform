@@ -137,7 +137,7 @@ export default async function AdminPostDetailPage({
           removeAction={removeContentSource.bind(null, post.id)}
         />
 
-        {draftInput && <DraftBodyButton input={draftInput} />}
+        <DraftBodyButton baseInput={draftInput} />
 
         <PostFormFields
           availableTypes={availableTypes}
