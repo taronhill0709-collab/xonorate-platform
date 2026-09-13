@@ -29,8 +29,8 @@ const barlowCondensed = Barlow_Condensed({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteOrigin()),
   title: {
-    default: "Xonorate Media Platform",
-    template: "%s | Xonorate Media Platform",
+    default: "Xonorate",
+    template: "%s | Xonorate",
   },
   description:
     "Xonorate exposes wrongful convictions, amplifies the voices behind the cases, and mobilizes the public to demand justice.",
