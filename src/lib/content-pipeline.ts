@@ -92,7 +92,7 @@ const enrichmentSchema = z.object({
     .describe("One of Xonorate's existing case names, copied EXACTLY as given, if the story clearly concerns it."),
 });
 
-type Enrichment = z.infer<typeof enrichmentSchema>;
+export type Enrichment = z.infer<typeof enrichmentSchema>;
 
 const ENRICHMENT_SYSTEM = `You classify one story discovered by Xonorate Intelligence for editorial triage. You're given only the headline, source, and a short snippet — never use outside knowledge beyond what's given; if something isn't stated, leave it null/empty rather than guessing.
 
@@ -105,7 +105,12 @@ Field notes:
 - whatToWatch: zero or more short follow-ups worth watching for (a hearing, a ruling, a filing, an appeal) — only if the story actually suggests one.
 - suggestedCaseName: only if the story clearly and specifically concerns one of Xonorate's existing cases (given below) — copy that name exactly. Null otherwise; never guess.`;
 
-async function enrichStory(story: DiscoveredStory, roster: RosterEntry[]): Promise<Enrichment> {
+/** The subset of a discovered story enrichStory actually needs — lets it
+ * also classify a manually-added source (content-sources.ts), which has no
+ * publishedDate/clusterKey to speak of. */
+type EnrichableStory = { headline: string; sourcePublication: string; snippet: string };
+
+export async function enrichStory(story: EnrichableStory, roster: RosterEntry[]): Promise<Enrichment> {
   const rosterList =
     roster.length > 0 ? roster.map((r) => `- ${r.clientName} (${r.state})`).join("\n") : "(No cases on Xonorate yet.)";
 
@@ -143,7 +148,7 @@ async function enrichStory(story: DiscoveredStory, roster: RosterEntry[]): Promi
 
 /** Case-insensitive exact match only — a fuzzy match risks silently
  * attaching a story to the wrong real person's case. */
-function resolveSuggestedCaseId(
+export function resolveSuggestedCaseId(
   name: string | null,
   roster: { id: string; clientName: string }[],
 ): string | null {

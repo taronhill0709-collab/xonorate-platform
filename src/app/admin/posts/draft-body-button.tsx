@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ContentDraftInput } from "@/lib/content-draft";
+import type { SourceClassification } from "@/lib/source-classify";
 import { getContentDraftStatus, startContentDraft } from "./actions";
 
 const POLL_INTERVAL_MS = 2500;
@@ -27,6 +28,38 @@ function readManualSourceInput(): Omit<ContentDraftInput, "type"> | null {
   const summary = (document.getElementById("manualSourceSummary") as HTMLTextAreaElement | null)?.value.trim() || headline;
 
   return { headline, sourcePublication, sourceUrl, summary, whyThisMatters: null, issueTags: [], caseName: null };
+}
+
+/** Fills in whatever the classification suggests, but only into fields the
+ * editor hasn't already touched — checkboxes/the case select are additive
+ * (never unchecked/deselected), and the text fields are only set if still
+ * empty, so this never clobbers something already written or picked. */
+function applyClassification(classification: SourceClassification) {
+  const whyEl = document.getElementById("whyThisMatters") as HTMLTextAreaElement | null;
+  if (whyEl && !whyEl.value.trim() && classification.whyThisMatters) whyEl.value = classification.whyThisMatters;
+
+  const watchEl = document.getElementById("whatToWatch") as HTMLTextAreaElement | null;
+  if (watchEl && !watchEl.value.trim() && classification.whatToWatch.length > 0) {
+    watchEl.value = classification.whatToWatch.join("\n");
+  }
+
+  const stateEl = document.getElementById("state") as HTMLInputElement | null;
+  if (stateEl && !stateEl.value.trim() && classification.state) stateEl.value = classification.state;
+
+  if (classification.issueTags.length > 0) {
+    document.querySelectorAll<HTMLInputElement>('input[name="issueTags"]').forEach((el) => {
+      if (classification.issueTags.includes(el.value)) el.checked = true;
+    });
+  }
+
+  if (classification.suggestedCaseId) {
+    const select = document.querySelector<HTMLSelectElement>('select[name="caseIds"]');
+    if (select && select.selectedOptions.length === 0) {
+      Array.from(select.options).forEach((opt) => {
+        if (opt.value === classification.suggestedCaseId) opt.selected = true;
+      });
+    }
+  }
 }
 
 /** Drafts (or re-drafts) a post's body from its source via Claude,
@@ -60,6 +93,10 @@ export function DraftBodyButton({ baseInput }: { baseInput: Omit<ContentDraftInp
       setMessage({ tone: "error", text: "Add a source above first — either from Xonorate Intelligence or your own." });
       return;
     }
+    // A source the editor typed in themselves never went through
+    // discovery's classification (issue tags, why this matters, a matching
+    // case) — an Intelligence-sourced one already has all of that.
+    const classify = !baseInput;
 
     const typeEl = document.getElementById("type") as HTMLSelectElement | null;
     const type = typeEl?.value ?? "news_brief";
@@ -73,7 +110,7 @@ export function DraftBodyButton({ baseInput }: { baseInput: Omit<ContentDraftInp
         : "Drafting…",
     });
 
-    const started = await startContentDraft({ ...input, type });
+    const started = await startContentDraft({ ...input, type }, classify);
     if (cancelledRef.current) return;
     if (!started.ok) {
       setMessage({ tone: "error", text: started.error });
@@ -104,6 +141,8 @@ export function DraftBodyButton({ baseInput }: { baseInput: Omit<ContentDraftInp
       // overwrites a headline the editor already wrote or edited.
       const titleEl = document.getElementById("title") as HTMLInputElement | null;
       if (titleEl && !titleEl.value.trim()) titleEl.value = input.headline;
+
+      if (result.classification) applyClassification(result.classification);
 
       setMessage({ tone: "ok", text: "Drafted — verify every fact and rewrite freely before saving." });
       setIsBusy(false);

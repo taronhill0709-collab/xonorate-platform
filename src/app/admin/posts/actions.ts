@@ -159,7 +159,16 @@ export type StartContentDraftResult = { ok: true; jobId: string } | { ok: false;
  * way rather than awaiting Claude here. Nothing is saved to the database —
  * see draft-body-button.tsx, which fills the body textarea client-side for
  * the editor to review (and then explicitly save) once the job completes. */
-export async function startContentDraft(input: ContentDraftInput): Promise<StartContentDraftResult> {
+/** `classify` additionally runs Xonorate Intelligence's editorial
+ * classification (issue tags, why this matters, follow-ups, a matching
+ * case) on this source — pass true only for a source the editor typed in
+ * themselves via "Add a source of your own", which never goes through
+ * discovery and so was never classified; an Intelligence-sourced item
+ * already has all of that from the daily discovery run. */
+export async function startContentDraft(
+  input: ContentDraftInput,
+  classify?: boolean,
+): Promise<StartContentDraftResult> {
   await requireAdmin();
 
   const jobId = crypto.randomUUID();
@@ -176,7 +185,7 @@ export async function startContentDraft(input: ContentDraftInput): Promise<Start
     await fetch(`${origin}/.netlify/functions/content-draft-background`, {
       method: "POST",
       headers: { "x-internal-job-secret": secret, "content-type": "application/json" },
-      body: JSON.stringify({ jobId, input }),
+      body: JSON.stringify({ jobId, input, classify }),
     });
   } catch (err) {
     console.error("startContentDraft: failed to dispatch background job", err);

@@ -1,10 +1,11 @@
 import { getStore } from "@netlify/blobs";
+import type { SourceClassification } from "@/lib/source-classify";
 
 const JOBS_STORE = "content-draft-jobs";
 
 export type ContentDraftJobStatus =
   | { status: "pending" }
-  | { status: "done"; body: string }
+  | { status: "done"; body: string; classification?: SourceClassification }
   | { status: "failed"; error: string };
 
 export async function setContentDraftJobStatus(jobId: string, status: ContentDraftJobStatus): Promise<void> {
