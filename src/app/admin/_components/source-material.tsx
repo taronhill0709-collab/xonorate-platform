@@ -27,11 +27,18 @@ function SourceRow({ item }: { item: SourceMaterialItem }) {
   );
 }
 
+const inputClass =
+  "mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
+
 /** The "source-first" panel shown while creating/editing Xonorate content —
  * posts and investigations both use this (contentSources is polymorphic
  * across both). Shows what this piece is based on (spec: "Source
- * material"), lets an editor remove an already-attached source, and attach
- * more. Never publishes anything itself; it only records provenance. */
+ * material"), lets an editor remove an already-attached source, attach
+ * more from what Xonorate Intelligence already discovered, or add a source
+ * of their own (an article Intelligence never found — see
+ * createManualSourceIfProvided in content-sources.ts, which the same
+ * create/update action calls). Never publishes anything itself; it only
+ * records provenance. */
 export function SourceMaterialSection({
   primaryReadOnly,
   removableSources,
@@ -104,6 +111,39 @@ export function SourceMaterialSection({
           <p className="mt-1 text-xs text-muted">Cmd/Ctrl-click to select multiple, from recently discovered items.</p>
         </div>
       )}
+
+      <details className="mt-3">
+        <summary className="cursor-pointer text-sm text-brand underline">
+          Add a source of your own (one Xonorate Intelligence hasn&apos;t found)
+        </summary>
+        <div className="mt-2 space-y-2 border-t border-border pt-2">
+          <div>
+            <label htmlFor="manualSourceUrl" className="block text-xs font-medium text-foreground">
+              Source URL
+            </label>
+            <input id="manualSourceUrl" name="manualSourceUrl" type="url" placeholder="https://…" className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="manualSourceHeadline" className="block text-xs font-medium text-foreground">
+              Headline (optional)
+            </label>
+            <input id="manualSourceHeadline" name="manualSourceHeadline" type="text" className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="manualSourcePublication" className="block text-xs font-medium text-foreground">
+              Publication (optional)
+            </label>
+            <input id="manualSourcePublication" name="manualSourcePublication" type="text" className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="manualSourceSummary" className="block text-xs font-medium text-foreground">
+              What it reports (optional)
+            </label>
+            <textarea id="manualSourceSummary" name="manualSourceSummary" rows={2} className={inputClass} />
+          </div>
+          <p className="text-xs text-muted">Filling in the URL and saving attaches this as a source.</p>
+        </div>
+      </details>
     </div>
   );
 }

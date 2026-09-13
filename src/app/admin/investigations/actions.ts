@@ -16,7 +16,7 @@ import {
   investigationTimelineEntries,
 } from "@/db/schema";
 import { InvalidCasePhotoError } from "@/lib/case-photo-storage";
-import { attachContentSources, removeContentSourceRow } from "@/lib/content-sources";
+import { attachContentSources, createManualSourceIfProvided, removeContentSourceRow } from "@/lib/content-sources";
 import { requireAdmin } from "@/lib/require-admin";
 import { resolvePhotoUpload } from "@/lib/resolve-photo-upload";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
@@ -102,7 +102,9 @@ export async function createInvestigation(formData: FormData) {
       .returning({ id: investigations.id }),
   );
 
-  await attachContentSources("investigation", row.id, data.additionalSourceIds);
+  const manualSourceId = await createManualSourceIfProvided(formData);
+  const sourceIds = manualSourceId ? [...data.additionalSourceIds, manualSourceId] : data.additionalSourceIds;
+  await attachContentSources("investigation", row.id, sourceIds);
   await setCaseAndIssueLinks(row.id, data.caseIds, data.issueTags);
   await setFeatured(row.id, Boolean(data.isFeatured));
 
@@ -153,7 +155,9 @@ export async function updateInvestigation(investigationId: string, formData: For
     })
     .where(eq(investigations.id, investigationId));
 
-  await attachContentSources("investigation", investigationId, data.additionalSourceIds);
+  const manualSourceId = await createManualSourceIfProvided(formData);
+  const sourceIds = manualSourceId ? [...data.additionalSourceIds, manualSourceId] : data.additionalSourceIds;
+  await attachContentSources("investigation", investigationId, sourceIds);
   await setCaseAndIssueLinks(investigationId, data.caseIds, data.issueTags);
   await setFeatured(investigationId, Boolean(data.isFeatured));
 

@@ -38,3 +38,32 @@ export async function attachContentSources(
 export async function removeContentSourceRow(contentSourceId: string): Promise<void> {
   await db.delete(contentSources).where(eq(contentSources.id, contentSourceId));
 }
+
+/** Lets an editor attach a source Xonorate Intelligence never discovered —
+ * an article they found themselves. Every source (see attachContentSources
+ * above) has to be an intelligenceItems row, so this creates one on the fly
+ * (already "used", since it's being attached immediately) rather than
+ * requiring the discovery pipeline to have found it first. Returns null if
+ * the form's manual-source fields were left blank (nothing to add). */
+export async function createManualSourceIfProvided(formData: FormData): Promise<string | null> {
+  const sourceUrl = String(formData.get("manualSourceUrl") ?? "").trim();
+  if (!sourceUrl) return null;
+
+  const headline = String(formData.get("manualSourceHeadline") ?? "").trim() || sourceUrl;
+  const sourcePublication = String(formData.get("manualSourcePublication") ?? "").trim() || "Unknown source";
+  const summary = String(formData.get("manualSourceSummary") ?? "").trim() || headline;
+
+  const [item] = await db
+    .insert(intelligenceItems)
+    .values({
+      headline,
+      sourcePublication,
+      sourceUrl,
+      summary,
+      status: "used",
+      editorialSignal: "routine",
+    })
+    .returning({ id: intelligenceItems.id });
+
+  return item.id;
+}

@@ -9,7 +9,7 @@ import { postCaseLinks, postIssueLinks, posts, postTypeEnum } from "@/db/schema"
 import { InvalidCasePhotoError } from "@/lib/case-photo-storage";
 import type { ContentDraftInput } from "@/lib/content-draft";
 import { getContentDraftJobStatus, setContentDraftJobStatus, type ContentDraftJobStatus } from "@/lib/content-draft-jobs";
-import { attachContentSources, removeContentSourceRow } from "@/lib/content-sources";
+import { attachContentSources, createManualSourceIfProvided, removeContentSourceRow } from "@/lib/content-sources";
 import { requireAdmin } from "@/lib/require-admin";
 import { resolvePhotoUpload } from "@/lib/resolve-photo-upload";
 import { insertWithUniqueSlug } from "@/lib/unique-slug";
@@ -88,7 +88,8 @@ export async function createPost(formData: FormData) {
       .returning({ id: posts.id }),
   );
 
-  const sourceItemIds = [data.sourceIntelligenceItemId, ...data.additionalSourceIds].filter(
+  const manualSourceId = await createManualSourceIfProvided(formData);
+  const sourceItemIds = [data.sourceIntelligenceItemId, manualSourceId, ...data.additionalSourceIds].filter(
     (id): id is string => Boolean(id),
   );
   await attachContentSources("post", row.id, sourceItemIds);
@@ -126,7 +127,9 @@ export async function updatePost(postId: string, formData: FormData) {
     })
     .where(eq(posts.id, postId));
 
-  await attachContentSources("post", postId, data.additionalSourceIds);
+  const manualSourceId = await createManualSourceIfProvided(formData);
+  const additionalSourceIds = manualSourceId ? [...data.additionalSourceIds, manualSourceId] : data.additionalSourceIds;
+  await attachContentSources("post", postId, additionalSourceIds);
   await setCaseAndIssueLinks(postId, data.caseIds, data.issueTags);
 
   revalidatePath("/admin/posts");
