@@ -218,11 +218,29 @@ export async function deletePost(postId: string) {
   redirect("/admin/posts?saved=deleted");
 }
 
-/** Moves a post one spot up or down in the admin/public display order.
- * Rewrites sortOrder for every post as its index in the new order rather
- * than swapping the two raw values, since most rows share the same
- * default (0) until the first reorder happens — a plain swap between two
- * equal values would silently do nothing. */
+/** Rewrites every post's sortOrder to match the given id order — the
+ * single source of truth for "Beyond the headline"'s ordering (see
+ * page.tsx/news/page.tsx's latestPosts query, orderBy sortOrder). Every
+ * reorder path (drag-and-drop, the up/down arrows, "Feature") funnels
+ * through this rather than swapping raw values, since most rows share the
+ * same default sortOrder (0) until the first reorder happens — a plain
+ * swap between two equal values would silently do nothing. */
+async function applyPostOrder(orderedIds: string[]) {
+  await Promise.all(orderedIds.map((id, i) => db.update(posts).set({ sortOrder: i }).where(eq(posts.id, id))));
+  revalidatePath("/admin/posts");
+  revalidatePath("/news");
+  revalidatePath("/");
+}
+
+/** Called directly by drag-and-drop (post-reorder-table.tsx) with the
+ * full row order after a drop. */
+export async function setPostOrder(orderedIds: string[]) {
+  await requireAdmin();
+  await applyPostOrder(orderedIds);
+}
+
+/** Moves a post one spot up or down — the arrow buttons' fallback for
+ * anyone not dragging (keyboard use, or just finer control than a drag). */
 export async function movePost(postId: string, direction: "up" | "down") {
   await requireAdmin();
 
@@ -237,9 +255,20 @@ export async function movePost(postId: string, direction: "up" | "down") {
   if (index === -1 || swapWith < 0 || swapWith >= ids.length) return;
 
   [ids[index], ids[swapWith]] = [ids[swapWith], ids[index]];
-  await Promise.all(ids.map((id, i) => db.update(posts).set({ sortOrder: i }).where(eq(posts.id, id))));
+  await applyPostOrder(ids);
+}
 
-  revalidatePath("/admin/posts");
-  revalidatePath("/posts");
-  revalidatePath("/");
+/** Jumps a post straight to the top of "Beyond the headline"'s ordering —
+ * the one-click alternative to nudging it up one spot at a time. */
+export async function featurePost(postId: string) {
+  await requireAdmin();
+
+  const rows = await db
+    .select({ id: posts.id })
+    .from(posts)
+    .orderBy(asc(posts.sortOrder), desc(posts.createdAt));
+  const ids = rows.map((r) => r.id).filter((id) => id !== postId);
+  ids.unshift(postId);
+
+  await applyPostOrder(ids);
 }
