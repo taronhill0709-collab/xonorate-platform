@@ -25,9 +25,10 @@ async function resolveHeroImageDataUrl(): Promise<string | null> {
       .where(eq(siteSettings.id, "singleton"))
       .limit(1);
     customUrl = settings?.heroImageUrl ?? null;
-  } catch {
+  } catch (err) {
     // No DB connection in this environment — fall through to the bundled
     // default hero photo below rather than failing the whole image.
+    console.error("[opengraph-image] siteSettings query failed", err);
   }
 
   try {
@@ -41,7 +42,8 @@ async function resolveHeroImageDataUrl(): Promise<string | null> {
     const filePath = path.join(process.cwd(), "public", "images", "hero-courthouse.png");
     const fileBuffer = await fs.readFile(filePath);
     return `data:image/png;base64,${fileBuffer.toString("base64")}`;
-  } catch {
+  } catch (err) {
+    console.error("[opengraph-image] hero image load failed", { customUrl }, err);
     return null;
   }
 }
