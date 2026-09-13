@@ -97,6 +97,14 @@ export function DraftBodyButton({ baseInput }: { baseInput: Omit<ContentDraftInp
 
       const bodyEl = document.getElementById("body") as HTMLTextAreaElement | null;
       if (bodyEl) bodyEl.value = result.body;
+
+      // Only for a source the editor typed in themselves — an
+      // Intelligence-sourced post already has its headline prefilled
+      // server-side before this button is ever clicked, so this never
+      // overwrites a headline the editor already wrote or edited.
+      const titleEl = document.getElementById("title") as HTMLInputElement | null;
+      if (titleEl && !titleEl.value.trim()) titleEl.value = input.headline;
+
       setMessage({ tone: "ok", text: "Drafted — verify every fact and rewrite freely before saving." });
       setIsBusy(false);
       return;
