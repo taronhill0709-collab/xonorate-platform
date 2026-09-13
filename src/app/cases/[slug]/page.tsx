@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +22,10 @@ import {
   caseUpdates,
   caseVideos,
   cases,
+  investigationCaseLinks,
+  investigations,
   petitions,
+  postCaseLinks,
   posts,
   signatures,
 } from "@/db/schema";
@@ -158,6 +161,13 @@ export default async function CaseDetailPage({
     .orderBy(desc(caseUpdates.createdAt))
     .limit(10);
 
+  // A post can reach this case two ways: the legacy single-FK posts.caseId
+  // (case_spotlight) or the newer many-to-many postCaseLinks (every
+  // Intelligence-driven type) — merge both rather than only checking one.
+  const linkedPostIds = await db
+    .select({ postId: postCaseLinks.postId })
+    .from(postCaseLinks)
+    .where(eq(postCaseLinks.caseId, caseRow.id));
   const relatedReporting = await db
     .select({
       title: posts.title,
@@ -167,8 +177,29 @@ export default async function CaseDetailPage({
       createdAt: posts.createdAt,
     })
     .from(posts)
-    .where(and(eq(posts.caseId, caseRow.id), eq(posts.status, "published")))
+    .where(
+      and(
+        eq(posts.status, "published"),
+        linkedPostIds.length > 0
+          ? or(eq(posts.caseId, caseRow.id), inArray(posts.id, linkedPostIds.map((r) => r.postId)))
+          : eq(posts.caseId, caseRow.id),
+      ),
+    )
     .orderBy(desc(posts.publishedAt), desc(posts.createdAt))
+    .limit(4);
+
+  const relatedInvestigations = await db
+    .select({
+      id: investigations.id,
+      title: investigations.title,
+      slug: investigations.slug,
+      subtitle: investigations.subtitle,
+      publishedAt: investigations.publishedAt,
+    })
+    .from(investigationCaseLinks)
+    .innerJoin(investigations, eq(investigationCaseLinks.investigationId, investigations.id))
+    .where(and(eq(investigationCaseLinks.caseId, caseRow.id), eq(investigations.status, "published")))
+    .orderBy(desc(investigations.publishedAt))
     .limit(4);
 
   const videos = await db
@@ -282,6 +313,7 @@ export default async function CaseDetailPage({
     { href: "#intelligence", label: "Case Intelligence" },
     { href: "#timeline", label: "Timeline" },
     { href: "#stands", label: "Where It Stands" },
+    ...(relatedInvestigations.length > 0 ? [{ href: "#investigations", label: "Investigations" }] : []),
     ...(developments.length > 0 ? [{ href: "#developments", label: "Developments" }] : []),
     ...(relatedReporting.length > 0 ? [{ href: "#reporting", label: "Related Reporting" }] : []),
     ...(mainVideo ? [{ href: "#attention", label: "Public Attention" }] : []),
@@ -574,6 +606,27 @@ export default async function CaseDetailPage({
             )}
           </section>
 
+          {/* RELATED XONORATE INVESTIGATIONS — original investigative work
+              connected to this case, hidden until one is published */}
+          {relatedInvestigations.length > 0 && (
+            <section id="investigations" className="mt-12 scroll-mt-16">
+              <Eyebrow text="Related Xonorate investigations" />
+              <div className="mt-4 space-y-4">
+                {relatedInvestigations.map((inv) => (
+                  <Link
+                    key={inv.id}
+                    href={`/investigations/${inv.slug}`}
+                    className="group block border border-border p-5 transition hover:border-brand"
+                  >
+                    <p className="font-mono text-xs font-bold tracking-wide text-brand uppercase">Investigation</p>
+                    <p className="mt-1 font-serif text-2xl text-foreground group-hover:text-brand">{inv.title}</p>
+                    {inv.subtitle && <p className="mt-1 text-sm text-muted">{inv.subtitle}</p>}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* CASE DEVELOPMENTS — hidden entirely until at least one exists */}
           {developments.length > 0 && (
             <section id="developments" className="mt-12 scroll-mt-16">
@@ -596,7 +649,8 @@ export default async function CaseDetailPage({
             </section>
           )}
 
-          {/* RELATED REPORTING — Newsroom posts tagged to this case; hidden
+          {/* RELATED REPORTING — Xonorate Investigates posts tagged to this
+              case (via posts.caseId or the newer postCaseLinks), hidden
               until one exists */}
           {relatedReporting.length > 0 && (
             <section id="reporting" className="mt-12 scroll-mt-16">

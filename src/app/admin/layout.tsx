@@ -14,17 +14,24 @@ export const dynamic = "force-dynamic";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
+  // Editorial pipeline, in workflow order: discover -> investigate -> write.
+  { href: "/admin/intelligence", label: "Xonorate Intelligence" },
+  { href: "/admin/investigations", label: "Investigations" },
+  { href: "/admin/posts", label: "Editorial Content" },
+  // Case pipeline.
   { href: "/admin/cases", label: "Cases" },
   { href: "/admin/cases/candidates", label: "Candidates" },
+  // Public engagement.
   { href: "/admin/petitions", label: "Petitions" },
-  { href: "/admin/supporters", label: "Supporters" },
-  { href: "/admin/supporter-updates", label: "Supporter Updates" },
   { href: "/admin/case-submissions", label: "Case Submissions" },
   { href: "/admin/inquiries", label: "Inquiries" },
   { href: "/admin/comments", label: "Comments" },
-  { href: "/admin/posts", label: "Roundup" },
+  // Community/reach.
+  { href: "/admin/supporters", label: "Supporters" },
+  { href: "/admin/supporter-updates", label: "Supporter Updates" },
   { href: "/admin/social", label: "Social" },
   { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/help", label: "Help & Guide" },
 ];
 
 export default async function AdminLayout({

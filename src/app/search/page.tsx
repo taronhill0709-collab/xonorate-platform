@@ -102,7 +102,7 @@ export default async function SearchPage({
 
         {postResults.length > 0 && (
           <section className="mt-10">
-            <Eyebrow text="Newsroom" />
+            <Eyebrow text="Investigates" />
             <ul className="mt-3 divide-y divide-border border-t border-b border-border">
               {postResults.map((p) => (
                 <li key={p.id}>

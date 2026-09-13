@@ -1,10 +1,23 @@
-import { eq } from "drizzle-orm";
-import Link from "next/link";
+import { and, desc, eq, ne, notInArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { SubmitButton } from "@/app/admin/_components/field";
 import { db } from "@/db";
-import { cases, posts } from "@/db/schema";
+import { cases, contentSources, intelligenceItems, postCaseLinks, postIssueLinks, posts } from "@/db/schema";
+import { CREATE_WITH_THIS_POST_TYPES } from "@/lib/intelligence";
 import { POST_STATUS_LABEL, POST_TYPE_LABEL } from "@/lib/post-type";
-import { approvePost, deletePost } from "../actions";
+import { approvePost, deletePost, removeContentSource, updatePost } from "../actions";
+import { DraftBodyButton } from "../draft-body-button";
+import { PostFormFields, SourceMaterialSection, type SourceMaterialItem } from "../post-form";
+
+function toSourceMaterialItem(item: typeof intelligenceItems.$inferSelect): SourceMaterialItem {
+  return {
+    id: item.id,
+    headline: item.headline,
+    sourcePublication: item.sourcePublication,
+    sourceUrl: item.sourceUrl,
+    publishedAt: item.publishedAt,
+  };
+}
 
 export default async function AdminPostDetailPage({
   params,
@@ -16,17 +29,62 @@ export default async function AdminPostDetailPage({
   const [post] = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
   if (!post) notFound();
 
-  const linkedCase = post.caseId
-    ? (
-        await db
-          .select({ clientName: cases.clientName, slug: cases.slug })
-          .from(cases)
-          .where(eq(cases.id, post.caseId))
-          .limit(1)
-      )[0]
-    : null;
+  const [caseRows, caseLinkRows, issueLinkRows, attachedSourceRows] = await Promise.all([
+    db.select({ id: cases.id, clientName: cases.clientName }).from(cases).orderBy(cases.clientName),
+    db.select({ caseId: postCaseLinks.caseId }).from(postCaseLinks).where(eq(postCaseLinks.postId, id)),
+    db.select({ issueTag: postIssueLinks.issueTag }).from(postIssueLinks).where(eq(postIssueLinks.postId, id)),
+    db
+      .select({ contentSourceId: contentSources.id, item: intelligenceItems })
+      .from(contentSources)
+      .innerJoin(intelligenceItems, eq(contentSources.intelligenceItemId, intelligenceItems.id))
+      .where(and(eq(contentSources.targetType, "post"), eq(contentSources.targetId, id))),
+  ]);
 
-  const sources = post.sources as { url: string; title: string }[];
+  const attachedItemIds = attachedSourceRows.map((r) => r.item.id);
+  const candidateRows = await db
+    .select()
+    .from(intelligenceItems)
+    .where(
+      attachedItemIds.length > 0
+        ? and(ne(intelligenceItems.status, "rejected"), notInArray(intelligenceItems.id, attachedItemIds))
+        : ne(intelligenceItems.status, "rejected"),
+    )
+    .orderBy(desc(intelligenceItems.createdAt))
+    .limit(50);
+
+  const defaultValues = {
+    type: post.type,
+    title: post.title,
+    body: post.body,
+    whyThisMatters: post.whyThisMatters ?? "",
+    whatToWatch: ((post.whatToWatch as string[] | null) ?? []).join("\n"),
+    state: post.state ?? "",
+  };
+
+  // Legacy types (daily_roundup, case_spotlight, policy) can't be picked for
+  // new content, but an existing post of one of those types must still show
+  // its current type in the select rather than silently swapping it.
+  const availableTypes = CREATE_WITH_THIS_POST_TYPES.includes(post.type as (typeof CREATE_WITH_THIS_POST_TYPES)[number])
+    ? [...CREATE_WITH_THIS_POST_TYPES]
+    : [post.type, ...CREATE_WITH_THIS_POST_TYPES];
+
+  // Re-drafting uses the first attached source as the basis — same as the
+  // original "Create With This" draft.
+  const primarySource = attachedSourceRows[0]?.item ?? null;
+  const primarySourceCaseName = caseLinkRows[0]
+    ? (caseRows.find((c) => c.id === caseLinkRows[0].caseId)?.clientName ?? null)
+    : null;
+  const draftInput = primarySource
+    ? {
+        headline: primarySource.headline,
+        sourcePublication: primarySource.sourcePublication,
+        sourceUrl: primarySource.sourceUrl,
+        summary: primarySource.summary,
+        whyThisMatters: post.whyThisMatters,
+        issueTags: (primarySource.issueTags as string[] | null) ?? [],
+        caseName: primarySourceCaseName,
+      }
+    : null;
 
   return (
     <div className="max-w-2xl">
@@ -58,34 +116,28 @@ export default async function AdminPostDetailPage({
         </div>
       </div>
 
-      {linkedCase && (
-        <p className="mt-2 text-sm text-muted">
-          About:{" "}
-          <Link href={`/admin/cases/${post.caseId}/edit`} className="underline">
-            {linkedCase.clientName}
-          </Link>
-        </p>
-      )}
-      {post.state && <p className="mt-1 text-sm text-muted">State: {post.state}</p>}
+      <form action={updatePost.bind(null, post.id)} className="mt-6 space-y-4">
+        <SourceMaterialSection
+          removableSources={attachedSourceRows.map((r) => ({
+            contentSourceId: r.contentSourceId,
+            item: toSourceMaterialItem(r.item),
+          }))}
+          candidateSources={candidateRows.map(toSourceMaterialItem)}
+          removeAction={removeContentSource.bind(null, post.id)}
+        />
 
-      <article className="mt-6 whitespace-pre-wrap rounded-lg border border-border p-5 text-sm text-foreground">
-        {post.body}
-      </article>
+        {draftInput && <DraftBodyButton input={draftInput} />}
 
-      <h2 className="mt-8 font-serif text-lg text-foreground">Sources</h2>
-      {sources.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">No sources listed.</p>
-      ) : (
-        <ul className="mt-3 space-y-1 text-sm">
-          {sources.map((s, i) => (
-            <li key={i}>
-              <a href={s.url} className="text-brand underline" target="_blank" rel="noopener noreferrer">
-                {s.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+        <PostFormFields
+          availableTypes={availableTypes}
+          defaultValues={defaultValues}
+          caseRows={caseRows}
+          selectedCaseIds={caseLinkRows.map((r) => r.caseId)}
+          selectedIssueTags={issueLinkRows.map((r) => r.issueTag)}
+        />
+
+        <SubmitButton>Save changes</SubmitButton>
+      </form>
     </div>
   );
 }

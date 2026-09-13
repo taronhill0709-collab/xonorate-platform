@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { VideoCard } from "@/components/video-card";
 import { db } from "@/db";
-import { caseVideos, cases, petitions, posts, signatures, siteSettings } from "@/db/schema";
+import { caseVideos, cases, investigations, petitions, posts, signatures, siteSettings } from "@/db/schema";
 import { CASE_STATUS_LABEL, SPOTLIGHT_CASE_LABEL } from "@/lib/case-status";
 import { formatCompactCount } from "@/lib/format-count";
 import {
@@ -124,6 +124,19 @@ export default async function Home() {
     .from(cases)
     .where(ne(cases.status, "exonerated"));
 
+  const [featuredInvestigation] = await db
+    .select({
+      id: investigations.id,
+      title: investigations.title,
+      slug: investigations.slug,
+      subtitle: investigations.subtitle,
+      heroImageUrl: investigations.heroImageUrl,
+    })
+    .from(investigations)
+    .where(eq(investigations.status, "published"))
+    .orderBy(desc(investigations.publishedAt))
+    .limit(1);
+
   const latestPosts = await db
     .select({
       id: posts.id,
@@ -138,7 +151,7 @@ export default async function Home() {
     .from(posts)
     .where(eq(posts.status, "published"))
     .orderBy(asc(posts.sortOrder), desc(posts.createdAt))
-    .limit(4);
+    .limit(featuredInvestigation ? 3 : 4);
 
   const platformStats = await getPlatformStats();
   const [settings] = await db
@@ -428,57 +441,102 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* SECTION 04 — XONORATE NEWSROOM. Only renders once at least one
-            post has actually been published from /admin/posts — no
-            placeholder stories. */}
-        {latestPosts.length > 0 && (
+        {/* SECTION 04 — XONORATE INVESTIGATES. Only renders once at least
+            one investigation or post has actually been published — no
+            placeholder stories. Leads with a Featured Investigation when
+            one exists; otherwise falls back to the flat latest-posts grid
+            it always showed, so the section never looks broken while no
+            investigation has been published yet. */}
+        {(featuredInvestigation || latestPosts.length > 0) && (
           <section className="border-t border-header-border bg-header-background py-16">
             <div className="mx-auto w-full max-w-6xl px-6">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <Eyebrow text="Xonorate newsroom" />
+                  <Eyebrow text="Xonorate Investigates" />
                   <h2 className="mt-2 font-serif text-3xl text-header-foreground sm:text-4xl">
-                    Investigate. Inform. Empower.
+                    Beyond the headline.
                   </h2>
                 </div>
                 <Link
                   href="/news"
                   className="hidden shrink-0 items-center gap-1 text-sm font-semibold tracking-wide text-header-muted uppercase transition hover:text-header-foreground sm:flex"
                 >
-                  View newsroom <ArrowRight size={14} />
+                  View Investigates <ArrowRight size={14} />
                 </Link>
               </div>
-              <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {latestPosts.map((post) => (
-                  <Link key={post.id} href={`/news/${post.slug}`} className="group flex flex-col">
-                    <div className="relative aspect-4/3 w-full overflow-hidden">
-                      {post.imageUrl ? (
-                        <Image
-                          src={post.imageUrl}
-                          alt=""
-                          fill
-                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                          className="object-cover transition duration-500 group-hover:scale-105"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-muted-background" />
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1.5 pt-3">
-                      <p className="text-[11px] font-semibold tracking-wide text-header-muted uppercase">
-                        {PUBLIC_POST_TYPE_LABEL[post.type] ?? post.type}
-                      </p>
-                      <p className="line-clamp-3 font-serif text-lg text-header-foreground">
-                        {post.title}
-                      </p>
-                      <p className="mt-auto font-mono text-[11px] text-header-muted uppercase">
-                        {NEWSROOM_DATE_FORMAT.format(post.publishedAt ?? post.createdAt)}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+
+              {featuredInvestigation && (
+                <Link
+                  href={`/investigations/${featuredInvestigation.slug}`}
+                  className="group mt-8 grid gap-6 border-b border-header-border pb-10 sm:grid-cols-2"
+                >
+                  <div className="relative aspect-video w-full overflow-hidden sm:aspect-auto">
+                    {featuredInvestigation.heroImageUrl ? (
+                      <Image
+                        src={featuredInvestigation.heroImageUrl}
+                        alt=""
+                        fill
+                        sizes="(min-width: 640px) 50vw, 100vw"
+                        className="object-cover transition duration-500 group-hover:scale-105"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="h-full w-full bg-muted-background" />
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-[11px] font-semibold tracking-wide text-brand uppercase">
+                      Featured Investigation
+                    </p>
+                    <p className="mt-2 font-serif text-2xl text-header-foreground sm:text-3xl">
+                      {featuredInvestigation.title}
+                    </p>
+                    {featuredInvestigation.subtitle && (
+                      <p className="mt-2 text-sm text-header-muted">{featuredInvestigation.subtitle}</p>
+                    )}
+                  </div>
+                </Link>
+              )}
+
+              {latestPosts.length > 0 && (
+                <div
+                  className={
+                    latestPosts.length === 3
+                      ? "mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                      : "mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                  }
+                >
+                  {latestPosts.map((post) => (
+                    <Link key={post.id} href={`/news/${post.slug}`} className="group flex flex-col">
+                      <div className="relative aspect-4/3 w-full overflow-hidden">
+                        {post.imageUrl ? (
+                          <Image
+                            src={post.imageUrl}
+                            alt=""
+                            fill
+                            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                            className="object-cover transition duration-500 group-hover:scale-105"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-muted-background" />
+                        )}
+                      </div>
+                      <div className="flex flex-1 flex-col gap-1.5 pt-3">
+                        <p className="text-[11px] font-semibold tracking-wide text-header-muted uppercase">
+                          {PUBLIC_POST_TYPE_LABEL[post.type] ?? post.type}
+                        </p>
+                        <p className="line-clamp-3 font-serif text-lg text-header-foreground">
+                          {post.title}
+                        </p>
+                        <p className="mt-auto font-mono text-[11px] text-header-muted uppercase">
+                          {NEWSROOM_DATE_FORMAT.format(post.publishedAt ?? post.createdAt)}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}

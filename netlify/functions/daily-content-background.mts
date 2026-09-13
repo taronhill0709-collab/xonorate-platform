@@ -1,7 +1,7 @@
-import { generateDailyPost } from "../../src/lib/content-pipeline";
+import { generateDailyIntelligence } from "../../src/lib/content-pipeline";
 
 // Background function: 15-minute execution budget (vs 30s for regular/scheduled
-// functions), which the research + writing pass genuinely needs. Triggered by
+// functions), which the research + enrichment pass genuinely needs. Triggered by
 // daily-content-trigger.mts, not called directly by users.
 async function handler(req: Request) {
   const secret = req.headers.get("x-daily-content-secret");
@@ -11,14 +11,14 @@ async function handler(req: Request) {
   }
 
   try {
-    const result = await generateDailyPost();
+    const result = await generateDailyIntelligence();
     console.log(
-      `[daily-content-background] generated roundup draft "${result.title}" (${result.id}) — pending admin review`,
+      `[daily-content-background] discovered ${result.discovered} stories (${result.highPriority} high priority) — pending admin review at /admin/intelligence`,
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     // Idempotency errors are not failures — log them as info to avoid noise
-    if (message.includes("already generated today")) {
+    if (message.includes("already discovered today")) {
       console.log(`[daily-content-background] ${message}`);
     } else {
       console.error("[daily-content-background] generation failed", err);

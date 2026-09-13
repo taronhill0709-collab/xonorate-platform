@@ -27,16 +27,17 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
 // Per the user's explicit footer layout (2026-09-12): lead with the
 // Xonorate brand itself, not "Xonorate Media Platform" — that name is
 // demoted to a small attribution line so it stops competing with the
-// brand. "Investigations" links to the Newsroom's daily-roundup filter
-// (NEWSROOM_TOPICS' "daily_roundup" topic) rather than a separate page,
-// since that's the real destination for that label. About/Contact are
-// intentionally dropped from this row (About stays in the header nav;
-// Contact/submit-inquiry stays reachable from Take Action and the About
-// page) — this footer is deliberately narrower than the last one.
+// brand. "Investigations" deep-links to the Xonorate Investigates page's
+// "investigations" topic filter (NEWSROOM_TOPICS), since original
+// investigative work is the flagship tier worth surfacing on its own.
+// About/Contact are intentionally dropped from this row (About stays in
+// the header nav; Contact/submit-inquiry stays reachable from Take Action
+// and the About page) — this footer is deliberately narrower than the
+// last one.
 const FOOTER_LINKS = [
   { href: "/cases", label: "Cases" },
-  { href: "/news", label: "Newsroom" },
-  { href: "/news?type=daily_roundup", label: "Investigations" },
+  { href: "/news", label: "Investigates" },
+  { href: "/news?type=investigations", label: "Investigations" },
   { href: "/issues", label: "Issues" },
   { href: "/take-action", label: "Take Action" },
 ];

@@ -14,14 +14,29 @@ export default async function AdminPostsPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl text-foreground">Roundup</h1>
-      <p className="mt-1 text-sm text-muted">
-        Daily wrongful-conviction news, researched and drafted for your review each morning.
-        Publish a draft to send it live on the public Newsroom at /news.
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-2xl text-foreground">Editorial content</h1>
+          <p className="mt-1 text-sm text-muted">
+            News briefs, case developments, analysis, and everything else created via Xonorate
+            Intelligence&apos;s &quot;Create With This&quot;, plus any older auto-generated roundups.
+            Publish a draft to send it live on the public site.
+          </p>
+        </div>
+        <Link
+          href="/admin/posts/new"
+          className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground hover:opacity-90"
+        >
+          New
+        </Link>
+      </div>
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-muted">
-          No drafts yet. The daily roundup pipeline writes one here each morning for review.
+          Nothing here yet. Create content directly, or from a discovered story at{" "}
+          <Link href="/admin/intelligence" className="underline">
+            Xonorate Intelligence
+          </Link>
+          .
         </p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">

@@ -5,15 +5,17 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SignOutButton } from "@/components/sign-out-button";
 import { XonorateMark } from "@/components/xonorate-mark";
 
-// Simplified per the Xonorate 2.0 brief's nav spec: Cases / News / The
-// Issues / Take Action / About, plus account links and the Submit a Case
-// button. Petitions, Exonerated, Resources, and Submit an inquiry were
+// Simplified per the Xonorate 2.0 brief's nav spec: Cases / Investigates /
+// The Issues / Take Action / About, plus account links and the Submit a
+// Case button. Petitions, Exonerated, Resources, and Submit an inquiry were
 // dropped from the top-level nav — they're still real pages, reachable via
 // the footer, the Take Action page (which lists petitions directly), and
 // Cases' own status filter (which includes Exonerated).
+// "Investigates" links to /news — that route wasn't renamed (existing
+// article URLs stay valid), only its public identity was.
 const PRIMARY_LINKS = [
   { href: "/cases", label: "Cases" },
-  { href: "/news", label: "News" },
+  { href: "/news", label: "Investigates" },
   { href: "/issues", label: "The Issues" },
   { href: "/take-action", label: "Take Action" },
   { href: "/about", label: "About" },

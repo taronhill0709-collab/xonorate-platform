@@ -131,7 +131,7 @@ export default async function IssueDetailPage({
               href="/news"
               className="border border-border p-5 transition hover:border-brand/50"
             >
-              <p className="font-serif text-lg text-foreground">Newsroom coverage</p>
+              <p className="font-serif text-lg text-foreground">Xonorate Investigates</p>
               <p className="mt-1 text-sm text-muted">
                 Read Xonorate&apos;s ongoing investigations and case developments.
               </p>

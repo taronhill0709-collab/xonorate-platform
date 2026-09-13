@@ -6,6 +6,7 @@ import {
   comments,
   generalInquiries,
   inquiries,
+  intelligenceItems,
   petitions,
   posts,
   signatures,
@@ -26,6 +27,7 @@ async function getCounts() {
     [pendingPostCount],
     [supporterCount],
     [newSupporterCount],
+    [pendingIntelligenceCount],
   ] = await Promise.all([
     db.select({ value: count() }).from(cases),
     db.select({ value: count() }).from(petitions),
@@ -57,6 +59,10 @@ async function getCounts() {
       .select({ value: count() })
       .from(users)
       .where(and(eq(users.role, "supporter"), gte(users.createdAt, sevenDaysAgo))),
+    db
+      .select({ value: count() })
+      .from(intelligenceItems)
+      .where(eq(intelligenceItems.status, "new")),
   ]);
 
   return {
@@ -69,6 +75,7 @@ async function getCounts() {
     pendingPosts: pendingPostCount.value,
     supporters: supporterCount.value,
     newSupportersThisWeek: newSupporterCount.value,
+    pendingIntelligence: pendingIntelligenceCount.value,
   };
 }
 
@@ -80,6 +87,11 @@ export default async function AdminDashboardPage() {
   const [counts, candidates] = await Promise.all([getCounts(), listCaseNreCandidates()]);
 
   const tiles = [
+    {
+      label: "Stories awaiting Intelligence review",
+      value: counts.pendingIntelligence,
+      href: "/admin/intelligence",
+    },
     { label: "Cases", value: counts.cases, href: "/admin/cases" },
     {
       label: "Exoneree candidates to review",
@@ -105,7 +117,7 @@ export default async function AdminDashboardPage() {
     },
     { label: "New inquiries", value: counts.newGeneralInquiries, href: "/admin/inquiries" },
     { label: "Comments to moderate", value: counts.pendingComments, href: "/admin/comments" },
-    { label: "Roundup drafts awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
+    { label: "Editorial content awaiting review", value: counts.pendingPosts, href: "/admin/posts" },
   ];
 
   return (
