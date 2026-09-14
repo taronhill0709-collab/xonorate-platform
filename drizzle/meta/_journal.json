@@ -260,6 +260,13 @@
       "when": 1789330271812,
       "tag": "0036_stiff_speed",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1789345708298,
+      "tag": "0037_dizzy_goliath",
+      "breakpoints": true
     }
   ]
 }

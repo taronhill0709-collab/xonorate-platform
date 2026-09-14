@@ -1,536 +1,181 @@
+import { and, count, eq } from "drizzle-orm";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { db } from "@/db";
+import { resources } from "@/db/schema";
+import { RESOURCE_CATEGORIES, RESOURCE_CATEGORY_DEK, RESOURCE_CATEGORY_LABEL } from "@/lib/resource-taxonomy";
 
-export const metadata = {
-  title: "Resources",
+export const metadata: Metadata = {
+  title: "Xonorate Resource Center",
   description:
-    "Resources for people navigating a wrongful conviction, their families, and anyone who wants to understand or push for reform.",
+    "Knowledge, tools, and pathways for understanding wrongful convictions and pursuing justice — practical guides, legal resources, research, advocacy tools, organizations, and educational materials.",
 };
 
-function ResourceCard({
-  name,
-  description,
-  href,
-  meta,
-  tone = "default",
-}: {
-  name: string;
-  description: string;
-  href: string;
-  meta?: string;
-  tone?: "default" | "crisis";
-}) {
-  const isExternal = href.startsWith("http");
-  return (
-    <a
-      href={href}
-      {...(isExternal
-        ? { target: "_blank", rel: "noopener noreferrer" }
-        : {})}
-      className={
-        tone === "crisis"
-          ? "block border border-accent bg-accent/10 p-5 transition hover:border-accent"
-          : "block border border-border p-5 transition hover:border-brand"
-      }
-    >
-      <p className="font-serif text-lg text-foreground">{name}</p>
-      <p className="mt-1 text-sm text-muted">{description}</p>
-      <p
-        className={
-          tone === "crisis"
-            ? "mt-2 font-mono text-xs font-bold tracking-wide text-accent uppercase"
-            : "mt-2 font-mono text-xs font-bold tracking-wide text-brand uppercase"
-        }
-      >
-        {meta ?? href.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-      </p>
-    </a>
-  );
-}
+// New resources are added via the admin CMS at any time — never statically prerendered.
+export const dynamic = "force-dynamic";
 
-const SECTIONS = [
+const PATHWAYS = [
   {
-    id: "know-your-rights",
-    title: "Know Your Rights",
-    body: (
-      <>
-        <p>
-          A large share of documented wrongful convictions trace back to what
-          happened in the first few minutes of a police encounter — before a
-          lawyer was ever in the room. These rights apply to everyone in the
-          United States, in every state, regardless of immigration or
-          citizenship status.
-        </p>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>
-            <strong className="text-foreground">
-              You have the right to remain silent, and the right to an
-              attorney.
-            </strong>{" "}
-            Say it out loud — clearly and calmly: &quot;I am going to remain
-            silent. I want a lawyer.&quot; Once you&apos;ve invoked these
-            rights, officers are required to stop questioning until counsel
-            is present. Simply staying quiet is not always enough; stating
-            it removes any ambiguity.
-          </li>
-          <li>
-            <strong className="text-foreground">
-              You can refuse a search of your person, car, or home.
-            </strong>{" "}
-            Without a warrant, your consent, or an emergency the law
-            recognizes, officers generally cannot search you or your
-            property. Say &quot;I do not consent to a search&quot; clearly —
-            you can say this even if they search anyway; it preserves the
-            issue for later. Do not physically resist.
-          </li>
-          <li>
-            <strong className="text-foreground">
-              If you&apos;re not under arrest, you can ask &quot;Am I free to
-              leave?&quot;
-            </strong>{" "}
-            If the answer is yes, you may calmly walk away. If the answer is
-            no, you are being detained or arrested, and the rights above
-            still apply.
-          </li>
-          <li>
-            <strong className="text-foreground">
-              You have the right to record police in public.
-            </strong>{" "}
-            Recording officers performing their duties in a public place is
-            constitutionally protected in every state, as long as you
-            don&apos;t physically interfere with their activity.
-          </li>
-          <li>
-            <strong className="text-foreground">
-              These rights do not depend on immigration or citizenship
-              status.
-            </strong>{" "}
-            Everyone physically present in the U.S. — citizen or not — has
-            the right to remain silent and the right to refuse to sign
-            anything without speaking to a lawyer first.
-          </li>
-        </ul>
-
-        <ResourceCard
-          name="ACLU — Know Your Rights"
-          description="The national hub covering police encounters, protests, immigration status, and more — and the place to start for finding your state ACLU affiliate's own guidance."
-          href="https://www.aclu.org/know-your-rights"
-        />
-
-        <p className="text-sm">
-          Many state ACLU affiliates publish free, printable, foldable
-          &quot;Know Your Rights&quot; cards in multiple languages sized to
-          keep in a wallet. The national hub above routes to each state
-          affiliate&apos;s version — start there rather than searching for a
-          specific state&apos;s card directly.
-        </p>
-
-        <p className="border border-border bg-muted-background p-4 text-sm text-muted">
-          This section is general public education, not legal advice, and it
-          is not a substitute for talking to a lawyer about a specific
-          situation. If you or someone you know is currently involved in a
-          police encounter or facing charges, contact an attorney or a
-          public defender&apos;s office as soon as possible.
-        </p>
-      </>
-    ),
+    title: "Understanding a wrongful conviction",
+    body: "Learn how wrongful convictions happen and what issues commonly contribute to them.",
+    href: "/resources/browse?category=knowledge",
   },
   {
-    id: "for-families",
-    title: "For Families",
-    body: (
-      <>
-        <p>
-          A wrongful conviction doesn&apos;t only happen to the person
-          convicted — it reshapes the lives of everyone around them: spouses
-          who become sole earners overnight, children who grow up with a
-          parent behind bars for a crime they didn&apos;t commit, and
-          communities that lose someone they knew wasn&apos;t capable of
-          what they were accused of. That toll rarely shows up in court
-          records, which is part of why we ask about it directly for every
-          case we document.
-        </p>
-        <p>
-          The{" "}
-          <a
-            href="https://nrccfi.camden.rutgers.edu/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            National Resource Center on Children &amp; Families of the
-            Incarcerated
-          </a>{" "}
-          (Rutgers University) publishes practical guidance on maintaining
-          contact during incarceration, talking to children about a
-          parent&apos;s imprisonment, and finding local family-support
-          programs — regardless of whether the conviction is being
-          contested.
-        </p>
-        <p>
-          Staying involved in a case is also concrete work: keeping copies
-          of every filing and court date, writing down what you remember
-          about the original investigation while it&apos;s fresh, and
-          maintaining contact with whoever is handling the appeal. Innocence
-          organizations and public defenders can only act as fast as they
-          get accurate information from the people closest to a case.
-        </p>
-      </>
-    ),
+    title: "Finding legal help",
+    body: "Find legal organizations, innocence organizations, conviction-review resources, and other relevant legal information.",
+    href: "/resources/browse?category=legal",
   },
   {
-    id: "innocence-organizations",
-    title: "Innocence Organizations",
-    body: (
-      <>
-        <p>
-          The{" "}
-          <a
-            href="https://innocencenetwork.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            Innocence Network
-          </a>{" "}
-          is the single best starting point: an association of more than 65
-          member organizations across the U.S. and abroad that investigate
-          innocence claims and pursue exoneration case by case, usually at
-          no cost to the client. Its member map routes you directly to the
-          organization that covers a specific state.
-        </p>
-
-        <ResourceCard
-          name="Innocence Network — Find a Member Organization"
-          description="Directory of 65+ regional innocence organizations. Start here to find the group that covers the state where the conviction happened."
-          href="https://innocencenetwork.org/network-members/"
-        />
-
-        <div className="border border-border p-4">
-          <p className="text-sm font-medium text-foreground">
-            Do you qualify for help from an innocence organization?
-          </p>
-          <p className="mt-2 text-sm text-muted">
-            Intake criteria differ by organization, but most Innocence
-            Network members generally look for:
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
-            <li>
-              A claim of <em>actual</em> innocence — not just a procedural or
-              sentencing error in an otherwise valid conviction.
-            </li>
-            <li>
-              A completed conviction. Most organizations don&apos;t take
-              cases that are still pretrial or on direct appeal with a public
-              defender already assigned.
-            </li>
-            <li>
-              Some avenue of case-specific evidence left to investigate —
-              untested DNA, forensic re-analysis, a recanting witness, or
-              newly discovered evidence — since these organizations
-              investigate, not just advocate.
-            </li>
-            <li>
-              Because caseloads are large and resources limited, cases with
-              more time remaining on the sentence are often prioritized,
-              though this varies by organization.
-            </li>
-          </ul>
-          <p className="mt-2 text-sm text-muted">
-            Every member organization has its own intake form on its
-            website, reached through the Innocence Network directory above.
-          </p>
-        </div>
-
-        <p>
-          <a
-            href="https://centurion.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            Centurion
-          </a>{" "}
-          (formerly Centurion Ministries), founded in 1983, was the first
-          organization in the country dedicated to investigating wrongful
-          conviction cases and has helped free dozens of people serving life
-          or death sentences.{" "}
-          <a
-            href="https://eji.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            Equal Justice Initiative
-          </a>{" "}
-          provides legal representation to people who may have been wrongly
-          convicted or denied a fair trial, with a particular focus on the
-          South.
-        </p>
-        <p>
-          The{" "}
-          <a
-            href="https://exonerationregistry.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand underline"
-          >
-            National Registry of Exonerations
-          </a>{" "}
-          (University of Michigan Law School) tracks every documented
-          exoneration in the U.S. since 1989 — case details, contributing
-          factors, time served — and is the source for the exoneration
-          statistics cited across this site.
-        </p>
-        <p className="text-sm text-muted">
-          If a case doesn&apos;t fit an innocence organization&apos;s intake
-          criteria, or needs representation for something other than an
-          innocence claim, see{" "}
-          <a href="#legal-resources" className="text-brand underline">
-            Legal Resources
-          </a>{" "}
-          below for public defender and lawyer-referral options.
-        </p>
-      </>
-    ),
+    title: "Researching a case",
+    body: "Find case-related research, public records, legal information, and investigative resources.",
+    href: "/resources/browse?category=case_resource",
   },
   {
-    id: "legal-resources",
-    title: "Legal Resources",
-    body: (
-      <>
-        <p>
-          Every state has a public defender or indigent-defense system for
-          people who can&apos;t afford an attorney, and most state bar
-          associations run a lawyer-referral directory. Search &quot;[state]
-          bar association lawyer referral service&quot; to find the one for
-          a specific state, or start with a post-conviction unit inside the
-          state public defender&apos;s office where one exists.
-        </p>
-
-        <ResourceCard
-          name="Restoration of Rights Project"
-          description="Collateral Consequences Resource Center's free, state-by-state guide to expungement, record sealing, pardons, and restoring professional licenses after a conviction — the best resource for 'how do I get my license back.'"
-          href="https://ccresourcecenter.org/"
-        />
-
-        <ResourceCard
-          name="National Association of Criminal Defense Lawyers (NACDL)"
-          description="Attorney referrals and post-conviction resources, including a dedicated eyewitness identification hub — one of the leading contributing factors in wrongful convictions."
-          href="https://www.nacdl.org/"
-        />
-
-        <ResourceCard
-          name="National Registry of Exonerations"
-          description="Research database tracking exonerations nationwide, including a state-by-state guide to wrongful-conviction compensation laws — use it to see what compensation, if any, a given state provides."
-          href="https://exonerationregistry.org/about"
-        />
-
-        <ResourceCard
-          name="ABA Find Legal Help"
-          description="The American Bar Association's directory for locating legal aid and lawyer-referral services by state."
-          href="https://www.americanbar.org/groups/legal_services/flh-home/"
-        />
-
-        <ResourceCard
-          name="National Legal Aid & Defender Association (NLADA)"
-          description="Works to expand access to public defense nationally and can point to state-level public defender and legal aid resources."
-          href="https://www.nlada.org/"
-        />
-
-        <p className="text-sm text-muted">
-          State public defender post-conviction units and state bar
-          lawyer-referral services vary widely — there&apos;s no single
-          national directory, so the fastest path is usually searching
-          &quot;[state] bar association lawyer referral service&quot; or
-          &quot;[state] public defender post-conviction unit&quot; directly.
-        </p>
-      </>
-    ),
+    title: "Helping someone",
+    body: "Resources for families, advocates, and people supporting someone affected by a wrongful conviction.",
+    href: "/resources/browse?category=help_support",
   },
   {
-    id: "justice-reform",
-    title: "Justice Reform",
-    body: (
-      <>
-        <p>
-          Wrongful convictions recur because of identifiable, fixable
-          failures — eyewitness misidentification, unvalidated forensic
-          science, false confessions, informant testimony, and official
-          misconduct chief among them. For anyone who wants to work on the
-          system itself rather than an individual case, these organizations
-          lead on research, litigation, and policy:
-        </p>
-
-        <ResourceCard
-          name="The Sentencing Project"
-          description="Research and advocacy on sentencing policy and state-level incarceration data."
-          href="https://www.sentencingproject.org/"
-        />
-        <ResourceCard
-          name="Prison Policy Initiative"
-          description="Independent research exposing the scale and harms of mass incarceration nationwide."
-          href="https://www.prisonpolicy.org/"
-        />
-        <ResourceCard
-          name="Brennan Center for Justice"
-          description="Legal and policy work on prosecutorial accountability and systemic criminal justice reform."
-          href="https://www.brennancenter.org/"
-        />
-        <ResourceCard
-          name="Equal Justice Initiative"
-          description="Litigation and advocacy on prosecutorial and police misconduct, unreliable forensic evidence, and indigent defense."
-          href="https://eji.org/"
-        />
-        <ResourceCard
-          name="ACLU Campaign for Smart Justice"
-          description="Focused campaign work on prosecutorial accountability and district attorney elections."
-          href="https://www.aclu.org/issues/smart-justice"
-        />
-        <ResourceCard
-          name="The Marshall Project"
-          description="Nonprofit journalism covering the criminal justice system in depth."
-          href="https://www.themarshallproject.org/"
-        />
-
-        <p className="text-sm text-muted">
-          Contacting state legislators about specific reforms — by name, not
-          in the abstract — remains one of the most direct ways an
-          individual can reduce future wrongful convictions.
-        </p>
-      </>
-    ),
+    title: "Taking action",
+    body: "Find petitions, advocacy tools, outreach resources, and ways to support justice campaigns.",
+    href: "/resources/browse?category=advocacy",
   },
   {
-    id: "support-services",
-    title: "Support Services",
-    body: (
-      <>
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          In crisis right now?
-        </p>
-        <ResourceCard
-          tone="crisis"
-          name="988 Suicide & Crisis Lifeline"
-          description="Free and confidential support for anyone in crisis, available around the clock."
-          href="https://988lifeline.org/"
-          meta="Call or text 988 — 24/7"
-        />
-
-        <p className="mt-6 font-serif text-lg text-foreground">
-          Mental health &amp; trauma
-        </p>
-        <ResourceCard
-          name="SAMHSA National Helpline"
-          description="Free, confidential treatment referral and information service for mental health and substance use, 24/7."
-          href="https://www.samhsa.gov/find-help/national-helpline"
-          meta="1-800-662-4357 · 24/7"
-        />
-        <ResourceCard
-          name="Healing Justice"
-          description="Restorative justice and trauma-informed support built specifically for exonerees and their families."
-          href="https://healingjustice.org/"
-        />
-
-        <p className="mt-6 font-serif text-lg text-foreground">
-          Reentry, housing &amp; employment
-        </p>
-        <ResourceCard
-          name="211"
-          description="The national helpline connecting anyone to local housing, food, healthcare, and financial assistance by zip code — the best single starting point if you don't know where to look locally."
-          href="https://www.211.org/"
-          meta="Call 211 or visit 211.org"
-        />
-        <ResourceCard
-          name="After Innocence"
-          description="Case management connecting exonerees to healthcare, benefits, social services, and legal assistance during reentry."
-          href="https://after-innocence.org/"
-        />
-        <ResourceCard
-          name="National Reentry Resource Center"
-          description="Directories of housing and employment reentry programs, run by the Council of State Governments Justice Center."
-          href="https://csgjusticecenter.org/"
-        />
-
-        <p className="mt-6 font-serif text-lg text-foreground">
-          Restoring licenses &amp; credentials
-        </p>
-        <ResourceCard
-          name="Restoration of Rights Project"
-          description="The same free, state-by-state guide referenced under Legal Resources — restoring a professional license or occupational credential after a conviction is as much a support-services need as a legal one."
-          href="https://ccresourcecenter.org/"
-        />
-
-        <p className="mt-6 font-serif text-lg text-foreground">
-          Death row exonerees
-        </p>
-        <ResourceCard
-          name="Witness to Innocence"
-          description="Peer support and public advocacy run by exonerees themselves, including former death row survivors."
-          href="https://www.witnesstoinnocence.org/"
-        />
-
-        <p className="mt-2 text-sm text-muted">
-          Compensation for the wrongly convicted is not automatic. Most, but
-          not all, states have a compensation statute, and the amount,
-          eligibility rules, and whether time served is even a factor vary
-          enormously by jurisdiction — see the National Registry of
-          Exonerations link under Legal Resources above for a state-by-state
-          breakdown.
-        </p>
-      </>
-    ),
+    title: "Learning about the system",
+    body: "Understand the causes, procedures, institutions, and issues surrounding wrongful convictions.",
+    href: "/issues",
   },
 ] as const;
 
-export default function ResourcesPage() {
+export default async function ResourcesHubPage() {
+  const [categoryCountRows, featuredRows] = await Promise.all([
+    db
+      .select({ category: resources.category, value: count() })
+      .from(resources)
+      .where(eq(resources.status, "published"))
+      .groupBy(resources.category),
+    db
+      .select({
+        id: resources.id,
+        title: resources.title,
+        slug: resources.slug,
+        description: resources.description,
+        category: resources.category,
+      })
+      .from(resources)
+      .where(and(eq(resources.status, "published"), eq(resources.featured, true)))
+      .limit(1),
+  ]);
+
+  const countByCategory = new Map(categoryCountRows.map((r) => [r.category, r.value]));
+  const featured = featuredRows[0] ?? null;
+
   return (
     <>
       <SiteHeader />
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
-          <div className="mx-auto w-full max-w-3xl px-6 py-14">
-            <Eyebrow text="Resources" />
-            <h1 className="mt-2 font-serif text-3xl text-header-foreground sm:text-5xl">
-              Resources
+          <div className="mx-auto w-full max-w-3xl px-6 py-16">
+            <Eyebrow text="Xonorate Resource Center" />
+            <h1 className="mt-3 font-serif text-4xl text-header-foreground sm:text-6xl">
+              Knowledge is a tool for justice.
             </h1>
-            <p className="mt-2 max-w-xl text-header-muted">
-              For people navigating a wrongful conviction, their families,
-              and anyone who wants to understand — or push for reform of —
-              the system that makes wrongful conviction possible.
+            <p className="mt-4 max-w-xl text-lg text-header-muted">
+              Explore practical guides, legal resources, research, advocacy tools, organizations, and educational
+              materials related to wrongful convictions.
             </p>
+            <form action="/resources/browse" className="mt-6 flex gap-2">
+              <input
+                type="search"
+                name="q"
+                placeholder="Search wrongful-conviction resources…"
+                className="w-full border border-header-border bg-header-background px-4 py-2.5 text-sm text-header-foreground placeholder:text-header-muted focus:border-brand focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="shrink-0 bg-brand px-5 py-2.5 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent"
+              >
+                Search
+              </button>
+            </form>
+            <Link
+              href="/resources/start-here"
+              className="mt-4 inline-block font-mono text-xs font-bold tracking-widest text-link uppercase hover:text-link-strong"
+            >
+              New here? Start here →
+            </Link>
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-2xl px-6 py-14">
-        <nav className="flex flex-wrap gap-x-4 gap-y-2 border-y border-border py-4 text-sm">
-          {SECTIONS.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="text-xs font-bold tracking-wide text-brand uppercase hover:underline"
-            >
-              {s.title}
-            </a>
-          ))}
-        </nav>
-
-        <div className="mt-10 space-y-12">
-          {SECTIONS.map((s) => (
-            <section key={s.id} id={s.id} className="scroll-mt-20">
-              <Eyebrow text={s.title} />
-              <div className="mt-3 space-y-3 text-muted">{s.body}</div>
-            </section>
-          ))}
+        <div className="mx-auto w-full max-w-6xl px-6 py-14">
+          <Eyebrow text="What are you looking for?" />
+          <div className="mt-6 grid grid-cols-1 gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+            {PATHWAYS.map((p) => (
+              <Link
+                key={p.title}
+                href={p.href}
+                className="group flex flex-col gap-3 bg-background p-6 transition hover:bg-muted-background"
+              >
+                <h2 className="font-serif text-xl text-foreground">{p.title}</h2>
+                <p className="text-sm text-muted">{p.body}</p>
+                <span className="mt-auto pt-3 font-mono text-[11px] font-bold tracking-wide text-brand uppercase transition group-hover:text-accent">
+                  Explore →
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
 
-        <p className="mt-16 border-t border-border pt-6 text-sm text-muted">
-          This page provides general guidance on where to seek help. It is
-          not legal or medical advice, and it isn&apos;t a substitute for
-          consulting a licensed attorney or medical professional about a
-          specific situation.
-        </p>
+        {featured && (
+          <div className="border-y border-header-border bg-header-background">
+            <div className="mx-auto w-full max-w-6xl px-6 py-14">
+              <Eyebrow text="Featured resource" />
+              <Link href={`/resources/${featured.slug}`} className="group mt-4 block">
+                <p className="font-mono text-xs font-bold tracking-widest text-brand uppercase">
+                  {RESOURCE_CATEGORY_LABEL[featured.category] ?? featured.category}
+                </p>
+                <h2 className="mt-2 max-w-2xl font-serif text-3xl text-header-foreground transition group-hover:text-brand sm:text-4xl">
+                  {featured.title}
+                </h2>
+                <p className="mt-3 max-w-xl text-header-muted">{featured.description}</p>
+                <span className="mt-4 inline-block font-mono text-xs font-bold tracking-widest text-header-foreground uppercase transition group-hover:text-brand">
+                  Start here →
+                </span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <div className="mx-auto w-full max-w-6xl px-6 py-14">
+          <Eyebrow text="Browse by category" />
+          <div className="mt-6 grid grid-cols-1 gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+            {RESOURCE_CATEGORIES.filter((c) => (countByCategory.get(c) ?? 0) > 0).map((c) => (
+              <Link
+                key={c}
+                href={`/resources/browse?category=${c}`}
+                className="group flex flex-col gap-3 bg-background p-6 transition hover:bg-muted-background"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="font-serif text-xl text-foreground">{RESOURCE_CATEGORY_LABEL[c]}</h2>
+                  <span className="shrink-0 font-serif text-2xl text-brand tabular-nums">{countByCategory.get(c)}</span>
+                </div>
+                <p className="text-sm text-muted">{RESOURCE_CATEGORY_DEK[c]}</p>
+                <span className="mt-auto pt-3 font-mono text-[11px] font-bold tracking-wide text-brand uppercase transition group-hover:text-accent">
+                  Browse →
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-8 text-sm text-muted">
+            Looking for everything at once?{" "}
+            <Link href="/resources/browse" className="text-brand underline">
+              Browse the full Resource Center
+            </Link>
+            .
+          </p>
         </div>
       </main>
       <SiteFooter />

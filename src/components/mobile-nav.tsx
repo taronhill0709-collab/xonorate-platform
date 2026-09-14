@@ -22,9 +22,10 @@ export function MobileNav({ children }: { children: React.ReactNode }) {
           <nav
             className="flex flex-col gap-4 text-sm"
             onClick={(e) => {
-              // Only close on an actual link click — otherwise this fires on
-              // the Resources <summary> toggle too and closes the whole menu
-              // before its <details> panel ever gets a chance to open.
+              // Only close on an actual link click — every item here is a
+              // plain <Link> now (the old Resources dropdown was replaced by
+              // a single link), but this guard is still correct if a
+              // non-link control is ever added to the menu.
               if (e.target instanceof Element && e.target.closest("a")) {
                 setOpen(false);
               }

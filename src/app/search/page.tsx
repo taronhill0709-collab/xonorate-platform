@@ -5,10 +5,11 @@ import { Eyebrow } from "@/components/eyebrow";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
-import { cases, posts } from "@/db/schema";
+import { cases, posts, resources } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
 import { ISSUES } from "@/lib/issues";
 import { PUBLIC_POST_TYPE_LABEL } from "@/lib/post-type";
+import { RESOURCE_CATEGORY_LABEL } from "@/lib/resource-taxonomy";
 
 export const metadata: Metadata = { title: "Search" };
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const query = (q ?? "").trim();
 
-  const [caseResults, postResults] = query
+  const [caseResults, postResults, resourceResults] = query
     ? await Promise.all([
         db
           .select({
@@ -39,14 +40,24 @@ export default async function SearchPage({
           .from(posts)
           .where(and(eq(posts.status, "published"), ilike(posts.title, `%${query}%`)))
           .limit(20),
+        db
+          .select({ id: resources.id, title: resources.title, slug: resources.slug, category: resources.category })
+          .from(resources)
+          .where(
+            and(
+              eq(resources.status, "published"),
+              or(ilike(resources.title, `%${query}%`), ilike(resources.description, `%${query}%`)),
+            ),
+          )
+          .limit(20),
       ])
-    : [[], []];
+    : [[], [], []];
 
   const issueResults = query
     ? ISSUES.filter((issue) => issue.title.toLowerCase().includes(query.toLowerCase()))
     : [];
 
-  const totalResults = caseResults.length + postResults.length + issueResults.length;
+  const totalResults = caseResults.length + postResults.length + resourceResults.length + issueResults.length;
 
   return (
     <>
@@ -113,6 +124,27 @@ export default async function SearchPage({
                     <span className="font-serif text-lg text-foreground">{p.title}</span>
                     <span className="shrink-0 font-mono text-xs font-bold tracking-wide text-label uppercase">
                       {PUBLIC_POST_TYPE_LABEL[p.type] ?? p.type}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {resourceResults.length > 0 && (
+          <section className="mt-10">
+            <Eyebrow text="Resource Center" />
+            <ul className="mt-3 divide-y divide-border border-t border-b border-border">
+              {resourceResults.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    href={`/resources/${r.slug}`}
+                    className="flex items-baseline justify-between gap-3 py-3 transition hover:bg-muted-background"
+                  >
+                    <span className="font-serif text-lg text-foreground">{r.title}</span>
+                    <span className="shrink-0 font-mono text-xs font-bold tracking-wide text-label uppercase">
+                      {RESOURCE_CATEGORY_LABEL[r.category] ?? r.category}
                     </span>
                   </Link>
                 </li>

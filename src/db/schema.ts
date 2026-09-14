@@ -135,6 +135,31 @@ export const generalInquiryStatusEnum = pgEnum("general_inquiry_status", [
 
 export const videoPlatformEnum = pgEnum("video_platform", ["instagram", "facebook"]);
 
+// --- Resource Center ---
+
+export const resourceCategoryEnum = pgEnum("resource_category", [
+  "knowledge",
+  "legal",
+  "case_resource",
+  "advocacy",
+  "research",
+  "help_support",
+]);
+
+export const resourceTypeEnum = pgEnum("resource_type", [
+  "guide",
+  "tool",
+  "organization",
+  "legal_resource",
+  "research",
+  "report",
+  "data",
+  "court_resource",
+  "educational",
+  "advocacy",
+  "directory",
+]);
+
 // --- Auth.js required tables (Drizzle adapter shape) ---
 
 export const users = pgTable("users", {
@@ -745,6 +770,81 @@ export const investigationIssueLinks = pgTable(
     issueTag: text("issue_tag").notNull(),
   },
   (t) => [primaryKey({ columns: [t.investigationId, t.issueTag] })],
+);
+
+// --- Resource Center ---
+// The Xonorate Resource Center: a curated knowledge/legal/advocacy library,
+// distinct from `posts` (news/editorial) and `investigations` (original
+// reporting). A resource is either a pure external-link card (`url` set,
+// `body` null — most migrated legacy resources) or an internal editorial
+// guide with its own detail page (`body` set, Markdown like posts.body).
+// Reuses `postStatusEnum` rather than a new status enum — same
+// pending/published lifecycle. Resource<->investigation linking is
+// deliberately not modeled yet (Phase 2).
+export const resources = pgTable("resources", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  category: resourceCategoryEnum("category").notNull(),
+  // Free-text label (e.g. "False Confessions") shown under the category —
+  // not an enum, since subcategories are editorial groupings that can grow
+  // without a migration, same as cases.county staying free text.
+  subcategory: text("subcategory"),
+  resourceType: resourceTypeEnum("resource_type").notNull(),
+  // Validated against RESOURCE_AUDIENCES (resource-taxonomy.ts) at the app
+  // layer, not a DB enum — same free-array pattern as
+  // cases.contributingFactorTags, so Phase 2 can adjust the audience list
+  // without a migration. string[]
+  audiences: jsonb("audiences").notNull().default([]),
+  // Free text, matching cases.state's convention — populated today for
+  // filtering; the dedicated state-by-state hub UX is Phase 2.
+  state: text("state"),
+  organization: text("organization"),
+  author: text("author"),
+  // The card dek — always required, even for a pure external link.
+  description: text("description").notNull(),
+  // Long-form Markdown for an internal editorial resource's own detail
+  // page. Null for a pure external-link card. At least one of body/url is
+  // required — enforced in admin/resources/actions.ts, not the DB.
+  body: text("body"),
+  url: text("url"),
+  tags: jsonb("tags").notNull().default([]), // string[]
+  // At most one row should be true at a time — enforced in the admin
+  // toggleFeatured action, same convention as investigations.isFeatured.
+  featured: boolean("featured").notNull().default(false),
+  publishedAt: timestamp("published_at"),
+  // Null until an admin explicitly marks this reviewed — the public detail
+  // page must never present unreviewed info as current (see §19 of the
+  // Resource Center brief).
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  status: postStatusEnum("status").notNull().default("pending"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const resourceCaseLinks = pgTable(
+  "resource_case_links",
+  {
+    resourceId: uuid("resource_id")
+      .notNull()
+      .references(() => resources.id, { onDelete: "cascade" }),
+    caseId: uuid("case_id")
+      .notNull()
+      .references(() => cases.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.resourceId, t.caseId] })],
+);
+
+export const resourceIssueLinks = pgTable(
+  "resource_issue_links",
+  {
+    resourceId: uuid("resource_id")
+      .notNull()
+      .references(() => resources.id, { onDelete: "cascade" }),
+    issueTag: text("issue_tag").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.resourceId, t.issueTag] })],
 );
 
 // --- Photo library (shared stock photos editors can attach to content) ---

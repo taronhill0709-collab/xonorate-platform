@@ -153,7 +153,7 @@ export default async function AboutPage() {
           known: the facts of the conviction, and the toll it&apos;s taken
           on the people closest to it. We also point families toward the
           established{" "}
-          <Link href="/resources#innocence-organizations" className="text-link underline hover:text-link-strong">
+          <Link href="/resources/browse?category=legal" className="text-link underline hover:text-link-strong">
             innocence organizations and legal resources
           </Link>{" "}
           already doing casework in their state, since that legal

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
-import { cases, petitions, posts } from "@/db/schema";
+import { cases, petitions, posts, resources } from "@/db/schema";
 import { ISSUES } from "@/lib/issues";
 import { getSiteOrigin } from "@/lib/site-url";
 
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = getSiteOrigin();
 
-  const [caseRows, petitionRows, postRows] = await Promise.all([
+  const [caseRows, petitionRows, postRows, resourceRows] = await Promise.all([
     db.select({ slug: cases.slug, updatedAt: cases.updatedAt }).from(cases),
     db
       .select({ slug: petitions.slug, createdAt: petitions.createdAt })
@@ -23,6 +23,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select({ slug: posts.slug, publishedAt: posts.publishedAt, createdAt: posts.createdAt })
       .from(posts)
       .where(eq(posts.status, "published")),
+    db
+      .select({ slug: resources.slug, updatedAt: resources.updatedAt })
+      .from(resources)
+      .where(eq(resources.status, "published")),
   ]);
 
   return [
@@ -34,6 +38,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/news`, changeFrequency: "daily", priority: 0.8 },
     { url: `${origin}/issues`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${origin}/take-action`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${origin}/resources`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${origin}/resources/browse`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${origin}/resources/start-here`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${origin}/search`, changeFrequency: "monthly", priority: 0.3 },
     ...ISSUES.map((issue) => ({
       url: `${origin}/issues/${issue.slug}`,
@@ -55,6 +62,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...postRows.map((p) => ({
       url: `${origin}/news/${p.slug}`,
       lastModified: p.publishedAt ?? p.createdAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+    ...resourceRows.map((r) => ({
+      url: `${origin}/resources/${r.slug}`,
+      lastModified: r.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
