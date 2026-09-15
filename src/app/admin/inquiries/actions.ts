@@ -40,3 +40,9 @@ export async function replyToGeneralInquiry(inquiryId: string, formData: FormDat
   revalidatePath("/admin/inquiries");
   redirect("/admin/inquiries?saved=1");
 }
+
+export async function deleteGeneralInquiry(inquiryId: string) {
+  await requireAdmin();
+  await db.delete(generalInquiries).where(eq(generalInquiries.id, inquiryId));
+  revalidatePath("/admin/inquiries");
+}

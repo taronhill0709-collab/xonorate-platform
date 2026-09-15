@@ -4,7 +4,7 @@ import { Badge } from "@/app/admin/_components/field";
 import { db } from "@/db";
 import { generalInquiries } from "@/db/schema";
 import { GENERAL_INQUIRY_STATUS_LABEL } from "@/lib/general-inquiry-status";
-import { replyToGeneralInquiry } from "./actions";
+import { deleteGeneralInquiry, replyToGeneralInquiry } from "./actions";
 
 export default async function AdminInquiriesPage() {
   const rows = await db.select().from(generalInquiries).orderBy(desc(generalInquiries.createdAt));
@@ -27,9 +27,16 @@ export default async function AdminInquiriesPage() {
             <div key={row.id} className="rounded-lg border border-border p-4 text-sm">
               <div className="flex items-center justify-between">
                 <p className="font-medium text-foreground">{row.name}</p>
-                <Badge tone={row.status === "responded" ? "brand" : "neutral"}>
-                  {GENERAL_INQUIRY_STATUS_LABEL[row.status] ?? row.status}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Badge tone={row.status === "responded" ? "brand" : "neutral"}>
+                    {GENERAL_INQUIRY_STATUS_LABEL[row.status] ?? row.status}
+                  </Badge>
+                  <form action={deleteGeneralInquiry.bind(null, row.id)}>
+                    <button type="submit" className="text-xs text-red-400 hover:text-red-300" title="Delete this inquiry">
+                      Delete
+                    </button>
+                  </form>
+                </div>
               </div>
               <p className="mt-1 text-muted">{row.email}</p>
               <p className="mt-2 whitespace-pre-line text-foreground">{row.message}</p>
