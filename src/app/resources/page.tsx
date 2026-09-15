@@ -101,12 +101,20 @@ export default async function ResourcesHubPage() {
                 Search
               </button>
             </form>
-            <Link
-              href="/resources/start-here"
-              className="mt-4 inline-block font-mono text-xs font-bold tracking-widest text-link uppercase hover:text-link-strong"
-            >
-              New here? Start here →
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+              <Link
+                href="/resources/start-here"
+                className="inline-block font-mono text-xs font-bold tracking-widest text-link uppercase hover:text-link-strong"
+              >
+                New here? Start here →
+              </Link>
+              <Link
+                href="/ask"
+                className="inline-block font-mono text-xs font-bold tracking-widest text-link uppercase hover:text-link-strong"
+              >
+                Have a specific question? Ask Xonorate →
+              </Link>
+            </div>
           </div>
         </div>
 

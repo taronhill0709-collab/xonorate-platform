@@ -19,6 +19,8 @@ const NAV_ITEMS = [
   { href: "/admin/investigations", label: "Investigations" },
   { href: "/admin/posts", label: "Editorial Content" },
   { href: "/admin/resources", label: "Resource Center" },
+  { href: "/admin/knowledge-sources", label: "Knowledge Sources" },
+  { href: "/admin/ask", label: "Ask Xonorate" },
   { href: "/admin/photos", label: "Photo Library" },
   // Case pipeline.
   { href: "/admin/cases", label: "Cases" },

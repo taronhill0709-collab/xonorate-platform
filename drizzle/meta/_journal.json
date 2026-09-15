@@ -267,6 +267,20 @@
       "when": 1789345708298,
       "tag": "0037_dizzy_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789425669585,
+      "tag": "0038_bored_patch",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1789427682350,
+      "tag": "0039_cooing_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

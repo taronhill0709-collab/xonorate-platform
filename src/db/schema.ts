@@ -160,6 +160,40 @@ export const resourceTypeEnum = pgEnum("resource_type", [
   "directory",
 ]);
 
+// --- Knowledge Graph / Ask Xonorate ---
+
+export const knowledgeSourceKindEnum = pgEnum("knowledge_source_kind", [
+  "statute",
+  "case_law",
+  "court_rule",
+  "constitutional_provision",
+  "government_publication",
+  "agency_guidance",
+  "academic_research",
+  "innocence_organization",
+  "other_authoritative",
+]);
+
+// draft -> under_review -> verified -> approved -> outdated. Only
+// "verified" and "approved" rows are ever retrievable by Ask Xonorate or
+// shown as a Resource Center citation (see retrieveContext in
+// ask-xonorate.ts) — "draft"/"under_review" let an editor stage a source
+// before it's fact-checked; "outdated" keeps the row (and anything that
+// already cites it, for the record) but excludes it from new retrieval.
+export const knowledgeSourceStatusEnum = pgEnum("knowledge_source_status", [
+  "draft",
+  "under_review",
+  "verified",
+  "approved",
+  "outdated",
+]);
+
+export const askQuestionStatusEnum = pgEnum("ask_question_status", [
+  "answered",
+  "needs_clarification",
+  "research_gap",
+]);
+
 // --- Auth.js required tables (Drizzle adapter shape) ---
 
 export const users = pgTable("users", {
@@ -777,10 +811,16 @@ export const investigationIssueLinks = pgTable(
 // distinct from `posts` (news/editorial) and `investigations` (original
 // reporting). A resource is either a pure external-link card (`url` set,
 // `body` null — most migrated legacy resources) or an internal editorial
-// guide with its own detail page (`body` set, Markdown like posts.body).
-// Reuses `postStatusEnum` rather than a new status enum — same
-// pending/published lifecycle. Resource<->investigation linking is
-// deliberately not modeled yet (Phase 2).
+// guide with its own detail page (`body` and/or the knowledge-hub fields
+// below set, Markdown like posts.body). Reuses `postStatusEnum` rather than
+// a new status enum — same pending/published lifecycle.
+//
+// The knowledge-hub fields (overview .. externalResources) are the
+// "deep resource" upgrade (2026-09): every field is nullable/defaulted so a
+// legacy link-card row keeps rendering exactly as before. A field left null
+// hides its section on the detail page rather than showing empty —
+// never fabricate content to fill one in; leave it null and let an editor
+// populate it later.
 export const resources = pgTable("resources", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
@@ -809,6 +849,45 @@ export const resources = pgTable("resources", {
   body: text("body"),
   url: text("url"),
   tags: jsonb("tags").notNull().default([]), // string[]
+
+  // --- Knowledge-hub fields (Markdown, each optional) ---
+  // A single short stat/fact shown as a callout near the top of the page —
+  // e.g. "29% of DNA exonerations involved a false confession." Points at a
+  // knowledgeSources row rather than a freeform label/url so the same
+  // citation stays queryable/reusable and gets corrected in one place if
+  // the source is later marked outdated — see "--- Knowledge Graph" below.
+  keyFactStat: text("key_fact_stat"),
+  keyFactLabel: text("key_fact_label"),
+  keyFactSourceId: uuid("key_fact_source_id").references(() => knowledgeSources.id, { onDelete: "set null" }),
+  overview: text("overview"),
+  whyItMatters: text("why_it_matters"),
+  howItHappens: text("how_it_happens"),
+  whatToKnow: text("what_to_know"),
+  whatToLookFor: text("what_to_look_for"),
+  // "What Xonorate Has Found" — only ever populated when there's actual
+  // documented Xonorate reporting/case material to point to; hidden
+  // (not filler text) when there isn't.
+  xonorateFindings: text("xonorate_findings"),
+  // Overrides the category-level default disclaimer (RESOURCE_CATEGORY_DISCLAIMER
+  // in resource-taxonomy.ts) when a resource needs more specific language —
+  // e.g. a state-specific legal resource. Null uses the category default.
+  disclaimer: text("disclaimer"),
+
+  // --- Knowledge-hub fields (structured lists) ---
+  // string[] — a research checklist tailored to this resource's subject,
+  // never generic across resources (spec §3).
+  questionsToAsk: jsonb("questions_to_ask").notNull().default([]),
+  // { label, description?, href? }[] — practical next steps; must never
+  // imply Xonorate provides legal representation (spec §8).
+  //
+  // NOTE: "Research & Data" / "Sources & Further Reading" / "External
+  // Resources" are deliberately NOT freeform fields here — they're
+  // resourceKnowledgeSourceLinks edges into the knowledgeSources table
+  // below, so one citation (a statute, a study, an organization) is
+  // entered once, can ground multiple resources/cases/investigations AND
+  // Ask Xonorate's answers, and gets corrected in one place if it changes.
+  whatYouCanDo: jsonb("what_you_can_do").notNull().default([]),
+
   // At most one row should be true at a time — enforced in the admin
   // toggleFeatured action, same convention as investigations.isFeatured.
   featured: boolean("featured").notNull().default(false),
@@ -817,6 +896,9 @@ export const resources = pgTable("resources", {
   // page must never present unreviewed info as current (see §19 of the
   // Resource Center brief).
   lastReviewedAt: timestamp("last_reviewed_at"),
+  // Free text, e.g. "Xonorate Editorial / Research" — who last reviewed the
+  // content, shown alongside lastReviewedAt (spec §11).
+  reviewedBy: text("reviewed_by"),
   status: postStatusEnum("status").notNull().default("pending"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -846,6 +928,155 @@ export const resourceIssueLinks = pgTable(
   },
   (t) => [primaryKey({ columns: [t.resourceId, t.issueTag] })],
 );
+
+// --- Knowledge Graph ---
+// A curated library of legal authorities, research, and organizations that
+// Resource Center pages and Ask Xonorate may cite. This is the
+// architectural answer to "never invent a citation, case, or statistic":
+// the assistant (src/lib/ask-xonorate.ts) is only ever allowed to cite a
+// row that exists here — never to generate a citation from its own
+// training knowledge or a live web search. Every row is admin-authored;
+// nothing here is AI-generated. A row can be linked from many
+// resources/cases/investigations, so correcting or updating one source
+// (e.g. marking it "outdated" after a law changes) corrects everywhere it's
+// cited, and Ask Xonorate can answer "what cites Brady v. Maryland?"
+// without re-deriving it per page.
+export const knowledgeSources = pgTable("knowledge_sources", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(), // e.g. "Brady v. Maryland" or "National Registry of Exonerations"
+  sourceKind: knowledgeSourceKindEnum("source_kind").notNull(),
+  // 1 = primary authority (courts/statutes/constitution), 2 = authoritative
+  // secondary material (agencies/official bodies), 3 = reputable research,
+  // 4 = Xonorate's own material — mirrors the brief's source-tier hierarchy
+  // (spec §6) so retrieval/prompting can prefer higher tiers for legal
+  // questions.
+  authorityTier: integer("authority_tier").notNull(),
+  // Free text, e.g. "New Jersey" or "Federal" — null means the source isn't
+  // jurisdiction-specific (e.g. a national research study or an
+  // organization). See src/lib/jurisdictions.ts for the controlled list
+  // used at the admin/UI layer.
+  jurisdiction: text("jurisdiction"),
+  // e.g. "373 U.S. 83 (1963)" for case law, or a statute citation. Null for
+  // sources cited by title alone (an organization, a report).
+  citation: text("citation"),
+  organization: text("organization"), // publishing court/body/organization
+  // Plain-language, human-written description of what this source actually
+  // says/is — never AI-generated. This is the only thing Ask Xonorate is
+  // allowed to paraphrase for this source; it must never go beyond what's
+  // written here (enforced in the ask-xonorate.ts prompt, not the DB).
+  summary: text("summary").notNull(),
+  url: text("url"),
+  publicationDate: timestamp("publication_date"),
+  lastVerifiedAt: timestamp("last_verified_at"),
+  verifiedBy: text("verified_by"),
+  status: knowledgeSourceStatusEnum("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const knowledgeSourceIssueLinks = pgTable(
+  "knowledge_source_issue_links",
+  {
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "cascade" }),
+    issueTag: text("issue_tag").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.sourceId, t.issueTag] })],
+);
+
+export const resourceKnowledgeSourceLinks = pgTable(
+  "resource_knowledge_source_links",
+  {
+    resourceId: uuid("resource_id")
+      .notNull()
+      .references(() => resources.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.resourceId, t.sourceId] })],
+);
+
+export const caseKnowledgeSourceLinks = pgTable(
+  "case_knowledge_source_links",
+  {
+    caseId: uuid("case_id")
+      .notNull()
+      .references(() => cases.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.caseId, t.sourceId] })],
+);
+
+export const investigationKnowledgeSourceLinks = pgTable(
+  "investigation_knowledge_source_links",
+  {
+    investigationId: uuid("investigation_id")
+      .notNull()
+      .references(() => investigations.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => knowledgeSources.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.investigationId, t.sourceId] })],
+);
+
+// Resource<->investigation linking (the "RESOURCE → CASE → INVESTIGATION →
+// ACTION" path, spec §7) — mirrors resourceCaseLinks/resourceIssueLinks.
+export const resourceInvestigationLinks = pgTable(
+  "resource_investigation_links",
+  {
+    resourceId: uuid("resource_id")
+      .notNull()
+      .references(() => resources.id, { onDelete: "cascade" }),
+    investigationId: uuid("investigation_id")
+      .notNull()
+      .references(() => investigations.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.resourceId, t.investigationId] })],
+);
+
+// --- Ask Xonorate ---
+// The question/answer log that both serves each visitor's answer and
+// becomes the admin research-gap/quality pipeline (spec §26-27). An answer
+// is generated ONLY from retrieved Resources/Cases/Investigations/approved
+// knowledgeSources — never from live web search or the model's own
+// training knowledge for legal-authority claims. See src/lib/ask-xonorate.ts.
+export const askQuestions = pgTable("ask_questions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  question: text("question").notNull(),
+  // Free text (a JURISDICTIONS code from jurisdictions.ts, or null if the
+  // question doesn't need one / wasn't answered yet).
+  jurisdiction: text("jurisdiction"),
+  issueTags: jsonb("issue_tags").notNull().default([]), // string[] — detected/matched topics
+  status: askQuestionStatusEnum("status").notNull().default("research_gap"),
+  shortAnswer: text("short_answer"),
+  // The rest of the structured response (whatLawSays, relevantFactors,
+  // questionsToInvestigate, questionsForCounsel, importantLimitation, …) —
+  // see AskAnswer in ask-xonorate.ts. Kept as one jsonb blob rather than a
+  // column per section since the section set is expected to grow.
+  answerSections: jsonb("answer_sections").notNull().default({}),
+  needsClarification: boolean("needs_clarification").notNull().default(false),
+  clarifyingQuestions: jsonb("clarifying_questions").notNull().default([]), // string[]
+  // Every id below is server-validated to have actually been part of the
+  // retrieved context before this row is written — the defense against a
+  // hallucinated id slipping through the model's structured output.
+  citedSourceIds: jsonb("cited_source_ids").notNull().default([]), // uuid[]
+  relatedResourceIds: jsonb("related_resource_ids").notNull().default([]), // uuid[]
+  relatedCaseIds: jsonb("related_case_ids").notNull().default([]), // uuid[]
+  relatedInvestigationIds: jsonb("related_investigation_ids").notNull().default([]), // uuid[]
+  flaggedForReview: boolean("flagged_for_review").notNull().default(false),
+  flagNote: text("flag_note"),
+  // Opaque per-browser token (there's no visitor account system) so a
+  // follow-up question in the same visit can be grouped — never an
+  // identifying value, and never shown to other visitors (spec §22).
+  sessionToken: text("session_token"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 // --- Photo library (shared stock photos editors can attach to content) ---
 
