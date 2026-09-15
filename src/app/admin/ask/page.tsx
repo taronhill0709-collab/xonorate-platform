@@ -3,6 +3,7 @@ import Link from "next/link";
 import { askQuestions } from "@/db/schema";
 import { db } from "@/db";
 import { jurisdictionLabel } from "@/lib/jurisdictions";
+import { deleteAskQuestion } from "./actions";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -93,7 +94,14 @@ function QuestionRow({ q }: { q: typeof askQuestions.$inferSelect }) {
     <div className="border border-border p-3 text-sm">
       <div className="flex items-center justify-between gap-3">
         <p className="text-foreground">{q.question}</p>
-        <span className="shrink-0 text-xs text-muted">{DATE_FORMAT.format(q.createdAt)}</span>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="text-xs text-muted">{DATE_FORMAT.format(q.createdAt)}</span>
+          <form action={deleteAskQuestion.bind(null, q.id)}>
+            <button type="submit" className="text-xs text-red-400 hover:text-red-300" title="Delete this question">
+              Delete
+            </button>
+          </form>
+        </div>
       </div>
       <p className="mt-1 text-xs text-muted">
         {q.status}
