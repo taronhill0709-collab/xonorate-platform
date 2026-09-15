@@ -60,6 +60,14 @@ export const KNOWLEDGE_SOURCE_STATUS_LABEL: Record<string, string> = {
 
 export const KNOWLEDGE_SOURCE_STATUSES = ["draft", "under_review", "verified", "approved", "outdated"] as const;
 
+// Only these statuses have passed the source verification standard and may
+// influence a public answer or be attached to a public resource —
+// "draft"/"under_review" are excluded even though the DB would happily
+// return them. Shared by Ask Xonorate's retrieval (ask-xonorate.ts) and the
+// admin resource editor's knowledge-source picker, so both draw the line in
+// exactly the same place.
+export const PUBLICLY_CITABLE_SOURCE_STATUSES = ["verified", "approved"] as const;
+
 // Knowledge-source topic tags beyond the 7 causal ISSUES tags (which cover
 // "what contributes to a wrongful conviction," not procedural/legal-research
 // subjects). knowledgeSourceIssueLinks.issueTag is free text, not FK'd to

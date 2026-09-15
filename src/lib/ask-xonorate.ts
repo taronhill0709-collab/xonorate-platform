@@ -15,12 +15,7 @@ import {
 } from "@/db/schema";
 import { ISSUES } from "@/lib/issues";
 import { JURISDICTIONS } from "@/lib/jurisdictions";
-import { KNOWLEDGE_TOPICS } from "@/lib/knowledge-sources";
-
-// Only these statuses have passed the source verification standard and may
-// influence a public answer — "draft"/"under_review" are excluded even
-// though the DB would happily return them.
-const RETRIEVABLE_SOURCE_STATUSES = ["verified", "approved"] as const;
+import { KNOWLEDGE_TOPICS, PUBLICLY_CITABLE_SOURCE_STATUSES } from "@/lib/knowledge-sources";
 
 // Ask Xonorate — a research/legal-information assistant, not a lawyer and
 // not a generic chatbot. Its entire credibility rests on one rule: it may
@@ -123,7 +118,7 @@ export async function retrieveContext(question: string, jurisdictionHint?: strin
           .innerJoin(knowledgeSources, eq(knowledgeSourceIssueLinks.sourceId, knowledgeSources.id))
           .where(
             and(
-              inArray(knowledgeSources.status, RETRIEVABLE_SOURCE_STATUSES),
+              inArray(knowledgeSources.status, PUBLICLY_CITABLE_SOURCE_STATUSES),
               inArray(knowledgeSourceIssueLinks.issueTag, matchedIssueTags),
               jurisdictionFilter,
             ),
@@ -135,7 +130,7 @@ export async function retrieveContext(question: string, jurisdictionHint?: strin
     db
       .select()
       .from(knowledgeSources)
-      .where(and(inArray(knowledgeSources.status, RETRIEVABLE_SOURCE_STATUSES), jurisdictionFilter)),
+      .where(and(inArray(knowledgeSources.status, PUBLICLY_CITABLE_SOURCE_STATUSES), jurisdictionFilter)),
   ]);
 
   const titleMatched = matchByTitle(question, allRetrievableSources);
