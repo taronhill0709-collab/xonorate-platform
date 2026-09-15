@@ -10,7 +10,13 @@ export const metadata: Metadata = {
     "Ask a wrongful-conviction research question and get a source-grounded answer drawn from Xonorate's knowledge base, curated legal and research sources, and documented cases — general information and research, not legal advice.",
 };
 
-export default function AskXonoratePage() {
+export default async function AskXonoratePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ topic?: string }>;
+}) {
+  const { topic } = await searchParams;
+
   return (
     <>
       <SiteHeader />
@@ -29,7 +35,7 @@ export default function AskXonoratePage() {
             </p>
           </div>
         </div>
-        <AskXonorateExperience />
+        <AskXonorateExperience initialTopic={topic ?? null} />
       </main>
       <SiteFooter />
     </>

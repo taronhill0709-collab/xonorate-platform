@@ -9,10 +9,30 @@ import { ShareButtons } from "@/components/share-buttons";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
-import { cases, resourceCaseLinks, resourceIssueLinks, resources } from "@/db/schema";
+import {
+  cases,
+  investigations,
+  knowledgeSources,
+  resourceCaseLinks,
+  resourceInvestigationLinks,
+  resourceIssueLinks,
+  resourceKnowledgeSourceLinks,
+  resources,
+} from "@/db/schema";
 import { ISSUES } from "@/lib/issues";
 import { getOrigin } from "@/lib/request-ip";
 import { audienceLabel, RESOURCE_CATEGORY_LABEL, RESOURCE_TYPE_LABEL } from "@/lib/resource-taxonomy";
+import {
+  AskXonorateCta,
+  KeyFactCallout,
+  LegalAndResearchSources,
+  QuestionList,
+  RelatedInvestigations,
+  Section,
+  SourcesFooter,
+  WhatYouCanDoList,
+  type WhatYouCanDoItem,
+} from "./resource-sections";
 
 export const dynamic = "force-dynamic";
 
@@ -56,19 +76,40 @@ export default async function ResourceDetailPage({
   const origin = await getOrigin();
   const url = `${origin}/resources/${slug}`;
 
-  const [issueLinkRows, caseLinkRows] = await Promise.all([
+  const [issueLinkRows, caseLinkRows, investigationLinkRows, sourceLinkRows, keyFactSourceRow] = await Promise.all([
     db.select({ issueTag: resourceIssueLinks.issueTag }).from(resourceIssueLinks).where(eq(resourceIssueLinks.resourceId, resource.id)),
     db
       .select({ id: cases.id, clientName: cases.clientName, slug: cases.slug, summary: cases.summary })
       .from(resourceCaseLinks)
       .innerJoin(cases, eq(resourceCaseLinks.caseId, cases.id))
       .where(eq(resourceCaseLinks.resourceId, resource.id)),
+    db
+      .select({ id: investigations.id, title: investigations.title, slug: investigations.slug, subtitle: investigations.subtitle })
+      .from(resourceInvestigationLinks)
+      .innerJoin(investigations, eq(resourceInvestigationLinks.investigationId, investigations.id))
+      .where(eq(resourceInvestigationLinks.resourceId, resource.id)),
+    db
+      .select({ source: knowledgeSources })
+      .from(resourceKnowledgeSourceLinks)
+      .innerJoin(knowledgeSources, eq(resourceKnowledgeSourceLinks.sourceId, knowledgeSources.id))
+      .where(eq(resourceKnowledgeSourceLinks.resourceId, resource.id)),
+    resource.keyFactSourceId
+      ? db
+          .select({ title: knowledgeSources.title, url: knowledgeSources.url })
+          .from(knowledgeSources)
+          .where(eq(knowledgeSources.id, resource.keyFactSourceId))
+          .limit(1)
+      : Promise.resolve([]),
   ]);
 
   const relatedIssues = issueLinkRows
     .map((r) => ISSUES.find((i) => i.tag === r.issueTag))
     .filter((i): i is (typeof ISSUES)[number] => i !== undefined);
   const audiences = (resource.audiences as string[] | null) ?? [];
+  const linkedSources = sourceLinkRows.map((r) => r.source).sort((a, b) => a.authorityTier - b.authorityTier);
+  const questionsToAsk = (resource.questionsToAsk as string[] | null) ?? [];
+  const whatYouCanDo = (resource.whatYouCanDo as WhatYouCanDoItem[] | null) ?? [];
+  const keyFactSource = keyFactSourceRow[0] ?? null;
 
   return (
     <>
@@ -103,7 +144,19 @@ export default async function ResourceDetailPage({
         <div className="mx-auto w-full max-w-6xl px-6 py-14">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-[2fr_1fr]">
             <div className="max-w-3xl">
+              <KeyFactCallout stat={resource.keyFactStat} label={resource.keyFactLabel} source={keyFactSource} />
+
               {resource.body && <MarkdownBody>{resource.body}</MarkdownBody>}
+
+              <Section title="Overview" body={resource.overview} />
+              <Section title="Why it matters" body={resource.whyItMatters} />
+              <Section title="How it happens" body={resource.howItHappens} />
+              <Section title="What to know" body={resource.whatToKnow} />
+              <Section title="What to look for" body={resource.whatToLookFor} />
+              <QuestionList title="Questions to ask" items={questionsToAsk} />
+              <LegalAndResearchSources sources={linkedSources} />
+              <Section title="What Xonorate has found" body={resource.xonorateFindings} />
+              <WhatYouCanDoList items={whatYouCanDo} />
 
               {resource.url && (
                 <section className={resource.body ? "mt-12 border-t border-border pt-8" : ""}>
@@ -124,6 +177,10 @@ export default async function ResourceDetailPage({
                 </section>
               )}
 
+              <AskXonorateCta topic={resource.subcategory || resource.title} />
+
+              <SourcesFooter sources={linkedSources} />
+
               {audiences.length > 0 && (
                 <section className="mt-10">
                   <p className="text-xs font-bold tracking-widest text-label uppercase">Relevant to</p>
@@ -134,9 +191,10 @@ export default async function ResourceDetailPage({
               <div className="mt-10">
                 <p className="font-mono text-xs text-muted">
                   {resource.lastReviewedAt
-                    ? `Information current as of ${DATE_FORMAT.format(resource.lastReviewedAt)}.`
+                    ? `Last reviewed ${DATE_FORMAT.format(resource.lastReviewedAt)}${resource.reviewedBy ? ` by ${resource.reviewedBy}` : ""}.`
                     : "This resource has not yet been reviewed for currency."}{" "}
-                  This is general information, not legal advice.
+                  {resource.disclaimer ??
+                    "This is general information and research, not legal advice, and Xonorate is not a law firm."}
                 </p>
               </div>
 
@@ -176,6 +234,8 @@ export default async function ResourceDetailPage({
                   </div>
                 </div>
               )}
+
+              <RelatedInvestigations investigations={investigationLinkRows} />
 
               <div className="border border-brand bg-brand-light p-5">
                 <p className="font-serif text-xl text-brand">More resources</p>

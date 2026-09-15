@@ -25,8 +25,8 @@ const EXAMPLE_QUESTIONS = [
   "What organizations investigate wrongful-conviction claims?",
 ];
 
-export function AskXonorateExperience() {
-  const [question, setQuestion] = useState("");
+export function AskXonorateExperience({ initialTopic }: { initialTopic?: string | null }) {
+  const [question, setQuestion] = useState(initialTopic ? `I have a question about ${initialTopic}: ` : "");
   const [jurisdiction, setJurisdiction] = useState<string>("");
   const [view, setView] = useState<ViewState>({ phase: "idle" });
   const [flagged, setFlagged] = useState(false);
