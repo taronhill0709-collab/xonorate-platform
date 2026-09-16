@@ -142,23 +142,20 @@ export async function retrieveContext(question: string, jurisdictionHint?: strin
     .sort((a, b) => a.authorityTier - b.authorityTier)
     .slice(0, MAX_SOURCES);
 
-  const resourceRows =
+  // These three are independent of each other (each only depends on
+  // matchedIssueTags, already computed above) but were previously awaited
+  // one after another — run them concurrently instead.
+  const [resourceRows, caseRows, investigationRows] = await Promise.all([
     matchedIssueTags.length > 0
-      ? await db
+      ? db
           .select({ resource: resources })
           .from(resourceIssueLinks)
           .innerJoin(resources, eq(resourceIssueLinks.resourceId, resources.id))
           .where(and(eq(resources.status, "published"), inArray(resourceIssueLinks.issueTag, matchedIssueTags)))
           .limit(MAX_RESOURCES)
-      : [];
-  const resourceRowsUnique = Array.from(new Map(resourceRows.map((r) => [r.resource.id, r.resource])).values()).slice(
-    0,
-    MAX_RESOURCES,
-  );
-
-  const caseRows =
+      : Promise.resolve([]),
     matchedIssueTags.length > 0
-      ? await db
+      ? db
           .select({
             id: cases.id,
             clientName: cases.clientName,
@@ -168,18 +165,9 @@ export async function retrieveContext(question: string, jurisdictionHint?: strin
           })
           .from(cases)
           .limit(200) // small table; filter in JS below rather than a jsonb-contains query per tag
-      : [];
-  const matchedCases = caseRows
-    .filter((c) => {
-      const tags = (c.contributingFactorTags as string[] | null) ?? [];
-      return tags.some((t) => matchedIssueTags.includes(t));
-    })
-    .slice(0, MAX_CASES)
-    .map(({ id, clientName, slug, summary }) => ({ id, clientName, slug, summary }));
-
-  const investigationRows =
+      : Promise.resolve([]),
     matchedIssueTags.length > 0
-      ? await db
+      ? db
           .select({
             id: investigations.id,
             title: investigations.title,
@@ -191,7 +179,20 @@ export async function retrieveContext(question: string, jurisdictionHint?: strin
           .innerJoin(investigations, eq(investigationIssueLinks.investigationId, investigations.id))
           .where(and(eq(investigations.status, "published"), inArray(investigationIssueLinks.issueTag, matchedIssueTags)))
           .limit(MAX_INVESTIGATIONS)
-      : [];
+      : Promise.resolve([]),
+  ]);
+
+  const resourceRowsUnique = Array.from(new Map(resourceRows.map((r) => [r.resource.id, r.resource])).values()).slice(
+    0,
+    MAX_RESOURCES,
+  );
+  const matchedCases = caseRows
+    .filter((c) => {
+      const tags = (c.contributingFactorTags as string[] | null) ?? [];
+      return tags.some((t) => matchedIssueTags.includes(t));
+    })
+    .slice(0, MAX_CASES)
+    .map(({ id, clientName, slug, summary }) => ({ id, clientName, slug, summary }));
   const investigationRowsUnique = Array.from(
     new Map(investigationRows.map((r) => [r.id, r])).values(),
   ).slice(0, MAX_INVESTIGATIONS);
@@ -288,7 +289,15 @@ export async function generateAskAnswer(
     model: "claude-opus-5",
     max_tokens: 4000,
     system: SYSTEM_PROMPT,
-    output_config: { effort: "high", format: zodOutputFormat(askAnswerSchema) },
+    // "medium" — matches every other Opus call in this codebase (see
+    // case-overview-extraction.ts, impact-pipeline.ts, and the routine
+    // steps of content-pipeline.ts/nre-case-research.ts). "high" is
+    // reserved for genuinely hard, web-search-grounded generation
+    // elsewhere; this task is tightly rule-constrained (cite only what's
+    // in CONTEXT), not open-ended, so it doesn't need the extra reasoning
+    // depth — and unlike those background jobs, this is the one feature a
+    // visitor sits on the page waiting for in real time.
+    output_config: { effort: "medium", format: zodOutputFormat(askAnswerSchema) },
     messages: [{ role: "user", content: buildUserPrompt(question, jurisdiction, context) }],
   });
 
