@@ -216,7 +216,14 @@ export function VideoCard({
           alt=""
           fill
           sizes={large ? "(min-width: 1024px) 300px, 70vw" : "(min-width: 1024px) 200px, 45vw"}
-          className="object-cover transition duration-500 group-hover:scale-105"
+          // object-contain, not object-cover — synced thumbnails aren't
+          // guaranteed to actually be 9:16 (this card's aspect ratio).
+          // Cropping a landscape thumbnail to fit a tall box slices off
+          // its sides; letterboxing on the card's own background instead
+          // never cuts off part of the image. A thumbnail that's already
+          // 9:16 renders identically either way, so this is a no-op for
+          // every correctly-shaped thumbnail.
+          className="object-contain transition duration-500 group-hover:scale-105"
           unoptimized
         />
       ) : (
