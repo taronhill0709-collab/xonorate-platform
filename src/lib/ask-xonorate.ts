@@ -286,17 +286,17 @@ export async function generateAskAnswer(
 ): Promise<AskAnswer> {
   const client = new Anthropic();
   const response = await client.messages.parse({
-    model: "claude-opus-5",
+    // Sonnet 5, not Opus 5 (the model every other AI feature in this
+    // codebase uses) — this is the one feature a visitor sits on the page
+    // waiting for in real time, and Opus's extra depth wasn't buying much
+    // on a task this tightly rule-constrained (cite only what's in
+    // CONTEXT, never invent — enforced by SYSTEM_PROMPT and, as a hard
+    // backstop, sanitizeAnswer() stripping any id not actually retrieved,
+    // regardless of model). Revisit if answer quality on complex
+    // multi-part questions turns out to need Opus's extra reasoning.
+    model: "claude-sonnet-5",
     max_tokens: 4000,
     system: SYSTEM_PROMPT,
-    // "medium" — matches every other Opus call in this codebase (see
-    // case-overview-extraction.ts, impact-pipeline.ts, and the routine
-    // steps of content-pipeline.ts/nre-case-research.ts). "high" is
-    // reserved for genuinely hard, web-search-grounded generation
-    // elsewhere; this task is tightly rule-constrained (cite only what's
-    // in CONTEXT), not open-ended, so it doesn't need the extra reasoning
-    // depth — and unlike those background jobs, this is the one feature a
-    // visitor sits on the page waiting for in real time.
     output_config: { effort: "medium", format: zodOutputFormat(askAnswerSchema) },
     messages: [{ role: "user", content: buildUserPrompt(question, jurisdiction, context) }],
   });
