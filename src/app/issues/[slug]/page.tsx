@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AskXonorateCta } from "@/components/ask-xonorate-cta";
 import { Eyebrow } from "@/components/eyebrow";
 import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
@@ -146,6 +147,10 @@ export default async function IssueDetailPage({
               </p>
             </Link>
           </section>
+
+          <div className="mt-12">
+            <AskXonorateCta topic={issue.title} question="Have questions about this issue?" />
+          </div>
 
           <section className="mt-12 border-t border-border pt-8">
             <p className="text-xs font-bold tracking-widest text-label uppercase">

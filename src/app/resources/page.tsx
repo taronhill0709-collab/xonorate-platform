@@ -79,13 +79,13 @@ export default async function ResourcesHubPage() {
       <main id="main-content" className="flex-1 bg-background">
         <div className="border-b border-header-border bg-header-background">
           <div className="mx-auto w-full max-w-3xl px-6 py-16">
-            <Eyebrow text="Xonorate Resource Center" />
+            <Eyebrow text="Xonorate Knowledge Center" />
             <h1 className="mt-3 font-serif text-4xl text-header-foreground sm:text-6xl">
               Knowledge is a tool for justice.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-header-muted">
-              Explore practical guides, legal resources, research, advocacy tools, organizations, and educational
-              materials related to wrongful convictions.
+              Explore research, legal information, documented cases, investigative reporting, practical resources,
+              and tools for understanding wrongful convictions and the systems surrounding them.
             </p>
             <form action="/resources/browse" className="mt-6 flex gap-2">
               <input
@@ -108,14 +108,51 @@ export default async function ResourcesHubPage() {
               >
                 New here? Start here →
               </Link>
-              <Link
-                href="/ask"
-                className="inline-block font-mono text-xs font-bold tracking-widest text-link uppercase hover:text-link-strong"
-              >
-                Have a specific question? Ask Xonorate →
-              </Link>
             </div>
           </div>
+        </div>
+
+        {/* ASK XONORATE — made one of the first things a visitor sees on
+            the Knowledge Center, not a link buried in the hero's fine
+            print. Same premium-research-tool treatment (bordered box,
+            editorial type, no chat-widget or AI-gradient styling) as the
+            homepage's Knowledge section panel. */}
+        <div className="border-b border-header-border bg-header-background">
+          <div className="mx-auto w-full max-w-6xl px-6 py-14">
+            <div className="border border-brand bg-brand-light p-8 sm:p-10">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-xl">
+                  <Eyebrow text="Ask Xonorate" />
+                  <h2 className="mt-3 font-serif text-2xl text-header-foreground sm:text-3xl">
+                    Have a question about a wrongful conviction or the justice system?
+                  </h2>
+                  <p className="mt-3 text-header-muted">
+                    Ask Xonorate and explore answers grounded in Xonorate&apos;s knowledge base and curated legal and
+                    research sources.
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                  <Link
+                    href="/ask"
+                    className="inline-flex items-center justify-center bg-brand px-8 py-4 text-sm font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent"
+                  >
+                    Ask Xonorate →
+                  </Link>
+                  <p className="font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                    Research-grounded information. Not legal advice.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-6xl px-6 pt-14">
+          <Eyebrow text="Explore the Knowledge Center" as="h2" />
+          <p className="mt-2 max-w-2xl text-muted">
+            Research, legal information, documented cases, investigative reporting, and practical resources — start
+            here, or find what you&apos;re looking for below.
+          </p>
         </div>
 
         <div className="mx-auto w-full max-w-6xl px-6 py-14">

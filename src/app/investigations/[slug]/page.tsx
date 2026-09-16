@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AskXonorateCta } from "@/components/ask-xonorate-cta";
 import { Eyebrow } from "@/components/eyebrow";
 import { JsonLd } from "@/components/json-ld";
 import { MarkdownBody } from "@/components/markdown-body";
@@ -235,6 +236,11 @@ export default async function InvestigationPage({
                   </ul>
                 </div>
               )}
+
+              <AskXonorateCta
+                topic={investigation.title}
+                question="Want to explore the research behind this issue?"
+              />
 
               {(caseLinkRows.length > 0 || relatedPetition) && (
                 <div className="border border-brand bg-brand-light p-5">

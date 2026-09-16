@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { MarkdownBody } from "@/components/markdown-body";
 import type { AskAnswerResolved } from "@/lib/ask-xonorate";
@@ -31,6 +31,16 @@ export function AskXonorateExperience({ initialTopic }: { initialTopic?: string 
   const [view, setView] = useState<ViewState>({ phase: "idle" });
   const [flagged, setFlagged] = useState(false);
   const cancelledRef = useRef(false);
+  const answerRef = useRef<HTMLDivElement>(null);
+
+  // Answers land below the fold on a long question form — without this the
+  // page just sits scrolled to the form and the answer silently populates
+  // off-screen, so the asker has to know to scroll down and find it.
+  useEffect(() => {
+    if (view.phase === "answered") {
+      answerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [view]);
 
   async function poll(jobId: string) {
     for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
@@ -135,7 +145,9 @@ export function AskXonorateExperience({ initialTopic }: { initialTopic?: string 
       {view.phase === "error" && <p className="mt-10 text-sm text-red-400">{view.message}</p>}
 
       {view.phase === "answered" && (
-        <AnswerView answer={view.answer} questionId={view.questionId} flagged={flagged} onFlag={handleFlag} />
+        <div ref={answerRef}>
+          <AnswerView answer={view.answer} questionId={view.questionId} flagged={flagged} onFlag={handleFlag} />
+        </div>
       )}
     </div>
   );

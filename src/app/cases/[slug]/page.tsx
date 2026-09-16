@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { auth } from "@/auth";
+import { AskXonorateCta } from "@/components/ask-xonorate-cta";
 import { CaseNav, type CaseNavItem } from "@/components/case-nav";
 import { CommentSection } from "@/components/comment-section";
 import { Eyebrow } from "@/components/eyebrow";
@@ -863,6 +864,13 @@ export default async function CaseDetailPage({
               </ul>
             </section>
           )}
+
+          <section className="mt-16 border-t border-border pt-8">
+            <AskXonorateCta
+              topic={caseRow.clientName}
+              question="Want to understand the issues surrounding this case?"
+            />
+          </section>
 
           {moreCases.length > 0 && (
             <section className="mt-16 border-t border-border pt-8">

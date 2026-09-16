@@ -556,6 +556,73 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* SECTION 04.5 — KNOWLEDGE. The bridge beat: we've shown the
+            cases and why the system fails them, so this is where a visitor
+            goes to actually understand it — positioned as a core Xonorate
+            product (editorial pitch + a distinct, premium Ask Xonorate
+            panel), not a link buried under a "Resources" nav item. Routes
+            entirely to the existing /resources hub and /ask experience —
+            no new pages, no change to either's own architecture. */}
+        <section aria-labelledby="knowledge-heading" className="border-t border-header-border bg-header-background py-16 sm:py-20">
+          <div className="mx-auto w-full max-w-6xl px-6">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-12">
+              <div>
+                <Eyebrow text="Xonorate Knowledge Center" />
+                <h2
+                  id="knowledge-heading"
+                  className="mt-3 font-serif text-3xl leading-tight text-header-foreground sm:text-5xl"
+                >
+                  Knowledge is a tool for justice.
+                </h2>
+                <p className="mt-4 text-lg text-header-muted">
+                  Understand the system. Research the issues. Ask the questions.
+                </p>
+                <p className="mt-4 max-w-xl text-header-muted">
+                  The Xonorate Knowledge Center brings together research, legal information, documented cases,
+                  investigative reporting, and practical resources to help people understand wrongful convictions
+                  and the systems surrounding them.
+                </p>
+                <div className="mt-8 flex flex-wrap items-center gap-4">
+                  <Link
+                    href="/resources"
+                    className="inline-flex items-center gap-2 bg-brand px-7 py-3 text-sm font-bold tracking-wide text-brand-foreground uppercase transition hover:bg-accent"
+                  >
+                    Explore the Knowledge Center <ArrowRight size={16} />
+                  </Link>
+                  <Link
+                    href="/ask"
+                    className="border border-header-foreground/30 px-7 py-3 text-sm font-bold tracking-wide text-header-foreground uppercase transition hover:border-header-foreground"
+                  >
+                    Ask Xonorate
+                  </Link>
+                </div>
+              </div>
+
+              <div className="border border-brand bg-brand-light p-7 sm:p-8">
+                <p className="text-xs font-bold tracking-widest text-brand uppercase">Ask Xonorate</p>
+                <h3 className="mt-3 font-serif text-2xl text-header-foreground">Have a question? Start here.</h3>
+                <p className="mt-3 text-sm text-header-muted">
+                  Ask about a wrongful-conviction issue, evidence, legal concept, post-conviction process, or a
+                  specific research question.
+                </p>
+                <p className="mt-3 text-sm text-header-muted">
+                  Xonorate helps you explore the available research, verified legal sources, documented cases, and
+                  Xonorate&apos;s knowledge base.
+                </p>
+                <Link
+                  href="/ask"
+                  className="mt-6 inline-flex items-center gap-2 bg-brand px-6 py-3 text-xs font-bold tracking-widest text-brand-foreground uppercase transition hover:bg-accent"
+                >
+                  Ask Xonorate <ArrowRight size={14} />
+                </Link>
+                <p className="mt-3 font-mono text-[10px] tracking-wide text-header-muted uppercase">
+                  Research-grounded information. Not legal advice.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SECTION 05 — TAKE ACTION */}
         <section className="border-t border-header-border bg-header-background py-16">
           <div className="mx-auto w-full max-w-6xl px-6">
