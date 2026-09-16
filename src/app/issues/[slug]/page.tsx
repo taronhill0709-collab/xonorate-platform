@@ -1,17 +1,27 @@
 import { asc, desc } from "drizzle-orm";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AskXonorateCta } from "@/components/ask-xonorate-cta";
 import { Eyebrow } from "@/components/eyebrow";
-import { RedactedPhoto } from "@/components/redacted-photo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { db } from "@/db";
 import { cases } from "@/db/schema";
 import { CASE_STATUS_LABEL } from "@/lib/case-status";
-import { getIssueBySlug, ISSUES, ISSUES_SOURCE_URL } from "@/lib/issues";
+import { DATA_NOTE_DEFAULT, DOCUMENTED_CASES_NOTE_DEFAULT, getIssueBySlug, ISSUES, ISSUES_SOURCE_URL } from "@/lib/issues";
+import {
+  BiggerPictureSection,
+  DataSection,
+  DistinctionsSection,
+  DocumentedCasesSection,
+  LegacyDataSection,
+  MechanismSection,
+  ScenarioSection,
+  SourcesSection,
+  WhatIsItSection,
+  WhyItMattersSection,
+} from "./issue-sections";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +53,7 @@ export default async function IssueDetailPage({
       slug: cases.slug,
       status: cases.status,
       state: cases.state,
-      photoUrl: cases.photoUrl,
+      summary: cases.summary,
       contributingFactorTags: cases.contributingFactorTags,
     })
     .from(cases)
@@ -54,6 +64,11 @@ export default async function IssueDetailPage({
   );
 
   const otherIssues = ISSUES.filter((i) => i.slug !== issue.slug);
+  const relatedIssues = issue.relatedIssueSlugs
+    ? issue.relatedIssueSlugs
+        .map((slug) => ISSUES.find((i) => i.slug === slug))
+        .filter((i): i is (typeof ISSUES)[number] => i !== undefined)
+    : otherIssues;
 
   return (
     <>
@@ -70,64 +85,29 @@ export default async function IssueDetailPage({
         </div>
 
         <div className="mx-auto w-full max-w-3xl px-6 py-14">
-          {issue.stat && (
-            <div className="border-b border-border pb-8">
-              <p className="font-serif text-5xl text-brand tabular-nums">{issue.stat.value}</p>
-              <p className="mt-2 text-sm text-muted">
-                {issue.stat.label} involved {issue.title.toLowerCase()}
-                {" — "}
-                <a
-                  href={ISSUES_SOURCE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-link underline hover:text-link-strong"
-                >
-                  Innocence Project
-                </a>
-              </p>
-            </div>
+          {issue.statistics ? (
+            <DataSection statistics={issue.statistics} dataNote={issue.dataNote ?? DATA_NOTE_DEFAULT} />
+          ) : (
+            issue.stat && (
+              <LegacyDataSection stat={issue.stat} issueTitle={issue.title} sourceUrl={ISSUES_SOURCE_URL} />
+            )
           )}
 
-          <p className="mt-8 text-lg text-foreground">{issue.explanation}</p>
+          <WhatIsItSection explanation={issue.explanation} />
 
-          {relatedCases.length > 0 && (
-            <section className="mt-12">
-              <Eyebrow text="Related Xonorate cases" />
-              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {relatedCases.map((c, i) => (
-                  <Link
-                    key={c.id}
-                    href={`/cases/${c.slug}`}
-                    className="group flex gap-4 border border-border p-4 transition hover:border-brand/50"
-                  >
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden">
-                      {c.photoUrl ? (
-                        <Image
-                          src={c.photoUrl}
-                          alt={c.clientName}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <RedactedPhoto seed={i} />
-                      )}
-                    </div>
-                    <div>
-                      <span className="inline-block border border-brand/50 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-brand uppercase">
-                        {CASE_STATUS_LABEL[c.status] ?? c.status}
-                      </span>
-                      <p className="mt-1.5 font-serif text-lg text-foreground">{c.clientName}</p>
-                      <p className="font-mono text-xs font-bold text-label uppercase">{c.state}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          {issue.howItHappens && <MechanismSection steps={issue.howItHappens} />}
+          {issue.whyItMatters && <WhyItMattersSection body={issue.whyItMatters} />}
+          {issue.distinctions && <DistinctionsSection distinctions={issue.distinctions} />}
+          {issue.scenario && <ScenarioSection scenario={issue.scenario} />}
 
-          <section className="mt-12 grid grid-cols-1 gap-4 border-t border-border pt-8 sm:grid-cols-2">
+          <DocumentedCasesSection
+            cases={relatedCases}
+            caseNotes={issue.caseNotes}
+            note={issue.documentedCasesNote ?? DOCUMENTED_CASES_NOTE_DEFAULT}
+            statusLabel={(status) => CASE_STATUS_LABEL[status] ?? status}
+          />
+
+          <section className="mt-14 grid grid-cols-1 gap-4 border-t border-border pt-8 sm:grid-cols-2">
             <Link
               href="/news"
               className="border border-border p-5 transition hover:border-brand/50"
@@ -148,16 +128,18 @@ export default async function IssueDetailPage({
             </Link>
           </section>
 
+          {issue.biggerPicture && <BiggerPictureSection body={issue.biggerPicture} />}
+
           <div className="mt-12">
             <AskXonorateCta topic={issue.title} question="Have questions about this issue?" />
           </div>
 
-          <section className="mt-12 border-t border-border pt-8">
+          <section className="mt-14 border-t border-border pt-8">
             <p className="text-xs font-bold tracking-widest text-label uppercase">
-              Other issues
+              Explore related issues
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {otherIssues.map((other) => (
+              {relatedIssues.map((other) => (
                 <Link
                   key={other.slug}
                   href={`/issues/${other.slug}`}
@@ -168,6 +150,8 @@ export default async function IssueDetailPage({
               ))}
             </div>
           </section>
+
+          {issue.sources && <SourcesSection sources={issue.sources} />}
         </div>
       </main>
       <SiteFooter />
