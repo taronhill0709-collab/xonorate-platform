@@ -25,6 +25,18 @@ const EXAMPLE_QUESTIONS = [
   "What organizations investigate wrongful-conviction claims?",
 ];
 
+// Cosmetic only — mirrors the real retrieve → generate pipeline in
+// ask-xonorate.ts (retrieveContext, then generateAskAnswer) closely enough
+// to be honest about what's happening, without claiming to track its
+// actual progress.
+const RESEARCH_STEPS = [
+  "Searching Xonorate's knowledge base…",
+  "Reviewing legal and research sources…",
+  "Checking related cases and investigations…",
+  "Drafting a grounded answer…",
+];
+const RESEARCH_STEP_INTERVAL_MS = 3500;
+
 export function AskXonorateExperience({ initialTopic }: { initialTopic?: string | null }) {
   const [question, setQuestion] = useState(initialTopic ? `I have a question about ${initialTopic}: ` : "");
   const [jurisdiction, setJurisdiction] = useState<string>("");
@@ -136,11 +148,7 @@ export function AskXonorateExperience({ initialTopic }: { initialTopic?: string 
         </div>
       </form>
 
-      {view.phase === "pending" && (
-        <p className="mt-10 font-mono text-sm text-muted">
-          Researching Xonorate&apos;s knowledge base and curated sources — this can take up to a minute…
-        </p>
-      )}
+      {view.phase === "pending" && <PendingIndicator />}
 
       {view.phase === "error" && <p className="mt-10 text-sm text-red-400">{view.message}</p>}
 
@@ -310,6 +318,30 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="mt-10">
       <p className="text-xs font-bold tracking-widest text-label uppercase">{title}</p>
       {children}
+    </div>
+  );
+}
+
+function PendingIndicator() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setStep((s) => (s + 1) % RESEARCH_STEPS.length);
+    }, RESEARCH_STEP_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="mt-10 flex items-center gap-3">
+      <span className="flex shrink-0 gap-1" aria-hidden>
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand [animation-delay:200ms]" />
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand [animation-delay:400ms]" />
+      </span>
+      <p className="font-mono text-sm text-muted" aria-live="polite">
+        {RESEARCH_STEPS[step]} <span className="text-label">Usually under 30 seconds.</span>
+      </p>
     </div>
   );
 }
