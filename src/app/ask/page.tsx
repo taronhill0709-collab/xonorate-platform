@@ -33,6 +33,9 @@ export default async function AskXonoratePage({
             <p className="mt-5 font-mono text-xs font-bold tracking-wide text-header-label uppercase">
               General information and research — not legal advice. Xonorate is not a law firm.
             </p>
+            <p className="mt-1.5 font-mono text-xs tracking-wide text-header-muted uppercase">
+              Responses typically take up to 30 seconds.
+            </p>
           </div>
         </div>
         <AskXonorateExperience initialTopic={topic ?? null} />
