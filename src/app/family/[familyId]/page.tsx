@@ -218,6 +218,7 @@ export default async function FamilyDashboardPage({
           <QuickAction href={`/family/${familyId}/calendar/new`} label="Add Event" />
           <QuickAction href={`/family/${familyId}/members`} label="Invite a Family Member" />
           <QuickAction href={`/family/${familyId}/documents/new`} label="Add Document" />
+          <QuickAction href={`/family/${familyId}/notes/new`} label="Add a Note" />
           <QuickActionComingSoon label="Write a Letter" />
         </div>
       </section>
