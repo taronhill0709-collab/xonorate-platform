@@ -1,8 +1,8 @@
 // Pure date logic backing the family dashboard's "What needs attention" and
 // "Upcoming" sections, and the loved-one profile page's upcoming-date
-// badge (both need the same "which key dates are still ahead of us"
-// computation). Deliberately has no DB import — takes plain data so it can
-// be unit-tested without a database, unlike most of src/family/*.ts.
+// badge. Deliberately has no DB import — takes plain data (loved-one key
+// dates and, since Calendar shipped, calendar events) so it can be
+// unit-tested without a database, unlike most of src/family/*.ts.
 
 export type LovedOneKeyDates = {
   id: string;
@@ -13,6 +13,14 @@ export type LovedOneKeyDates = {
   paroleEligibilityDate: string | null;
   paroleHearingDate: string | null;
   expectedReleaseDate: string | null;
+};
+
+export type CalendarEventLike = {
+  id: string;
+  lovedOneId: string | null;
+  lovedOneName: string | null;
+  title: string;
+  eventDate: Date | string;
 };
 
 const UPCOMING_DATE_FIELDS = [
@@ -51,6 +59,17 @@ export function getUpcomingKeyDates(
   return results;
 }
 
+/** Calendar events that haven't happened yet, nearest first. Unlike key dates, calendar events carry a specific time, not just a day — so "today" here compares full timestamps, not just the date. */
+function getUpcomingCalendarEvents(
+  events: CalendarEventLike[],
+  now: Date,
+): (CalendarEventLike & { date: Date })[] {
+  return events
+    .map((e) => ({ ...e, date: new Date(e.eventDate) }))
+    .filter((e) => e.date.getTime() >= now.getTime())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
 export type AttentionItem =
   | {
       kind: "upcoming_date";
@@ -59,13 +78,27 @@ export type AttentionItem =
       label: string;
       days: number;
     }
-  | { kind: "missing_dates"; lovedOneId: string; lovedOneName: string };
+  | { kind: "missing_dates"; lovedOneId: string; lovedOneName: string }
+  | {
+      kind: "calendar_event_soon";
+      eventId: string;
+      lovedOneId: string | null;
+      lovedOneName: string | null;
+      title: string;
+      days: number;
+    };
 
+// Key dates (parole hearings, release) are long-horizon milestones worth
+// surfacing months out. Calendar events (visits, deposits, calls) are
+// short-term action items — flagging one 90 days out would just be clutter,
+// so it gets a much tighter window.
 const ATTENTION_WINDOW_DAYS = 90;
+const CALENDAR_ATTENTION_WINDOW_DAYS = 7;
 
-/** Upcoming dates within ~90 days, plus a gentle nudge for a loved one with no dates recorded at all. Sorted soonest-first, missing-dates nudges last. */
+/** Upcoming key dates within ~90 days, calendar events within ~7 days, plus a nudge for a loved one with no dates recorded at all. Sorted soonest-first by day count; missing-dates nudges last. */
 export function computeAttentionItems(
   lovedOnes: LovedOneKeyDates[],
+  calendarEvents: CalendarEventLike[] = [],
   now: Date = new Date(),
 ): AttentionItem[] {
   const today = startOfDay(now);
@@ -93,26 +126,50 @@ export function computeAttentionItems(
     }
   }
 
+  for (const event of getUpcomingCalendarEvents(calendarEvents, today)) {
+    const days = Math.round((event.date.getTime() - today.getTime()) / 86_400_000);
+    if (days <= CALENDAR_ATTENTION_WINDOW_DAYS) {
+      items.push({
+        kind: "calendar_event_soon",
+        eventId: event.id,
+        lovedOneId: event.lovedOneId,
+        lovedOneName: event.lovedOneName,
+        title: event.title,
+        days,
+      });
+    }
+  }
+
   items.sort((a, b) => {
-    if (a.kind === "upcoming_date" && b.kind === "upcoming_date") return a.days - b.days;
-    if (a.kind === "upcoming_date") return -1;
-    if (b.kind === "upcoming_date") return 1;
-    return 0;
+    const aDays = a.kind === "missing_dates" ? Infinity : a.days;
+    const bDays = b.kind === "missing_dates" ? Infinity : b.days;
+    return aDays - bDays;
   });
 
   return items;
 }
 
-export type UpcomingListItem = {
-  lovedOneId: string;
-  lovedOneName: string;
-  label: string;
-  date: Date;
-};
+export type UpcomingListItem =
+  | {
+      source: "key_date";
+      lovedOneId: string;
+      lovedOneName: string;
+      label: string;
+      date: Date;
+    }
+  | {
+      source: "calendar_event";
+      eventId: string;
+      lovedOneId: string | null;
+      lovedOneName: string | null;
+      label: string;
+      date: Date;
+    };
 
-/** Every upcoming key date across every loved one in the family, chronological — the dashboard's "Upcoming" list. */
+/** Every upcoming key date and calendar event across the family, merged and sorted chronologically — the dashboard's "Upcoming" list. */
 export function computeUpcomingList(
   lovedOnes: LovedOneKeyDates[],
+  calendarEvents: CalendarEventLike[] = [],
   now: Date = new Date(),
 ): UpcomingListItem[] {
   const today = startOfDay(now);
@@ -121,8 +178,19 @@ export function computeUpcomingList(
   for (const lovedOne of lovedOnes) {
     const name = lovedOne.preferredName || lovedOne.name;
     for (const { label, date } of getUpcomingKeyDates(lovedOne, today)) {
-      all.push({ lovedOneId: lovedOne.id, lovedOneName: name, label, date });
+      all.push({ source: "key_date", lovedOneId: lovedOne.id, lovedOneName: name, label, date });
     }
+  }
+
+  for (const event of getUpcomingCalendarEvents(calendarEvents, today)) {
+    all.push({
+      source: "calendar_event",
+      eventId: event.id,
+      lovedOneId: event.lovedOneId,
+      lovedOneName: event.lovedOneName,
+      label: event.title,
+      date: event.date,
+    });
   }
 
   all.sort((a, b) => a.date.getTime() - b.date.getTime());

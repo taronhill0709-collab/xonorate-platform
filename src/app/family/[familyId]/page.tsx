@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listLovedOnesForFamily } from "@/family/loved-ones";
 import { listFamilyMembers } from "@/family/invites";
+import { listCalendarEventsForFamily } from "@/family/calendar";
 import { computeAttentionItems, computeUpcomingList } from "@/family/dashboard";
 
 function QuickAction({ href, label }: { href: string; label: string }) {
@@ -85,8 +86,9 @@ export default async function FamilyDashboardPage({
     );
   }
 
-  const attentionItems = computeAttentionItems(lovedOnes);
-  const upcoming = computeUpcomingList(lovedOnes);
+  const calendarEvents = await listCalendarEventsForFamily(familyId);
+  const attentionItems = computeAttentionItems(lovedOnes, calendarEvents);
+  const upcoming = computeUpcomingList(lovedOnes, calendarEvents);
 
   return (
     <div className="space-y-8">
@@ -103,7 +105,7 @@ export default async function FamilyDashboardPage({
                 key={i}
                 className="flex items-center justify-between rounded-xl bg-background/60 px-4 py-3"
               >
-                {item.kind === "upcoming_date" ? (
+                {item.kind === "upcoming_date" && (
                   <>
                     <span>
                       {item.lovedOneName}&rsquo;s {item.label.toLowerCase()} is in{" "}
@@ -116,7 +118,8 @@ export default async function FamilyDashboardPage({
                       View details →
                     </Link>
                   </>
-                ) : (
+                )}
+                {item.kind === "missing_dates" && (
                   <>
                     <span>{item.lovedOneName}&rsquo;s key dates aren&rsquo;t added yet</span>
                     <Link
@@ -124,6 +127,21 @@ export default async function FamilyDashboardPage({
                       className="text-xs font-semibold text-brand"
                     >
                       Add dates →
+                    </Link>
+                  </>
+                )}
+                {item.kind === "calendar_event_soon" && (
+                  <>
+                    <span>
+                      {item.title}
+                      {item.lovedOneName ? ` — ${item.lovedOneName}` : ""} is in {item.days}{" "}
+                      {item.days === 1 ? "day" : "days"}
+                    </span>
+                    <Link
+                      href={`/family/${familyId}/calendar/${item.eventId}/edit`}
+                      className="text-xs font-semibold text-brand"
+                    >
+                      View details →
                     </Link>
                   </>
                 )}
@@ -138,25 +156,33 @@ export default async function FamilyDashboardPage({
           <h3 className="font-serif text-base">Upcoming</h3>
           {upcoming.length === 0 ? (
             <p className="mt-3 text-sm text-muted">
-              No upcoming dates yet. Add dates to a loved one&rsquo;s profile
-              to see them here.
+              No upcoming dates or events yet. Add dates to a loved one&rsquo;s
+              profile or add a calendar event to see them here.
             </p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
-              {upcoming.map((item, i) => (
-                <li
-                  key={i}
-                  className={`flex justify-between pb-2 ${i < upcoming.length - 1 ? "border-b border-border" : ""}`}
-                >
-                  <span>
-                    {item.label}
-                    {lovedOnes.length > 1 ? ` — ${item.lovedOneName}` : ""}
-                  </span>
-                  <span className="text-muted">
-                    {item.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </span>
-                </li>
-              ))}
+              {upcoming.map((item, i) => {
+                const href =
+                  item.source === "key_date"
+                    ? `/family/${familyId}/loved-ones/${item.lovedOneId}`
+                    : `/family/${familyId}/calendar/${item.eventId}/edit`;
+                return (
+                  <li
+                    key={i}
+                    className={`pb-2 ${i < upcoming.length - 1 ? "border-b border-border" : ""}`}
+                  >
+                    <Link href={href} className="flex justify-between transition hover:text-brand">
+                      <span>
+                        {item.label}
+                        {item.lovedOneName ? ` — ${item.lovedOneName}` : ""}
+                      </span>
+                      <span className="text-muted">
+                        {item.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -189,8 +215,8 @@ export default async function FamilyDashboardPage({
         <h3 className="font-serif text-base">Quick actions</h3>
         <div className="mt-3 flex flex-wrap gap-3">
           <QuickAction href={`/family/${familyId}/loved-ones/new`} label="Add a Loved One" />
+          <QuickAction href={`/family/${familyId}/calendar/new`} label="Add Event" />
           <QuickAction href={`/family/${familyId}/members`} label="Invite a Family Member" />
-          <QuickActionComingSoon label="Add Event" />
           <QuickActionComingSoon label="Add Document" />
           <QuickActionComingSoon label="Write a Letter" />
         </div>
