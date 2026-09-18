@@ -35,6 +35,9 @@ src/family/                 Domain logic — DB access, authorization, and
   dashboard.ts                pure date logic (no DB import at all — unit-testable)
   documents.ts                document CRUD, always scoped to familyId
   documents-types.ts           client-safe enum labels/limits — see below
+  notes.ts                    note CRUD — family-visibility filtered in
+                               SQL, edit/delete additionally author-scoped
+  notes-types.ts               client-safe enum labels — see below
   storage/
     storage-service.ts          StorageService interface
     netlify-blobs-provider.ts   the only implementation so far

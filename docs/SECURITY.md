@@ -37,9 +37,11 @@ first and checks `familyId` in application code afterward. See
 family always comes back "not found," never "forbidden" (which would
 confirm the ID exists) and never the actual row. `loved-ones.integration.test.ts`
 covers this directly. The same pattern is now also applied to
-`src/family/calendar.ts` and `src/family/documents.ts` (each with their
-own `*.integration.test.ts`) — apply it to every future family-scoped
-table (notes, support people).
+`src/family/calendar.ts`, `src/family/documents.ts`, and
+`src/family/notes.ts` (each with their own `*.integration.test.ts`, and
+notes additionally scoped to the author for mutations — see "Notes: a
+second authorization dimension" below) — apply it to every future
+family-scoped table (support people, and anything Phase 2 adds).
 
 ## Document Vault
 
@@ -74,6 +76,36 @@ properties this depends on:
 `getSignedUrl()` was deliberately left out of `StorageService` (see that
 file's header comment) — every document read is authorized per-request by
 the proxy-download route instead of a time-limited direct-to-storage URL.
+
+## Notes: a second authorization dimension
+
+Every other resource type so far only has one access question: "is the
+caller an active member of this family?" Notes add a second, independent
+one — visibility — and the two must never be conflated:
+
+- **Family membership answers "which family's data."** Enforced the usual
+  way, by scoping every query on `familyId`.
+- **Visibility answers "which member(s), within an authorized family."**
+  A `visibility: "private"` note is invisible to every other member of the
+  *same* family, not just other families. `listNotesForFamily()` filters
+  this in the SQL query itself (`or(visibility = 'family', authorUserId =
+  viewer)`) — a private note is never fetched for anyone but its author,
+  so there's no code path where the server holds another member's private
+  note in memory and simply declines to render it. Covered by
+  `notes.integration.test.ts`'s "hides a private note from another family
+  member" case.
+- **Edit/delete are author-scoped regardless of visibility.** A
+  "family"-visible note can be *read* by anyone in the family, but only
+  its author can *change or remove* it —
+  `getOwnNoteForFamily`/`updateNote`/`deleteNote` all include
+  `authorUserId` in their `WHERE` clause alongside `familyId`. A non-author
+  member hitting the edit route for someone else's note gets the same
+  "not found" as a note that doesn't exist at all.
+
+If a future resource type (support people? case-organizer entries?) needs
+per-item visibility again, follow this shape: filter visibility in the
+query that lists/reads, and additionally scope mutations to whoever should
+be allowed to mutate — don't assume "can read" implies "can write."
 
 ## Invite tokens
 
