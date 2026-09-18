@@ -34,20 +34,24 @@ that only resolves under `netlify dev` or an actual Netlify build/deploy —
 not plain `next dev`. Two consequences:
 
 - **Functional testing** of anything in `/family/**` (or any other
-  DB-backed route) requires `netlify dev`. In this project's current
-  sandbox, `netlify dev` has a known reliability problem: a second
-  `netlify` CLI invocation in the same session tends to crash it. Until
-  that's resolved, real end-to-end verification of new features may need
-  to happen outside this environment (a normal local machine, or after
-  deploy).
+  DB-backed route) requires `netlify dev`, which has real reliability
+  problems in this sandbox independent of the "second CLI command"
+  issue: it also crashes on its own after ~20s in some runs, and its own
+  internal readiness probe hits `/` and gives up (killing the whole dev
+  server) if the homepage errors — which it currently does locally, due
+  to the pre-existing migration wedge described in `docs/DATABASE.md`.
+  Getting one live verification pass through required retry loops and a
+  temporary in-process diagnostic route (see that doc's "Live
+  verification" section) rather than a stable long-running session.
 - **Visual-only** verification (layout, copy, design tokens — no real
-  data) can run under plain `next:dev` with a placeholder `DATABASE_URL`
-  in a gitignored `.env.development.local`. This was used to preview the
-  `.family-scope` design direction before building real pages against it.
-  It has no effect on `netlify dev` or production (Next.js never overrides
-  an already-set environment variable), and any page that actually queries
-  the database will still fail under it — it only unblocks pages that
-  don't need real data to render.
+  data) can run under plain `next:dev` with `DATABASE_URL` set inline for
+  that one command — e.g. `DATABASE_URL=postgres://placeholder/placeholder
+  npm run next:dev` — **never** as a persisted `.env.development.local`
+  file. That file was tried and deleted: `netlify dev` reads
+  `.env.development.local` too and treats it as authoritative, so a
+  placeholder left there silently replaces `netlify dev`'s real local
+  database connection instead of only affecting plain `next dev` as
+  intended. See `docs/DATABASE.md` for the full account.
 
 ## Portability
 

@@ -75,13 +75,20 @@ means:
   has a known reliability problem (a second `netlify` CLI invocation tends
   to crash a running `netlify dev`).
 - **Visual-only** work (no real data) can run under plain `next dev`/
-  `next:dev` if a gitignored `.env.development.local` sets a placeholder
-  `DATABASE_URL` — see that file's own header comment. Next.js's dotenv
-  loader never overrides a value already present in `process.env`, so this
-  has no effect on `netlify dev` (which injects a real connection string
-  itself) or on production. Any actual query against the placeholder will
-  fail; this only unblocks pages/components that don't need real data to
-  render.
+  `next:dev` with a placeholder `DATABASE_URL` set only for that one shell
+  session (e.g. `DATABASE_URL=postgres://placeholder/placeholder npm run
+  next:dev`) — **never** as a persisted `.env.development.local` file.
+  An earlier version of this note claimed `.env.development.local` was
+  safe because Next's dotenv loader never overrides an existing
+  `process.env` value — that's true for plain `next dev`, but **`netlify
+  dev` itself also reads and injects `.env.development.local`** (visible
+  in its own startup log: `Injected .env.development.local file env
+  vars: DATABASE_URL`), and it does so as if that were the real
+  connection string, silently replacing the actual local Postgres
+  connection `netlify dev` would otherwise provision. This broke `netlify
+  dev` outright during this project's first live-database verification
+  pass (see below) — the file has been deleted. Use an inline env var for
+  a single command instead of a file that persists across sessions.
 
 ## Authorization testing
 
@@ -99,3 +106,45 @@ test here before being considered done — see `authz.integration.test.ts`,
 `invites.integration.test.ts`, and `loved-ones.integration.test.ts` for the
 pattern: create two families, assert a caller/resource in one can never be
 read, updated, or deleted through the other.
+
+### Live verification, and a sandbox-specific limitation
+
+`npm run test:db`'s `vitest` process cannot reach this sandbox's local
+`netlify dev` database directly: `netlify dev` provisions its local
+Postgres on an ephemeral high port reachable only from *inside* the dev
+server's own process (confirmed — the exact working connection string,
+used from an external `vitest` invocation, gets `ECONNREFUSED`). This
+appears specific to how this sandbox isolates that process, not a property
+of `vitest` or the connection string itself.
+
+To still verify the authorization guarantees against a real, live
+database rather than only via `describe.skipIf`, a temporary diagnostic
+route (added under `src/app/api/`, deleted immediately after, never
+committed) ran the same assertions as the `*.integration.test.ts` suite
+*from inside* the running dev server process, using the real
+`src/family/*.ts` functions. Getting there also surfaced and fixed two
+real things:
+
+1. The `netlify database migrations apply` path is currently wedged on
+   this local dev database by a pre-existing, unrelated drift issue (a
+   `site_settings` column that already exists) that predates Family
+   entirely — see the original architecture audit. This blocks the whole
+   migration batch, including Family's, from applying through the normal
+   path. Worked around for this session by applying the Family migration
+   SQL directly; **the underlying wedge is still unresolved** and blocks
+   local `netlify dev` from fully working (it also breaks the site's own
+   homepage locally, which depends on a later-blocked migration).
+2. The `.env.development.local` bug described above.
+
+Twelve of thirteen checks passed live: cross-family isolation for loved
+ones, calendar events, documents, and support people; private-note
+invisibility to another active family member; and the invite
+email-mismatch rejection. The one failure was a bug in the throwaway
+script itself (it reused one test user as both an already-active member
+and a separate invite's acceptor, correctly triggering the
+`family_members_family_user_unique` constraint) — not a defect, and not
+a scenario the real `invites.integration.test.ts` constructs.
+
+**Still not verified live**: the document vault's actual upload → Netlify
+Blobs → download round trip (the cross-family *guard* is covered; the
+happy path needs real Blobs credentials, which weren't exercised here).

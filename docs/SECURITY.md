@@ -141,17 +141,36 @@ Currently only called from `requireFamilyAdminAccess` — once an admin
 family-oversight UI exists, every read through that path must call it, not
 skip straight to a raw query.
 
+## Verified live, once
+
+Cross-family isolation for loved ones, calendar events, documents, and
+support people; private-note invisibility to another active family
+member; and the invite email-mismatch rejection have all been confirmed
+against a real (local) database, not just via `describe.skipIf`-gated
+tests. See `docs/DATABASE.md`'s "Live verification" section for how (a
+temporary in-process diagnostic route, since this sandbox's `vitest`
+process can't reach the local dev database directly) and exactly what
+ran. This was a one-time manual pass, not a repeatable CI-style gate —
+re-verify after any change to the authorization functions it covered.
+
 ## What's not proven yet
 
 - No admin-side family read path exists yet to test `requireFamilyAdminAccess`
   against a real route (only the authz test suite exercises it directly).
 - The document upload/download/delete-with-storage-call happy paths (as
-  opposed to the wrong-family guard paths, which are covered) have never
-  run against live Netlify Blobs in this environment — same category of
-  gap as the database itself (see docs/DATABASE.md's "Local development"
-  section). Verify these for real in a working `netlify dev` session or
-  after deploy before treating the vault as production-verified, not just
-  authorization-verified.
+  opposed to the wrong-family guard paths, which are covered both by
+  `documents.integration.test.ts` and the live pass above) have never run
+  against live Netlify Blobs — untouched by either verification pass so
+  far. Verify these for real after deploy, or once `netlify dev` is
+  stable enough locally (see docs/DATABASE.md's still-unresolved
+  migration wedge blocking that).
+- `npm run test:db`'s actual `vitest` CLI path has still never completed
+  a full run against a real database in this sandbox — the live
+  verification above exercised the same functions and assertions, but
+  through a hand-written diagnostic script, not the committed test
+  files themselves. Running the real command is still worth doing in an
+  environment where it can reach the database (a normal local machine,
+  CI, or after `netlify dev`'s migration wedge is fixed).
 - Rate limiting exists elsewhere in the app (`src/lib/rate-limit.ts`, IP-based)
   but hasn't been applied to any family route — invite creation is
   owner-gated already (not open to the public), so this hasn't been judged
