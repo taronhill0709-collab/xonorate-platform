@@ -34,15 +34,17 @@ that only resolves under `netlify dev` or an actual Netlify build/deploy —
 not plain `next dev`. Two consequences:
 
 - **Functional testing** of anything in `/family/**` (or any other
-  DB-backed route) requires `netlify dev`, which has real reliability
-  problems in this sandbox independent of the "second CLI command"
-  issue: it also crashes on its own after ~20s in some runs, and its own
-  internal readiness probe hits `/` and gives up (killing the whole dev
-  server) if the homepage errors — which it currently does locally, due
-  to the pre-existing migration wedge described in `docs/DATABASE.md`.
-  Getting one live verification pass through required retry loops and a
-  temporary in-process diagnostic route (see that doc's "Live
-  verification" section) rather than a stable long-running session.
+  DB-backed route) requires `netlify dev`, which still has a real
+  reliability problem in this sandbox independent of any migration
+  state: it tends to crash on its own after ~20s regardless of what the
+  app is doing, and its own internal readiness probe hitting `/` and
+  giving up (killing the whole dev server) if that request errors was
+  what originally made a pre-existing local-database migration wedge so
+  disruptive — that wedge is now fixed (see `docs/DATABASE.md`'s
+  "migration ledger gap" section), and the homepage renders correctly
+  locally now, but the ~20s crash-on-its-own behavior persists and isn't
+  understood yet. Getting a stable window still benefits from a retry
+  loop rather than assuming the first `preview_start` will hold.
 - **Visual-only** verification (layout, copy, design tokens — no real
   data) can run under plain `next:dev` with `DATABASE_URL` set inline for
   that one command — e.g. `DATABASE_URL=postgres://placeholder/placeholder

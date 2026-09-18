@@ -125,15 +125,10 @@ committed) ran the same assertions as the `*.integration.test.ts` suite
 `src/family/*.ts` functions. Getting there also surfaced and fixed two
 real things:
 
-1. The `netlify database migrations apply` path is currently wedged on
-   this local dev database by a pre-existing, unrelated drift issue (a
-   `site_settings` column that already exists) that predates Family
-   entirely — see the original architecture audit. This blocks the whole
-   migration batch, including Family's, from applying through the normal
-   path. Worked around for this session by applying the Family migration
-   SQL directly; **the underlying wedge is still unresolved** and blocks
-   local `netlify dev` from fully working (it also breaks the site's own
-   homepage locally, which depends on a later-blocked migration).
+1. The `netlify database migrations apply` path was wedged on this local
+   dev database by a pre-existing, unrelated drift issue that predates
+   Family entirely — see the original architecture audit. **Now fixed**;
+   see "The migration ledger gap" below for the root cause and repair.
 2. The `.env.development.local` bug described above.
 
 Twelve of thirteen checks passed live: cross-family isolation for loved
@@ -148,3 +143,40 @@ a scenario the real `invites.integration.test.ts` constructs.
 **Still not verified live**: the document vault's actual upload → Netlify
 Blobs → download round trip (the cross-family *guard* is covered; the
 happy path needs real Blobs credentials, which weren't exercised here).
+
+### The migration ledger gap (found and fixed)
+
+`netlify database migrations apply` tracks what it's already run in a
+`netlify.migrations` table (its own schema, separate from `public` — easy
+to miss; `\dn`/`information_schema.schemata` shows it) with one row per
+applied migration folder name. This local dev database's ledger had gaps:
+several migrations' DDL had clearly, fully executed (their columns/tables
+existed) but their ledger row was never written — most likely a past
+`apply` run whose migration succeeded but crashed or was interrupted
+before the ledger `INSERT`, which isn't wrapped in the same transaction as
+the migration's own DDL in the local dev database's history. Every retry
+of `apply` would then re-attempt that exact migration from the top and
+immediately fail with `already exists`, blocking every migration after it
+too — including `0042_add-xonorate-family-tables`, and (unrelated to
+Family) the site's own homepage locally, which queries a table created by
+a migration further down the blocked chain.
+
+**Fixed** with a reconciliation pass (via a temporary, uncommitted
+diagnostic route, for the same reason described above — this sandbox's
+shell can't reach the local Postgres directly): walk `netlify/database/
+migrations/` in order, and for each folder not yet in the ledger, execute
+its SQL statement by statement, treating `already exists` as "this part
+already ran, move on" and any other error as fatal (stop immediately,
+report exactly where — never silently paper over a real problem). Once a
+migration's statements all succeed or are confirmed already-applied,
+insert its ledger row and continue. This only ever creates or alters
+schema and inserts ledger rows — no `DROP`, no `DELETE`, and it stops at
+the first real error rather than guessing. All 42 migrations reconciled
+cleanly in one pass; the local homepage renders correctly now (confirmed:
+`GET / 200`, no more `relation "investigations" does not exist`).
+
+If this happens again (a fresh clone's local dev database, or a
+colleague's): the same technique applies. Check `netlify.migrations` for
+ledger gaps before assuming the migration SQL itself is broken — the SQL
+in this repo has been correct throughout; the local ledger's bookkeeping
+was what was inconsistent.

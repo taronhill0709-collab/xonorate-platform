@@ -161,16 +161,18 @@ re-verify after any change to the authorization functions it covered.
   opposed to the wrong-family guard paths, which are covered both by
   `documents.integration.test.ts` and the live pass above) have never run
   against live Netlify Blobs — untouched by either verification pass so
-  far. Verify these for real after deploy, or once `netlify dev` is
-  stable enough locally (see docs/DATABASE.md's still-unresolved
-  migration wedge blocking that).
+  far. The pre-existing migration wedge that used to block a stable local
+  `netlify dev` session is now fixed (docs/DATABASE.md), so this is worth
+  trying again in a future session.
 - `npm run test:db`'s actual `vitest` CLI path has still never completed
   a full run against a real database in this sandbox — the live
   verification above exercised the same functions and assertions, but
   through a hand-written diagnostic script, not the committed test
-  files themselves. Running the real command is still worth doing in an
-  environment where it can reach the database (a normal local machine,
-  CI, or after `netlify dev`'s migration wedge is fixed).
+  files themselves, because this sandbox's shell can't reach the local
+  Postgres `netlify dev` provisions (a process-isolation property of this
+  sandbox, unrelated to the now-fixed migration wedge). Running the real
+  command is still worth doing in an environment where it can reach the
+  database (a normal local machine or CI).
 - Rate limiting exists elsewhere in the app (`src/lib/rate-limit.ts`, IP-based)
   but hasn't been applied to any family route — invite creation is
   owner-gated already (not open to the public), so this hasn't been judged
