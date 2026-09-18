@@ -30,6 +30,9 @@ src/family/                 Domain logic — DB access, authorization, and
   invites.ts                 invite token lifecycle
   loved-ones.ts               loved-one CRUD, always scoped to familyId
   facility.ts                 shared facility lookup/resolve
+  calendar.ts                 calendar event CRUD, always scoped to familyId
+  calendar-types.ts           client-safe enum labels — see below
+  dashboard.ts                pure date logic (no DB import at all — unit-testable)
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -38,6 +41,27 @@ src/app/family/**            Routes and Server Actions — thin. A page loads
                              function, then revalidates/redirects. Business
                              logic does not live in actions.ts or page.tsx.
 ```
+
+### Keep client-safe constants out of DB-touching files
+
+A file that imports `db` (from `src/db`) pulls in `pg`, a Node-only
+package, at module scope. If a `"use client"` component imports *anything*
+from that file — even just a label constant or a type — the bundler
+includes the whole module, and the build fails trying to bundle `pg` for
+the browser. This bit `calendar.ts`: a client form imported
+`CALENDAR_EVENT_TYPE_LABELS` from it and broke `next build` (caught by a
+full production build, not by `tsc` alone — `tsc` has no concept of the
+client/server bundle boundary).
+
+The fix, and the pattern to repeat for every future domain module with an
+enum a form needs to render (documents' category, notes' visibility,
+support people's `canHelpWith` tags): put enum-derived types and their
+human-language label maps in a separate `*-types.ts` file that imports
+only from `@/db/schema` (safe — it has no `db`/`pg` import, just
+drizzle-orm table/enum definitions) and never from `@/db` itself. Client
+components import from `*-types.ts`; server-side code (actions, pages) can
+import from either, since the DB-touching file re-exports the same names
+for convenience.
 
 This split exists so authorization and data-access logic can be
 integration-tested (`*.integration.test.ts` in `src/family/`) without
