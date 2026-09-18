@@ -71,6 +71,7 @@ export default async function FamilyDetailLayout({
           <NavLink href={`/family/${familyId}/calendar`} label="Calendar" />
           <NavLink href={`/family/${familyId}/documents`} label="Documents" />
           <NavLink href={`/family/${familyId}/notes`} label="Notes" />
+          <NavLink href={`/family/${familyId}/support`} label="Support" />
           <NavLink href={`/family/${familyId}/members`} label="Members" />
         </nav>
       </div>

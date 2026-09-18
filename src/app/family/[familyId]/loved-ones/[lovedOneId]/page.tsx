@@ -4,6 +4,7 @@ import { getLovedOneForFamily } from "@/family/loved-ones";
 import { getUpcomingKeyDates } from "@/family/dashboard";
 import { listFamilyDocuments } from "@/family/documents";
 import { DOCUMENT_CATEGORY_LABELS, type DocumentCategory } from "@/family/documents-types";
+import { listSupportPeopleForFamily } from "@/family/support-people";
 
 function nextUpcomingDate(lovedOne: Awaited<ReturnType<typeof getLovedOneForFamily>>) {
   if (!lovedOne) return null;
@@ -28,6 +29,7 @@ export default async function LovedOneProfilePage({
 
   const upcoming = nextUpcomingDate(lovedOne);
   const documents = await listFamilyDocuments(familyId, { lovedOneId });
+  const supportPeople = await listSupportPeopleForFamily(familyId, { lovedOneId });
 
   return (
     <div className="space-y-8">
@@ -75,16 +77,47 @@ export default async function LovedOneProfilePage({
       </section>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <section className="rounded-2xl border border-dashed border-border bg-muted-background p-8 text-center">
+        <section className="rounded-2xl border border-border bg-muted-background p-6">
           <p className="text-xs font-semibold tracking-wide text-muted uppercase">Support</p>
-          <h2 className="mt-2 font-serif text-lg">No support people yet</h2>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-muted">
-            Add the people who can help with housing, employment,
-            transportation, and more.
-          </p>
-          <span className="mt-4 inline-block rounded-xl bg-background px-4 py-2 text-sm text-muted/70">
-            Coming soon
-          </span>
+          {supportPeople.length === 0 ? (
+            <div className="mt-2 text-center">
+              <h2 className="font-serif text-lg">No support people yet</h2>
+              <p className="mx-auto mt-2 max-w-xs text-sm text-muted">
+                Add the people who can help with housing, employment,
+                transportation, and more.
+              </p>
+              <Link
+                href={`/family/${familyId}/support/new?lovedOneId=${lovedOneId}`}
+                className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
+              >
+                Add Support Person
+              </Link>
+            </div>
+          ) : (
+            <>
+              <ul className="mt-3 space-y-2 text-sm">
+                {supportPeople.slice(0, 4).map((person) => (
+                  <li key={person.id}>
+                    <Link
+                      href={`/family/${familyId}/support/${person.id}/edit`}
+                      className="flex items-center justify-between rounded-xl bg-background px-3 py-2 transition hover:ring-1 hover:ring-brand"
+                    >
+                      <span>{person.name}</span>
+                      <span className="text-xs text-muted">{person.relationship || person.role}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={`/family/${familyId}/support`}
+                className="mt-3 inline-block text-xs font-semibold text-brand"
+              >
+                {supportPeople.length > 4
+                  ? `View all ${supportPeople.length} people →`
+                  : "View support network →"}
+              </Link>
+            </>
+          )}
         </section>
 
         <section className="rounded-2xl border border-border bg-muted-background p-6">
