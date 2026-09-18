@@ -1,11 +1,31 @@
 import Link from "next/link";
 import { listLovedOnesForFamily } from "@/family/loved-ones";
 import { listFamilyMembers } from "@/family/invites";
+import { computeAttentionItems, computeUpcomingList } from "@/family/dashboard";
 
-// A minimal hub, not the full "What needs attention / Upcoming / Journey /
-// Quick actions" dashboard (that's the next Phase 1 milestone) — this exists
-// so Family Creation → Invitation → Loved One is a usable, real flow now.
-export default async function FamilyHomePage({
+function QuickAction({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl border border-border bg-background px-4 py-2 text-sm transition hover:border-brand hover:text-brand"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function QuickActionComingSoon({ label }: { label: string }) {
+  return (
+    <span
+      title="Coming soon"
+      className="cursor-default rounded-xl border border-border bg-background px-4 py-2 text-sm text-muted/50"
+    >
+      {label}
+    </span>
+  );
+}
+
+export default async function FamilyDashboardPage({
   params,
 }: {
   params: Promise<{ familyId: string }>;
@@ -16,80 +36,177 @@ export default async function FamilyHomePage({
     listFamilyMembers(familyId),
   ]);
 
-  return (
-    <div className="space-y-8">
-      <section className="rounded-2xl border border-border bg-muted-background p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-lg">Loved ones</h2>
+  // No loved one yet — nothing to compute "what needs attention" or
+  // "upcoming" against, so the dashboard is just the onboarding CTA rather
+  // than four sections of empty states.
+  if (lovedOnes.length === 0) {
+    return (
+      <div className="space-y-8">
+        <section className="rounded-2xl border border-dashed border-border bg-muted-background p-10 text-center">
+          <h1 className="font-serif text-2xl">No loved ones yet</h1>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
+            Add your loved one to start organizing their information, dates,
+            and plans in one place.
+          </p>
           <Link
             href={`/family/${familyId}/loved-ones/new`}
-            className="rounded-xl border border-border bg-background px-4 py-2 text-sm transition hover:border-brand hover:text-brand"
+            className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
           >
-            Add a Loved One
+            Add Your Loved One
           </Link>
-        </div>
-        {lovedOnes.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-border p-8 text-center">
-            <h3 className="font-serif text-base">No loved ones yet</h3>
-            <p className="mt-2 text-sm text-muted">
-              Add your loved one to start organizing their information, dates,
-              and plans in one place.
+        </section>
+
+        <section className="rounded-2xl border border-border bg-muted-background p-6">
+          <h2 className="font-serif text-lg">Family members</h2>
+          {members.length <= 1 ? (
+            <div className="mt-6 rounded-xl border border-dashed border-border p-8 text-center">
+              <h3 className="font-serif text-base">Invite your family</h3>
+              <p className="mt-2 text-sm text-muted">
+                Invite trusted family members to help organize and support
+                your loved one.
+              </p>
+              <Link
+                href={`/family/${familyId}/members`}
+                className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
+              >
+                Invite a Family Member
+              </Link>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-muted">
+              {members.length} people in this family.{" "}
+              <Link href={`/family/${familyId}/members`} className="text-brand underline">
+                Manage
+              </Link>
             </p>
-            <Link
-              href={`/family/${familyId}/loved-ones/new`}
-              className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
-            >
-              Add Your Loved One
-            </Link>
-          </div>
+          )}
+        </section>
+      </div>
+    );
+  }
+
+  const attentionItems = computeAttentionItems(lovedOnes);
+  const upcoming = computeUpcomingList(lovedOnes);
+
+  return (
+    <div className="space-y-8">
+      <section className="rounded-2xl border border-brand/30 bg-brand-light p-6">
+        <h2 className="font-serif text-lg text-brand">What needs attention</h2>
+        {attentionItems.length === 0 ? (
+          <p className="mt-3 text-sm text-foreground">
+            Nothing urgent right now — you&rsquo;re all caught up.
+          </p>
         ) : (
-          <ul className="mt-4 space-y-2">
-            {lovedOnes.map((lo) => (
-              <li key={lo.id}>
-                <Link
-                  href={`/family/${familyId}/loved-ones/${lo.id}`}
-                  className="flex items-center justify-between rounded-xl bg-background px-4 py-3 text-sm transition hover:ring-1 hover:ring-brand"
-                >
-                  <span>{lo.preferredName || lo.name}</span>
-                  <span className="text-muted">
-                    {lo.facilityName ?? "No facility on file"}
-                  </span>
-                </Link>
+          <ul className="mt-3 space-y-2 text-sm">
+            {attentionItems.map((item, i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between rounded-xl bg-background/60 px-4 py-3"
+              >
+                {item.kind === "upcoming_date" ? (
+                  <>
+                    <span>
+                      {item.lovedOneName}&rsquo;s {item.label.toLowerCase()} is in{" "}
+                      {item.days} {item.days === 1 ? "day" : "days"}
+                    </span>
+                    <Link
+                      href={`/family/${familyId}/loved-ones/${item.lovedOneId}`}
+                      className="text-xs font-semibold text-brand"
+                    >
+                      View details →
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span>{item.lovedOneName}&rsquo;s key dates aren&rsquo;t added yet</span>
+                    <Link
+                      href={`/family/${familyId}/loved-ones/${item.lovedOneId}/edit`}
+                      className="text-xs font-semibold text-brand"
+                    >
+                      Add dates →
+                    </Link>
+                  </>
+                )}
               </li>
             ))}
           </ul>
         )}
       </section>
 
+      <div className="grid gap-6 sm:grid-cols-2">
+        <section className="rounded-2xl border border-border bg-muted-background p-6">
+          <h3 className="font-serif text-base">Upcoming</h3>
+          {upcoming.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">
+              No upcoming dates yet. Add dates to a loved one&rsquo;s profile
+              to see them here.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {upcoming.map((item, i) => (
+                <li
+                  key={i}
+                  className={`flex justify-between pb-2 ${i < upcoming.length - 1 ? "border-b border-border" : ""}`}
+                >
+                  <span>
+                    {item.label}
+                    {lovedOnes.length > 1 ? ` — ${item.lovedOneName}` : ""}
+                  </span>
+                  <span className="text-muted">
+                    {item.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-border bg-muted-background p-6">
+          <h3 className="font-serif text-base">Loved ones</h3>
+          <ul className="mt-3 space-y-2 text-sm">
+            {lovedOnes.map((lo) => (
+              <li key={lo.id}>
+                <Link
+                  href={`/family/${familyId}/loved-ones/${lo.id}`}
+                  className="flex items-center justify-between rounded-xl bg-background px-3 py-2 transition hover:ring-1 hover:ring-brand"
+                >
+                  <span>{lo.preferredName || lo.name}</span>
+                  <span className="text-muted">{lo.facilityName ?? "No facility on file"}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href={`/family/${familyId}/loved-ones/new`}
+            className="mt-3 inline-block text-xs font-semibold text-brand"
+          >
+            Add another loved one →
+          </Link>
+        </section>
+      </div>
+
+      <section className="rounded-2xl border border-border bg-muted-background p-6">
+        <h3 className="font-serif text-base">Quick actions</h3>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <QuickAction href={`/family/${familyId}/loved-ones/new`} label="Add a Loved One" />
+          <QuickAction href={`/family/${familyId}/members`} label="Invite a Family Member" />
+          <QuickActionComingSoon label="Add Event" />
+          <QuickActionComingSoon label="Add Document" />
+          <QuickActionComingSoon label="Write a Letter" />
+        </div>
+      </section>
+
       <section className="rounded-2xl border border-border bg-muted-background p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-lg">Family members</h2>
+          <h3 className="font-serif text-base">Family members</h3>
           <Link
             href={`/family/${familyId}/members`}
-            className="rounded-xl border border-border bg-background px-4 py-2 text-sm transition hover:border-brand hover:text-brand"
+            className="text-xs font-semibold text-brand"
           >
-            Manage Members
+            Manage →
           </Link>
         </div>
-        {members.length <= 1 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-border p-8 text-center">
-            <h3 className="font-serif text-base">Invite your family</h3>
-            <p className="mt-2 text-sm text-muted">
-              Invite trusted family members to help organize and support your
-              loved one.
-            </p>
-            <Link
-              href={`/family/${familyId}/members`}
-              className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
-            >
-              Invite a Family Member
-            </Link>
-          </div>
-        ) : (
-          <p className="mt-4 text-sm text-muted">
-            {members.length} people in this family.
-          </p>
-        )}
+        <p className="mt-2 text-sm text-muted">{members.length} people in this family.</p>
       </section>
     </div>
   );

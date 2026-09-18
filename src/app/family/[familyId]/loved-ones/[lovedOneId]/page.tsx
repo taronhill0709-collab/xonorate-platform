@@ -1,34 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLovedOneForFamily } from "@/family/loved-ones";
-
-const UPCOMING_DATE_FIELDS = [
-  { key: "paroleHearingDate", label: "Parole hearing" },
-  { key: "paroleEligibilityDate", label: "Parole eligibility" },
-  { key: "expectedReleaseDate", label: "Expected release" },
-] as const;
+import { getUpcomingKeyDates } from "@/family/dashboard";
 
 function nextUpcomingDate(lovedOne: Awaited<ReturnType<typeof getLovedOneForFamily>>) {
   if (!lovedOne) return null;
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
-  const candidates: { label: string; date: Date }[] = [];
-  for (const { key, label } of UPCOMING_DATE_FIELDS) {
-    const raw = lovedOne[key];
-    if (!raw) continue;
-    const date = new Date(raw);
-    if (date < today) continue;
-    candidates.push({ label, date });
-  }
-
-  candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const nearest = candidates[0];
+  const nearest = getUpcomingKeyDates(lovedOne, today)[0];
   if (!nearest) return null;
 
-  const { label, date } = nearest;
-  const days = Math.round((date.getTime() - today.getTime()) / 86_400_000);
-  return { label, days };
+  const days = Math.round((nearest.date.getTime() - today.getTime()) / 86_400_000);
+  return { label: nearest.label, days };
 }
 
 export default async function LovedOneProfilePage({

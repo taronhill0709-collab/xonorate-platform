@@ -44,6 +44,14 @@ export async function listLovedOnesForFamily(familyId: string) {
       currentStatus: lovedOnes.currentStatus,
       facilityName: facilities.name,
       facilityState: facilities.state,
+      // Included for the dashboard's "what needs attention"/"upcoming"
+      // sections (see src/family/dashboard.ts) — harmless extra columns for
+      // callers (e.g. the nav) that only need id/name.
+      arrestDate: lovedOnes.arrestDate,
+      convictionDate: lovedOnes.convictionDate,
+      paroleEligibilityDate: lovedOnes.paroleEligibilityDate,
+      paroleHearingDate: lovedOnes.paroleHearingDate,
+      expectedReleaseDate: lovedOnes.expectedReleaseDate,
     })
     .from(lovedOnes)
     .leftJoin(facilities, eq(lovedOnes.facilityId, facilities.id))
