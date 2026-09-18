@@ -8,8 +8,13 @@ const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+  const isFamilyRoute = req.nextUrl.pathname.startsWith("/family");
 
-  if (isAdminRoute && req.auth?.user?.role !== "admin") {
+  const needsSignIn =
+    (isAdminRoute && req.auth?.user?.role !== "admin") ||
+    (isFamilyRoute && !req.auth?.user);
+
+  if (needsSignIn) {
     const signInUrl = new URL("/login", req.nextUrl);
     signInUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(signInUrl);
@@ -17,5 +22,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/family/:path*"],
 };

@@ -120,6 +120,52 @@ body {
   font-weight: 700;
 }
 
+/* Family scope — the consumer-facing "Xonorate Family" product. Distinct
+   from both the public site (dark, red accent, shouting uppercase
+   documentary-title headlines — right for advocacy/editorial, wrong for a
+   family managing a private, often stressful, day-to-day workflow) and
+   .admin-scope (cold blue/gray internal-tool palette, which would read as
+   "this is Xonorate staff's tool" rather than the family's own space).
+   Warm cream background instead of stark white or near-black; a warm
+   amber/terracotta brand accent (hope/warmth, and deliberately not red —
+   red is reserved for the public site's urgency/advocacy register, which
+   would misfire here) paired with a muted sage for
+   confirmation/complete/positive states. Keeps Barlow Condensed for
+   headings (the one throughline connecting all three Xonorate surfaces)
+   but drops the uppercase documentary treatment — see the
+   .family-scope .font-serif override below — so it reads as a calm
+   product heading, not a headline. */
+.family-scope {
+  --background: #faf7f2;
+  --foreground: #2b2621;
+  --muted: #7a7166;
+  --muted-background: #f2ece1;
+  --border: #e6dcc9;
+  --brand: #b9793a;
+  --brand-foreground: #ffffff;
+  --brand-light: #f5e6d1;
+  --accent: #4a7c6a;
+  --accent-foreground: #ffffff;
+  --header-background: #2b2621;
+  --header-foreground: #faf7f2;
+  --header-muted: #b8ab97;
+  --header-border: #3d362d;
+  --band-background: #f2ece1;
+  --band-foreground: #2b2621;
+  --band-accent: #b9793a;
+  --link: #4a7c6a;
+  --link-strong: #386354;
+  --label: #6b6153;
+  --header-label: #cabda5;
+}
+
+.family-scope .font-serif {
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.15;
+  font-weight: 600;
+}
+
 /* The editorial headline treatment — every h1/h2/h3-level heading in the
    site uses this via the font-serif Tailwind class (kept as the class name
    for continuity with existing markup, even though the underlying face is

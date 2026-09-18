@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { familyMembers } from "@/db/schema";
+import { families, familyMembers } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/require-admin";
 import { logAuditEvent } from "@/family/audit";
@@ -68,8 +68,10 @@ export async function getUserFamilies(userId: string) {
     .select({
       familyId: familyMembers.familyId,
       role: familyMembers.role,
+      familyName: families.name,
     })
     .from(familyMembers)
+    .innerJoin(families, eq(familyMembers.familyId, families.id))
     .where(
       and(eq(familyMembers.userId, userId), eq(familyMembers.status, "active")),
     );
