@@ -33,6 +33,12 @@ src/family/                 Domain logic — DB access, authorization, and
   calendar.ts                 calendar event CRUD, always scoped to familyId
   calendar-types.ts           client-safe enum labels — see below
   dashboard.ts                pure date logic (no DB import at all — unit-testable)
+  documents.ts                document CRUD, always scoped to familyId
+  documents-types.ts           client-safe enum labels/limits — see below
+  storage/
+    storage-service.ts          StorageService interface
+    netlify-blobs-provider.ts   the only implementation so far
+    index.ts                    re-exports the active provider as `storageService`
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an

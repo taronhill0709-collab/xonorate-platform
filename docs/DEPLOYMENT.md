@@ -52,11 +52,16 @@ not plain `next dev`. Two consequences:
 ## Portability
 
 Family's domain logic (`src/family/*.ts`) doesn't import any Netlify
-package directly and isn't expected to — the only Netlify-coupled pieces
-anywhere in Family so far are indirect, through the shared `src/db/index.ts`
-(Netlify Database connection resolution) and `src/lib/email.ts` (Resend,
-not Netlify-specific). No storage, AI, or billing provider has been wired
-in yet; when those land (Phase 2+), they go through the
-`StorageService`/`AIService`/`BillingService` abstractions described in
-`docs/ARCHITECTURE.md`'s approved plan, not direct provider calls from
-Family route code.
+package directly, with one now-real exception: `src/family/storage/`
+implements the `StorageService` abstraction from the approved plan, and
+its only provider (`netlify-blobs-provider.ts`) does use `@netlify/blobs`.
+Everything above that layer — `documents.ts`, every document route —
+depends only on the `StorageService` interface, so replacing Netlify Blobs
+later means writing one new provider file, not touching Family's document
+code. AI and billing providers haven't been wired in yet; when those land
+(Phase 2+), they go through the `AIService`/`BillingService` abstractions
+the same way, not direct provider calls from Family route code.
+
+The document vault's other Netlify coupling is indirect: the same
+`src/db/index.ts` (Netlify Database connection resolution) every other
+Family feature already depends on.

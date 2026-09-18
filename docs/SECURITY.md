@@ -36,8 +36,44 @@ first and checks `familyId` in application code afterward. See
 `src/family/loved-ones.ts`: a `lovedOneId` that belongs to a different
 family always comes back "not found," never "forbidden" (which would
 confirm the ID exists) and never the actual row. `loved-ones.integration.test.ts`
-covers this directly. Apply the same pattern to every future family-scoped
-table (documents, notes, support people, calendar events).
+covers this directly. The same pattern is now also applied to
+`src/family/calendar.ts` and `src/family/documents.ts` (each with their
+own `*.integration.test.ts`) — apply it to every future family-scoped
+table (notes, support people).
+
+## Document Vault
+
+`src/family/documents.ts` + `src/family/storage/`. The most sensitive
+resource type so far, and the one place a mistake would expose real
+private records (court, medical, identification documents). Three
+properties this depends on:
+
+- **No public serving route.** Unlike `/api/case-photos/[key]` (a
+  deliberately public Netlify Blobs store for case photos), documents have
+  no equivalent. The only way to read one is
+  `/family/[familyId]/documents/[documentId]/download`, a route handler
+  that calls `requireFamilyMember(familyId)` on **every request** before
+  touching storage, and returns `Response("Not found", 404)` — not a
+  redirect, not a cached response — for anyone not an active member.
+  `Cache-Control: private, no-store` on the response for the same reason.
+- **The storage key is not the security boundary.** `uploadFamilyDocument()`
+  generates a random `crypto.randomUUID()` key uncorrelated with
+  `familyId`/title/anything guessable — but that's defense in depth, not
+  the actual protection. The protection is that no route ever accepts a
+  raw storage key from a client; every read goes through
+  `getFamilyDocumentForFamily(familyId, documentId)` first, and the
+  storage key never leaves the server.
+- **`deleteFamilyDocument`'s wrong-family case never touches storage.**
+  The DB delete is scoped on both `documentId` and `familyId`; if it
+  matches zero rows, the function returns `null` before
+  `storageService.delete()` is ever called. This is a deliberate ordering
+  (guard first, storage second) and is what made the delete path testable
+  in `documents.integration.test.ts` without live Netlify Blobs
+  credentials — don't reorder it.
+
+`getSignedUrl()` was deliberately left out of `StorageService` (see that
+file's header comment) — every document read is authorized per-request by
+the proxy-download route instead of a time-limited direct-to-storage URL.
 
 ## Invite tokens
 
@@ -76,6 +112,13 @@ skip straight to a raw query.
 
 - No admin-side family read path exists yet to test `requireFamilyAdminAccess`
   against a real route (only the authz test suite exercises it directly).
+- The document upload/download/delete-with-storage-call happy paths (as
+  opposed to the wrong-family guard paths, which are covered) have never
+  run against live Netlify Blobs in this environment — same category of
+  gap as the database itself (see docs/DATABASE.md's "Local development"
+  section). Verify these for real in a working `netlify dev` session or
+  after deploy before treating the vault as production-verified, not just
+  authorization-verified.
 - Rate limiting exists elsewhere in the app (`src/lib/rate-limit.ts`, IP-based)
   but hasn't been applied to any family route — invite creation is
   owner-gated already (not open to the public), so this hasn't been judged
