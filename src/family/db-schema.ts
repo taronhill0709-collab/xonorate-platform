@@ -1,0 +1,381 @@
+// Xonorate Family — data model. Kept in its own module (re-exported from
+// src/db/schema.ts, which drizzle-kit points at) so the Family domain's
+// tables are easy to find as the feature grows, without splitting the
+// drizzle-kit schema entry point itself.
+import {
+  pgTable,
+  pgEnum,
+  text,
+  timestamp,
+  date,
+  uuid,
+  integer,
+  boolean,
+  jsonb,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+import { users } from "@/db/schema";
+
+// --- Enums ---
+
+export const familyMemberRoleEnum = pgEnum("family_member_role", [
+  "owner",
+  "member",
+]);
+
+// "invited" members have no confirmed account access yet — see
+// familyMembers.userId below. Nothing keyed to a family is visible to a
+// membership row until it's "active".
+export const familyMemberStatusEnum = pgEnum("family_member_status", [
+  "invited",
+  "active",
+]);
+
+// Applies to every uncertain date field on lovedOnes — families often don't
+// know exact dates, and guessing silently would misrepresent their loved
+// one's case. "unknown" is distinct from a null date: it means the family
+// looked and couldn't find/recall it, not that the field was never visited.
+export const dateConfidenceEnum = pgEnum("date_confidence", [
+  "confirmed",
+  "approximate",
+  "unknown",
+]);
+
+export const familyDocumentCategoryEnum = pgEnum("family_document_category", [
+  "court",
+  "sentencing",
+  "appeals",
+  "prison",
+  "parole",
+  "clemency",
+  "medical",
+  "education",
+  "employment",
+  "identification",
+  "reentry",
+  "letters",
+  "other",
+]);
+
+// Where a timeline event came from — "ai_extracted" is reserved for Phase 2
+// (document-extraction); Phase 1 only ever writes "user".
+export const timelineEventOriginEnum = pgEnum("timeline_event_origin", [
+  "user",
+  "ai_extracted",
+]);
+
+// "private" = only the author can see it; "family" = every active member of
+// the family. "professional" (attorney/advocate sharing) is a planned third
+// value once the professional layer exists — adding it later is just an enum
+// value, not a schema change.
+export const familyNoteVisibilityEnum = pgEnum("family_note_visibility", [
+  "private",
+  "family",
+]);
+
+export const familyCalendarEventTypeEnum = pgEnum(
+  "family_calendar_event_type",
+  [
+    "visit",
+    "court",
+    "parole",
+    "clemency",
+    "release",
+    "deposit",
+    "call",
+    "letter",
+    "attorney_meeting",
+    "application_deadline",
+    "family_event",
+    "custom",
+  ],
+);
+
+// --- Families ---
+// The account container. A family has many loved ones; a user can belong to
+// many families (in-laws, blended families, someone active in more than one
+// support network) — never assume 1:1 in either direction.
+
+export const families = pgTable("families", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  // The user who created the family. Not the sole source of authorization
+  // (see familyMembers) — this is provenance, not an access-control shortcut.
+  ownerUserId: uuid("owner_user_id")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// The access-control table. Membership here — not users.role — is what
+// grants a user access to a family's data. users.role stays exactly the
+// site-wide supporter/admin distinction it already was; it is never
+// repurposed for family access.
+export const familyMembers = pgTable(
+  "family_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    // Nullable: an invited member may not have an Xonorate account yet.
+    // Once they sign up/log in and redeem inviteToken, this gets filled in
+    // and status flips to "active".
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    invitedEmail: text("invited_email"),
+    role: familyMemberRoleEnum("role").notNull().default("member"),
+    status: familyMemberStatusEnum("status").notNull().default("invited"),
+    inviteToken: text("invite_token").unique(),
+    inviteTokenExpires: timestamp("invite_token_expires"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    // Postgres unique indexes treat NULLs as distinct, so this only
+    // prevents duplicates once userId is actually set — multiple pending
+    // (userId null) invites can coexist before that.
+    uniqueIndex("family_members_family_user_unique").on(
+      table.familyId,
+      table.userId,
+    ),
+  ],
+);
+
+// --- Loved Ones ---
+
+export const lovedOnes = pgTable("loved_ones", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  preferredName: text("preferred_name"),
+  inmateId: text("inmate_id"),
+  facilityId: uuid("facility_id").references(() => facilities.id, {
+    onDelete: "set null",
+  }),
+  state: text("state"),
+
+  // Case/sentence information — user-provided, never inferred. Each date
+  // carries its own confidence flag rather than one blanket flag for the
+  // whole profile, since a family might be certain of the conviction date
+  // but only approximate on parole eligibility.
+  arrestDate: date("arrest_date"),
+  arrestDateConfidence: dateConfidenceEnum("arrest_date_confidence")
+    .notNull()
+    .default("unknown"),
+  convictionDate: date("conviction_date"),
+  convictionDateConfidence: dateConfidenceEnum("conviction_date_confidence")
+    .notNull()
+    .default("unknown"),
+  sentenceLength: text("sentence_length"),
+  // Free text, not an enum — statuses like "incarcerated" / "on parole" /
+  // "released" / "in appeal" vary in phrasing families actually use; forcing
+  // a fixed vocabulary here would misrepresent nuance an enum can't capture.
+  currentStatus: text("current_status"),
+  paroleEligibilityDate: date("parole_eligibility_date"),
+  paroleEligibilityDateConfidence: dateConfidenceEnum(
+    "parole_eligibility_date_confidence",
+  )
+    .notNull()
+    .default("unknown"),
+  paroleHearingDate: date("parole_hearing_date"),
+  paroleHearingDateConfidence: dateConfidenceEnum(
+    "parole_hearing_date_confidence",
+  )
+    .notNull()
+    .default("unknown"),
+  expectedReleaseDate: date("expected_release_date"),
+  expectedReleaseDateConfidence: dateConfidenceEnum(
+    "expected_release_date_confidence",
+  )
+    .notNull()
+    .default("unknown"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Facilities ---
+// Shared across families (not owned by one) so information about a given
+// facility is entered once and reused. Structured fields plus a jsonb
+// catch-all rather than hard-coding visitation/commissary rules into
+// frontend components, per the "don't hard-code facility info" requirement.
+
+export const facilities = pgTable("facilities", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  state: text("state").notNull(),
+  mailingAddress: text("mailing_address"),
+  phone: text("phone"),
+  // { hours, dressCode, idRequirements, holidayRestrictions }
+  visitationInfo: jsonb("visitation_info"),
+  // { provider, accountSetupUrl, instructions }
+  phoneProviderInfo: jsonb("phone_provider_info"),
+  // { provider, accountSetupUrl, instructions }
+  videoVisitationInfo: jsonb("video_visitation_info"),
+  // { provider, instructions, depositUrl }
+  commissaryInfo: jsonb("commissary_info"),
+  // Whether this row has been checked against the facility's own published
+  // rules. Unverified rows should always show a "verify with the facility"
+  // notice in the UI rather than being presented as confirmed fact.
+  verified: boolean("verified").notNull().default(false),
+  sourceUrl: text("source_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Documents ---
+// Private by construction: unlike case-photo-storage.ts (public case
+// photos), there is no public serving route for these. Access always goes
+// through requireFamilyMember() — see src/family/authz.ts and
+// src/family/storage/storage-service.ts.
+
+export const familyDocuments = pgTable("family_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  // Nullable — some documents (e.g. a family's own ID) aren't about a
+  // specific loved one.
+  lovedOneId: uuid("loved_one_id").references(() => lovedOnes.id, {
+    onDelete: "set null",
+  }),
+  uploadedByUserId: uuid("uploaded_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  category: familyDocumentCategoryEnum("category").notNull().default("other"),
+  title: text("title").notNull(),
+  // Key into the storage provider (see storage-service.ts) — never a public
+  // URL.
+  storageKey: text("storage_key").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  tags: jsonb("tags"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Timeline ---
+
+export const timelineEvents = pgTable("timeline_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  // Free text (not an enum) — families need to log events beyond a fixed
+  // list (arrest/trial/conviction/appeal/parole/release), including fully
+  // custom ones; the UI offers common values as suggestions, not a closed
+  // vocabulary.
+  eventType: text("event_type").notNull(),
+  eventDate: date("event_date").notNull(),
+  description: text("description").notNull(),
+  sourceDocumentId: uuid("source_document_id").references(
+    () => familyDocuments.id,
+    { onDelete: "set null" },
+  ),
+  origin: timelineEventOriginEnum("origin").notNull().default("user"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Notes ---
+
+export const familyNotes = pgTable("family_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id").references(() => lovedOnes.id, {
+    onDelete: "cascade",
+  }),
+  authorUserId: uuid("author_user_id")
+    .notNull()
+    .references(() => users.id),
+  body: text("body").notNull(),
+  visibility: familyNoteVisibilityEnum("visibility")
+    .notNull()
+    .default("family"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Support network ---
+
+export const supportPeople = pgTable("support_people", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id").references(() => lovedOnes.id, {
+    onDelete: "set null",
+  }),
+  name: text("name").notNull(),
+  relationship: text("relationship"),
+  email: text("email"),
+  phone: text("phone"),
+  // Free text (e.g. "employer", "pastor", "attorney") rather than an enum —
+  // the roles a support person plays are open-ended.
+  role: text("role"),
+  // Tag array (e.g. ["housing", "employment", "transportation"]) — same
+  // pattern as cases.contributingFactorTags: an evolving vocabulary that
+  // shouldn't require a migration to extend. This is what Phase 2's reentry
+  // planner reads to know who can help with what.
+  canHelpWith: jsonb("can_help_with"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Calendar ---
+
+export const familyCalendarEvents = pgTable("family_calendar_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id").references(() => lovedOnes.id, {
+    onDelete: "cascade",
+  }),
+  type: familyCalendarEventTypeEnum("type").notNull().default("custom"),
+  title: text("title").notNull(),
+  eventDate: timestamp("event_date").notNull(),
+  notes: text("notes"),
+  // { channel: "email" | "sms" | "push", offsetDays: number } — provider
+  // choice is deliberately not baked into the schema; Phase 2's notification
+  // dispatch reads this and picks an implementation.
+  reminderConfig: jsonb("reminder_config"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Audit log ---
+// Polymorphic, same convention as `comments.targetType`/`targetId`. Every
+// admin read of family data, and every sensitive family action (member
+// invited/removed, document deleted, family deleted), writes a row here —
+// see src/family/audit.ts.
+
+export const auditLog = pgTable("audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorUserId: uuid("actor_user_id")
+    .notNull()
+    .references(() => users.id),
+  // Snapshot of the actor's role at the time of the action — kept even if
+  // users.role changes later, since this is a historical record.
+  actorRole: text("actor_role").notNull(),
+  // e.g. "family.created", "family.member.invited",
+  // "family.document.viewed", "admin.family.viewed"
+  action: text("action").notNull(),
+  targetType: text("target_type").notNull(),
+  targetId: uuid("target_id").notNull(),
+  // Denormalized for fast "show all activity for this family" queries even
+  // when targetType/targetId point at a child record (e.g. a document).
+  familyId: uuid("family_id").references(() => families.id, {
+    onDelete: "set null",
+  }),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

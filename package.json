@@ -11,7 +11,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:db": "vitest run --config vitest.config.mts src/family",
     "db:generate": "drizzle-kit generate",
+    "db:sync-migration": "tsx scripts/sync-migration.ts",
     "db:migrate": "netlify database migrations apply"
   },
   "dependencies": {

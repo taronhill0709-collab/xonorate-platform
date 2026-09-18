@@ -1153,3 +1153,9 @@ export const petitionSlugHistory = pgTable("petition_slug_history", {
   oldSlug: text("old_slug").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// --- Xonorate Family ---
+// Tables live in src/family/db-schema.ts, kept separate from the rest of
+// this file since it's its own product domain — re-exported here because
+// drizzle-kit's schema entry point (drizzle.config.ts) is this file.
+export * from "@/family/db-schema";
