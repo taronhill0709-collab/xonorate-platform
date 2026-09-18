@@ -10,8 +10,10 @@ domain, without splitting drizzle-kit's single entry point.
 ## Xonorate Family tables
 
 `families`, `familyMembers`, `lovedOnes`, `facilities`, `familyCalendarEvents`,
-`familyDocuments`, `familyNotes`, `timelineEvents` (not yet used by any
-UI), `supportPeople` (not yet used), `auditLog`.
+`familyDocuments`, `familyNotes`, `supportPeople`, `auditLog`, and
+`timelineEvents` (the one table with no UI yet — no CRUD exists for the
+loved-one Journey/timeline; that's Phase 2's document-extraction work,
+per the approved plan's phasing).
 See the comments in `src/family/db-schema.ts` for
 per-table rationale. Two decisions worth calling out:
 

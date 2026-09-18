@@ -36,12 +36,13 @@ first and checks `familyId` in application code afterward. See
 `src/family/loved-ones.ts`: a `lovedOneId` that belongs to a different
 family always comes back "not found," never "forbidden" (which would
 confirm the ID exists) and never the actual row. `loved-ones.integration.test.ts`
-covers this directly. The same pattern is now also applied to
-`src/family/calendar.ts`, `src/family/documents.ts`, and
-`src/family/notes.ts` (each with their own `*.integration.test.ts`, and
-notes additionally scoped to the author for mutations — see "Notes: a
-second authorization dimension" below) — apply it to every future
-family-scoped table (support people, and anything Phase 2 adds).
+covers this directly. The same pattern is now also applied to every
+family-scoped table Phase 1 added — `src/family/calendar.ts`,
+`src/family/documents.ts`, `src/family/notes.ts` (additionally scoped to
+the author for mutations — see "Notes: a second authorization dimension"
+below), and `src/family/support-people.ts` — each with its own
+`*.integration.test.ts`. Apply it to every family-scoped table Phase 2
+adds.
 
 ## Document Vault
 

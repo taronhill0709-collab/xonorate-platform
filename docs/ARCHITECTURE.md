@@ -38,6 +38,11 @@ src/family/                 Domain logic — DB access, authorization, and
   notes.ts                    note CRUD — family-visibility filtered in
                                SQL, edit/delete additionally author-scoped
   notes-types.ts               client-safe enum labels — see below
+  support-people.ts           support-network CRUD, always scoped to
+                               familyId — no *-types.ts split needed here;
+                               canHelpWith is a free-text jsonb tag array,
+                               not a db enum, so there's nothing to leak
+                               a `db` import through
   storage/
     storage-service.ts          StorageService interface
     netlify-blobs-provider.ts   the only implementation so far
@@ -63,8 +68,9 @@ full production build, not by `tsc` alone — `tsc` has no concept of the
 client/server bundle boundary).
 
 The fix, and the pattern to repeat for every future domain module with an
-enum a form needs to render (documents' category, notes' visibility,
-support people's `canHelpWith` tags): put enum-derived types and their
+enum a form needs to render (documents' category, notes' visibility —
+support people's `canHelpWith` turned out to be free text, not a db enum,
+so it didn't need this split): put enum-derived types and their
 human-language label maps in a separate `*-types.ts` file that imports
 only from `@/db/schema` (safe — it has no `db`/`pg` import, just
 drizzle-orm table/enum definitions) and never from `@/db` itself. Client
@@ -77,10 +83,10 @@ integration-tested (`*.integration.test.ts` in `src/family/`) without
 spinning up Next.js routing, and so a future AI/billing/storage layer can
 import the same domain functions Server Actions already use.
 
-## Route tree (Phase 1, as built so far)
+## Route tree (Phase 1 — complete)
 
-- `/family` — routes to onboarding (no family), a single family's hub (one
-  family), or a switcher (multiple families).
+- `/family` — routes to onboarding (no family), a single family's dashboard
+  (one family), or a switcher (multiple families).
 - `/family/new` — onboarding: create a family.
 - `/family/invite/[token]` — accept-invite landing page. Deliberately
   **outside** `/family/[familyId]/**` — see "Why the invite route isn't
@@ -88,12 +94,26 @@ import the same domain functions Server Actions already use.
 - `/family/[familyId]/**` — gated by `[familyId]/layout.tsx`
   (`requireFamilyMember`, 404s a non-member rather than showing a
   forbidden page, so a family's existence isn't confirmed to outsiders).
-  - `/family/[familyId]` — hub page (loved ones + members lists). Stand-in
-    for the full "what needs attention" dashboard, which is a later Phase 1
-    milestone.
+  - `/family/[familyId]` — the dashboard: What Needs Attention, Upcoming
+    (merged key dates + calendar events), Loved Ones, Quick Actions.
   - `/family/[familyId]/members` — invite/list/remove members.
   - `/family/[familyId]/loved-ones/new`, `/loved-ones/[lovedOneId]`,
-    `/loved-ones/[lovedOneId]/edit` — loved-one CRUD.
+    `/loved-ones/[lovedOneId]/edit` — loved-one CRUD; the profile page also
+    surfaces that loved one's documents and support people.
+  - `/family/[familyId]/calendar`, `/calendar/new`,
+    `/calendar/[eventId]/edit` — calendar events.
+  - `/family/[familyId]/documents`, `/documents/new`,
+    `/documents/[documentId]/edit`, `/documents/[documentId]/download` —
+    the document vault; `download` is a route handler, not a page (see
+    docs/SECURITY.md's Document Vault section).
+  - `/family/[familyId]/notes`, `/notes/new`, `/notes/[noteId]/edit` —
+    private/family notes.
+  - `/family/[familyId]/support`, `/support/new`,
+    `/support/[personId]/edit` — the support network.
+
+Phase 1 (Foundation) is complete as of this route tree. Phase 2
+(Intelligence — the AI toolbox, starting with the Support Letter Builder)
+is next per the approved build order; nothing in Phase 2 has been started.
 
 ### Why the invite route isn't nested under `[familyId]`
 
