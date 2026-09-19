@@ -132,6 +132,9 @@ export async function generateReentryPlanCategoryDraft(params: {
     prompt: buildCategoryDraftPrompt(params),
     schema: categoryDraftSchema,
     effort: "medium",
-    maxTokens: 800,
+    // Three prose fields plus structured-output overhead ran past 800
+    // tokens and got cut mid-string during live verification (an
+    // "Unterminated string in JSON" parse failure) — 2000 leaves headroom.
+    maxTokens: 2000,
   });
 }
