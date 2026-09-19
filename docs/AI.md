@@ -221,18 +221,35 @@ family-wide-read/write and one-row-per-section creation pattern as the
 Reentry Planner's, plus the full 11-section overview composition, but —
 like every other tool's tests — never calls the real AI.
 
-Clemency Preparation's three AI calls (`generateClemencyNarrativeDraft`,
-`generateMissingDocumentationInsight`, `generateAttorneyQuestions`) have
-**not** been live-verified yet — before relying on their output in
-production, verify all three the same way: a temporary diagnostic route
-on production, a realistic chronology/accomplishments/support-network
-mix for the narrative, a realistic set of existing document titles for
-the missing-documentation check, and a drafted narrative plus identified
-gaps for the attorney-questions call. Check specifically that none of
-the three ever drift into legal advice or attorney-like language (this
-tool's sixth guardrail, above) — that's the one this spec is most
-explicit about, and the one most worth scrutinizing in the actual output
-rather than assuming the prompt wording alone is enough.
+Clemency Preparation's three AI calls were verified live once, each via
+its own request to a temporary diagnostic route on production (chaining
+all three in one request hit Netlify's function execution limit — a 502
+with no body — so each ran as its own call instead). Given a realistic
+chronology, three accomplishments, and a two-person support network,
+`generateClemencyNarrativeDraft` used only the given facts, explicitly
+flagged what it *didn't* know rather than inventing it ("the file gave
+me no information about... I have not added any event, date, program,
+relationship, or claim that was not in the file"), separated legal
+questions into their own section with "I am drafting assistance, not a
+lawyer, and these are not questions I should answer," and stated
+plainly that no one — "not this tool, not anyone" — can predict a
+clemency outcome. `generateMissingDocumentationInsight`, given two
+existing document titles against the reference checklist, correctly
+qualified its answer with "titles alone can't tell us what a document
+actually contains." `generateAttorneyQuestions` produced pure questions
+with no legal answers, and again flagged thin information rather than
+assuming.
+
+The first live run of `generateAttorneyQuestions` failed the same way
+the Reentry Planner's category-draft call once did: `maxTokens` of 700
+wasn't enough, and the response was cut mid-string ("Failed to parse
+structured output as JSON: Unterminated string"). Raised to 1500. Two
+bugs now, both the same shape — this is worth remembering as a standing
+rule: any prose-generating `aiService.draft()` call needs meaningfully
+more `maxTokens` headroom than the schema's field count would suggest,
+and the only way this class of failure ever surfaces is a live call
+against the real API, never a schema-shape unit test.
+
 `timeline.integration.test.ts` and
 `clemency-preparation.integration.test.ts` cover the usual
 family-scoping and creation-invariant patterns against a real database,
