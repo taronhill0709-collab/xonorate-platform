@@ -5,6 +5,7 @@ import { getUpcomingKeyDates } from "@/family/dashboard";
 import { listFamilyDocuments } from "@/family/documents";
 import { DOCUMENT_CATEGORY_LABELS, type DocumentCategory } from "@/family/documents-types";
 import { listSupportPeopleForFamily } from "@/family/support-people";
+import { listTimelineEventsForLovedOne } from "@/family/timeline";
 
 function nextUpcomingDate(lovedOne: Awaited<ReturnType<typeof getLovedOneForFamily>>) {
   if (!lovedOne) return null;
@@ -30,6 +31,7 @@ export default async function LovedOneProfilePage({
   const upcoming = nextUpcomingDate(lovedOne);
   const documents = await listFamilyDocuments(familyId, { lovedOneId });
   const supportPeople = await listSupportPeopleForFamily(familyId, { lovedOneId });
+  const timelineEvents = await listTimelineEventsForLovedOne(familyId, lovedOneId);
 
   return (
     <div className="space-y-8">
@@ -64,16 +66,60 @@ export default async function LovedOneProfilePage({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-dashed border-border bg-muted-background p-8 text-center">
-        <p className="text-xs font-semibold tracking-wide text-muted uppercase">Journey</p>
-        <h2 className="mt-2 font-serif text-lg">No timeline events yet</h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
-          Start building {lovedOne.preferredName || lovedOne.name}&rsquo;s
-          journey by adding important dates and milestones.
-        </p>
-        <span className="mt-4 inline-block rounded-xl bg-background px-4 py-2 text-sm text-muted/70">
-          Coming soon
-        </span>
+      <section className="rounded-2xl border border-border bg-muted-background p-6">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold tracking-wide text-muted uppercase">Journey</p>
+          <Link
+            href={`/family/${familyId}/loved-ones/${lovedOneId}/timeline/new`}
+            className="text-xs font-semibold text-brand"
+          >
+            Add Event
+          </Link>
+        </div>
+        {timelineEvents.length === 0 ? (
+          <div className="mt-2 text-center">
+            <h2 className="font-serif text-lg">No timeline events yet</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
+              Start building {lovedOne.preferredName || lovedOne.name}&rsquo;s journey by adding
+              important dates and milestones.
+            </p>
+            <Link
+              href={`/family/${familyId}/loved-ones/${lovedOneId}/timeline/new`}
+              className="mt-4 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
+            >
+              Add Event
+            </Link>
+          </div>
+        ) : (
+          <>
+            <ul className="mt-3 space-y-2 text-sm">
+              {timelineEvents.slice(0, 4).map((event) => (
+                <li key={event.id}>
+                  <Link
+                    href={`/family/${familyId}/loved-ones/${lovedOneId}/timeline/${event.id}/edit`}
+                    className="flex items-center justify-between rounded-xl bg-background px-3 py-2 transition hover:ring-1 hover:ring-brand"
+                  >
+                    <span className="capitalize">{event.eventType.replace(/_/g, " ")}</span>
+                    <span className="text-xs text-muted">
+                      {new Date(event.eventDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/family/${familyId}/loved-ones/${lovedOneId}/timeline`}
+              className="mt-3 inline-block text-xs font-semibold text-brand"
+            >
+              {timelineEvents.length > 4 ? `View all ${timelineEvents.length} events →` : "View timeline →"}
+            </Link>
+          </>
+        )}
       </section>
 
       <div className="grid gap-6 sm:grid-cols-2">

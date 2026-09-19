@@ -91,6 +91,42 @@ src/family/                 Domain logic — DB access, authorization, and
                                same shape as reentry-plan.ts's but with an
                                added guardrail: never predict or imply a
                                parole outcome
+  timeline.ts                  timeline event CRUD for a loved one's
+                               "Journey" — general Phase 1 schema
+                               (timelineEvents) that had no domain module
+                               or UI until Clemency Preparation needed
+                               "organize chronology"; no familyId column
+                               of its own, so every query joins lovedOnes
+                               to enforce family scoping. Not Clemency-
+                               specific — Case Organizer's document
+                               extraction is expected to write into this
+                               same table later with origin:
+                               "ai_extracted"
+  clemency-preparation.ts      the narrative/attorney-questions hub (one
+                               row per loved one, family-wide read/write)
+                               plus rehabilitation-accomplishments CRUD
+                               (a variable-length list, not a fixed set of
+                               rows). "Collect support" reuses Support
+                               Letters (purpose "clemency", newly added);
+                               "organize family/community support" reuses
+                               Support Network; "organize chronology"
+                               reuses timeline.ts above; "identify missing
+                               documentation" is computed live from
+                               documents.ts (category "clemency") — none
+                               of those get a row here, same reasoning as
+                               parole-preparation.ts's derived sections
+  clemency-preparation-types.ts  client-safe narrative-status labels
+                               (reusing supportLetterStatusEnum at the DB
+                               level, different wording) and
+                               getNarrativeContent (pure — see below)
+  ai/clemency-preparation.ts   three calls: narrative draft, a missing-
+                               documentation insight (checked against a
+                               static reference checklist, not a
+                               requirement), and attorney-question
+                               generation — all restating spec section
+                               20's guardrail: drafting assistance, not
+                               legal advice, never represented as an
+                               attorney
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -143,7 +179,15 @@ import the same domain functions Server Actions already use.
   - `/family/[familyId]/members` — invite/list/remove members.
   - `/family/[familyId]/loved-ones/new`, `/loved-ones/[lovedOneId]`,
     `/loved-ones/[lovedOneId]/edit` — loved-one CRUD; the profile page also
-    surfaces that loved one's documents and support people.
+    surfaces that loved one's documents, support people, and timeline.
+  - `/family/[familyId]/loved-ones/[lovedOneId]/timeline`, `/timeline/new`,
+    `/timeline/[eventId]/edit` — the "Journey" timeline (general Phase 1
+    schema, first given a UI while building Clemency Preparation's
+    "organize chronology" step — see timeline.ts). Nested under
+    `loved-ones/[lovedOneId]` rather than given its own top-level nav
+    item, unlike Reentry/Parole/Clemency: `timelineEvents.lovedOneId` is
+    `.notNull()` — an event always belongs to exactly one loved one, never
+    optionally family-wide the way a calendar event or document can be.
   - `/family/[familyId]/calendar`, `/calendar/new`,
     `/calendar/[eventId]/edit` — calendar events.
   - `/family/[familyId]/documents`, `/documents/new`,
@@ -182,6 +226,17 @@ import the same domain functions Server Actions already use.
     familyDocuments (`category: "parole"`), and the loved one's Reentry
     Plan, each linking out to that feature's own page rather than
     duplicating its data entry.
+  - `/family/[familyId]/clemency`, `/clemency/[lovedOneId]` — Clemency
+    Preparation (Phase 2's fourth tool — see docs/AI.md). Same
+    chooser/redirect and lazy-create shape as `/reentry` and `/parole`,
+    but the board itself isn't a status grid — it's a narrative editor
+    (generate → edit → approve, like Letters), an inline rehabilitation-
+    accomplishments list (add/remove, no edit — spec section 20 doesn't
+    ask for more than that), an on-demand missing-documentation check,
+    an on-demand attorney-questions generator, and three read-only tiles
+    (Chronology, Collect Support, Family/Community Support) linking out
+    to Timeline, Letters, and Support Network respectively rather than
+    duplicating them.
 - `/letter-request/[token]` — the invitee's own page. Deliberately
   **outside** `/family/**` entirely (not just outside `[familyId]`, the
   way the accept-invite page is) — `proxy.ts`'s edge middleware only
@@ -191,10 +246,13 @@ import the same domain functions Server Actions already use.
   docs/SECURITY.md.
 
 Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway: the
-Support Letter Builder, Support Letter Requests, the Reentry Planner, and
-Parole Preparation are built (docs/AI.md, docs/SECURITY.md); Clemency
-Preparation and Case Organizer are next per the approved build order and
-haven't been started.
+Support Letter Builder, Support Letter Requests, the Reentry Planner,
+Parole Preparation, and Clemency Preparation are built (docs/AI.md,
+docs/SECURITY.md); Case Organizer is next per the approved build order
+and hasn't been started. Case Organizer's document-extraction step is
+expected to write into the same `timelineEvents` table Clemency
+Preparation's Timeline feature uses, with `origin: "ai_extracted"`
+instead of `"user"` — no schema change needed when that lands.
 
 ### Why the invite route isn't nested under `[familyId]`
 
@@ -227,8 +285,9 @@ admin-layout pattern — Server Actions must not rely on middleware alone.
 
 ## What's deliberately not built yet
 
-Billing, Clemency Preparation, Case Organizer, professional dashboards,
-Xonorate Inside. See the phased build order in the approved architecture
-plan. `[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
-broader "Prepare" section (which Letters, the Reentry Planner, and Parole
-Preparation are the first real parts of) rather than a dead link.
+Billing, Case Organizer, professional dashboards, Xonorate Inside. See
+the phased build order in the approved architecture plan.
+`[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
+broader "Prepare" section (which Letters, the Reentry Planner, Parole
+Preparation, and Clemency Preparation are the first real parts of)
+rather than a dead link.

@@ -3,10 +3,10 @@
 Phase 2 (Intelligence) started with the Support Letter Builder — the
 first real AI-assisted tool, and the first thing to actually use the
 `AIService` abstraction from the approved architecture plan. The Reentry
-Planner is the second, Parole Preparation the third, both following the
-same shape. This document covers the abstraction, the context rule every
-tool must follow, and the guardrails, so the next tool (Clemency Prep,
-Case Organizer) can follow the same shape too.
+Planner is the second, Parole Preparation the third, Clemency Preparation
+the fourth, all following the same shape. This document covers the
+abstraction, the context rule every tool must follow, and the guardrails,
+so the next tool (Case Organizer) can follow the same shape too.
 
 ## The `AIService` abstraction
 
@@ -46,6 +46,17 @@ Case Organizer) can follow the same shape too.
   "NEXT BEST ACTION" here, not drafting help, so that's all this tool
   builds — the same "don't build unused surface area" reasoning as
   `ai-service.ts`'s single `draft()` method.
+- `clemency-preparation.ts` — Clemency Preparation's three calls: a
+  narrative draft (spec section 20's "create draft narratives," built
+  from the loved one's Timeline + rehabilitation accomplishments +
+  support network — never any other family data), a missing-
+  documentation insight (checks the family's own clemency-tagged document
+  *titles* against a static reference checklist defined in this file,
+  never the documents' actual contents, which this tool never reads),
+  and attorney-question generation (section 20's "prepare questions for
+  an attorney" — the tool asks the questions, never answers them). Three
+  calls in one file, same reasoning as `reentry-plan.ts`'s two: one
+  shared guardrail block, one tool.
 
 Tool code (`support-letters.ts` today) calls `aiService.draft(...)` or a
 tool-specific wrapper like `generateSupportLetterDraft(...)` — never
@@ -84,6 +95,17 @@ its rolled-up First 90 Days status. The status is the only thing the
 insight needs to do its job; the underlying content stays out of the
 prompt entirely.
 
+Clemency Preparation's three calls each draw a tighter box than usual.
+The narrative draft sends the loved one's Timeline events, rehabilitation
+accomplishments, and support-network summary — never other family notes,
+documents, or case details, and never another loved one's data. The
+missing-documentation check sends existing clemency-tagged document
+*titles* only, never file contents (this tool never reads a document's
+contents at all) — plus a static reference checklist that lives in the
+code, not in any family's data. The attorney-questions call sends only
+the current narrative text and the missing-documentation gaps already
+identified, nothing further back into the family's records.
+
 ## Guardrails
 
 Every tool's system prompt must state, explicitly, in its own words (not
@@ -117,6 +139,19 @@ Preparation completeness has no bearing on what a parole board decides.
 This is the same "never guarantee an outcome" principle as the second
 bullet above, just spelled out explicitly for a tool where a user might
 otherwise read "3 of 11 complete" as a prediction rather than a checklist.
+
+Clemency Preparation's spec (section 20) adds its own sixth rule,
+restated in `ai/clemency-preparation.ts`'s system prompt: **this is
+drafting assistance, not legal advice, and the tool must never be
+represented as an attorney.** Concretely, that means the narrative and
+attorney-questions calls never tell the user what the law requires,
+never call a document "legally sufficient," and never answer a legal
+question directly — if something sounds like a legal question, the
+attorney-questions generator's whole job is to put it on the list of
+things to ask a real attorney instead of answering it itself. This is
+the clemency-specific instance of the third bullet above (never claim
+legal authority), spelled out because "drafting assistance" is easy to
+blur into "legal advice" when the content itself is legal-adjacent.
 
 These aren't just prompt instructions — `regenerateSupportLetterDraft`
 throws `AIRefusalError` (from `ai-service.ts`) when the model itself
@@ -185,3 +220,20 @@ stayed well under its 500-token budget.
 family-wide-read/write and one-row-per-section creation pattern as the
 Reentry Planner's, plus the full 11-section overview composition, but —
 like every other tool's tests — never calls the real AI.
+
+Clemency Preparation's three AI calls (`generateClemencyNarrativeDraft`,
+`generateMissingDocumentationInsight`, `generateAttorneyQuestions`) have
+**not** been live-verified yet — before relying on their output in
+production, verify all three the same way: a temporary diagnostic route
+on production, a realistic chronology/accomplishments/support-network
+mix for the narrative, a realistic set of existing document titles for
+the missing-documentation check, and a drafted narrative plus identified
+gaps for the attorney-questions call. Check specifically that none of
+the three ever drift into legal advice or attorney-like language (this
+tool's sixth guardrail, above) — that's the one this spec is most
+explicit about, and the one most worth scrutinizing in the actual output
+rather than assuming the prompt wording alone is enough.
+`timeline.integration.test.ts` and
+`clemency-preparation.integration.test.ts` cover the usual
+family-scoping and creation-invariant patterns against a real database,
+again without calling the real AI.

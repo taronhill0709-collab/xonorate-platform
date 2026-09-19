@@ -21,6 +21,7 @@ const PURPOSE_CONTEXT: Record<SupportLetterPurpose, string> = {
   employer: "a letter of employer support",
   community: "a letter of community support",
   faith_leader: "a letter from a faith or community leader",
+  clemency: "a letter of support for a clemency application",
 };
 
 const SYSTEM = `You draft support letters for Xonorate Family — a platform helping families organize support for a loved one who is incarcerated or navigating reentry.

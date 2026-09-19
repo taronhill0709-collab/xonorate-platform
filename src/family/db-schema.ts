@@ -389,6 +389,10 @@ export const supportLetterPurposeEnum = pgEnum("support_letter_purpose", [
   "employer",
   "community",
   "faith_leader",
+  // Added for Clemency Preparation's "collect support" step (spec section
+  // 20) — the same reuse pattern as "parole" already being here for
+  // Parole Preparation's "Support Letters" section.
+  "clemency",
 ]);
 
 // draft: the author is still answering guided questions, no AI draft yet.
@@ -602,6 +606,66 @@ export const parolePreparationSections = pgTable(
     ),
   ],
 );
+
+// --- Clemency Preparation (Phase 2 — the fourth tool) ---
+// Per spec section 20's seven sub-capabilities, only two need their own
+// storage here: the shared draft narrative (one per loved one — a
+// clemency petition centers on a single narrative, not one per family
+// member the way Support Letters does) and the rehabilitation
+// accomplishments list. "Collect support" reuses Support Letters
+// (purpose "clemency", added above); "organize family/community support"
+// reuses the existing Support Network; "organize chronology" reuses the
+// new Timeline feature (timelineEvents); "identify missing documentation"
+// is computed live from familyDocuments (category "clemency") — none of
+// those need a row here. Attorney-questions output is stored alongside
+// the narrative since both are single AI-generated text fields, not
+// worth a separate table for.
+
+export const clemencyPreparations = pgTable(
+  "clemency_preparations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    lovedOneId: uuid("loved_one_id")
+      .notNull()
+      .references(() => lovedOnes.id, { onDelete: "cascade" }),
+    // Same draft/final split as supportLetters, and the same reused
+    // status enum — "the person reviews and approves before it's used
+    // anywhere" applies here too.
+    narrativeDraftContent: text("narrative_draft_content"),
+    narrativeFinalContent: text("narrative_final_content"),
+    narrativeStatus: supportLetterStatusEnum("narrative_status").notNull().default("draft"),
+    // Regenerable reference material for an actual attorney meeting — no
+    // draft/final split, since nothing "approves" a list of questions to
+    // ask; the family just regenerates it as their preparation evolves.
+    attorneyQuestionsContent: text("attorney_questions_content"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("clemency_preparations_loved_one_unique").on(table.lovedOneId),
+  ],
+);
+
+// A variable-length list, not a fixed set of rows — same shape as
+// familyCalendarEvents/familyDocuments (direct familyId+lovedOneId
+// scoping), not reentryPlanCategories' fixed one-row-per-category shape.
+export const clemencyAccomplishments = pgTable("clemency_accomplishments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  achievedDate: date("achieved_date"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 export const supportLetterRequests = pgTable("support_letter_requests", {
   id: uuid("id").defaultRandom().primaryKey(),

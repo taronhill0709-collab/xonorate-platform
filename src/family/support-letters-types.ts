@@ -14,6 +14,7 @@ export const SUPPORT_LETTER_PURPOSE_LABELS: Record<SupportLetterPurpose, string>
   employer: "Employer support letter",
   community: "Community support letter",
   faith_leader: "Faith/community leader letter",
+  clemency: "Clemency support letter",
 };
 
 export const SUPPORT_LETTER_STATUS_LABELS: Record<SupportLetterStatus, string> = {
@@ -73,6 +74,13 @@ export const SUPPORT_LETTER_QUESTIONS: Record<SupportLetterPurpose, SupportLette
     { key: "observations", label: "What have you observed about their character or faith journey?" },
     { key: "support", label: "What support will your congregation/community provide?" },
     { key: "additional", label: "Anything else you'd like to add?" },
+  ],
+  clemency: [
+    { key: "relationship", label: "How are you connected to {{lovedOne}} (family, friend, employer, etc.)?" },
+    { key: "changes", label: "What changes or growth have you observed since their incarceration began?" },
+    { key: "impact", label: "How has their incarceration affected you, your family, or your community?" },
+    { key: "supportAvailable", label: "What support will be available to them if clemency is granted?" },
+    { key: "additional", label: "Anything else the decision-maker should know?" },
   ],
 };
 
