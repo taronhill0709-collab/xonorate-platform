@@ -63,6 +63,17 @@ src/family/                 Domain logic — DB access, authorization, and
                                its public functions are authorized purely
                                by token possession, no login, no family
                                membership (see docs/SECURITY.md)
+  reentry-plan.ts              reentry plan CRUD — family-wide read/write,
+                               always scoped to lovedOneId+familyId; one
+                               plan per loved one, one row per category,
+                               created together (ensureReentryPlanForLovedOne)
+  reentry-plan-types.ts        client-safe category/status labels, the
+                               fixed category list and order, and
+                               summarizeReentryPlanGaps (pure — see below)
+  ai/reentry-plan.ts           the Reentry Planner's own prompts: a gap-
+                               detection insight ("you have X and Y but not
+                               Z") and a per-category 30/60/90-day drafting
+                               assist, both on aiService.draft()
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -134,6 +145,15 @@ import the same domain functions Server Actions already use.
     (below) in one merged view.
   - `/family/[familyId]/letters/requests/new` — a family member invites
     someone outside the family to write their own letter.
+  - `/family/[familyId]/reentry`, `/reentry/[lovedOneId]` — the Reentry
+    Planner (Phase 2's second tool — see docs/AI.md). `/reentry` redirects
+    straight to the board for a family with one loved one, or offers a
+    chooser for more than one; `/reentry/[lovedOneId]` is one board page
+    (lazily creates the plan on first visit via
+    `ensureReentryPlanForLovedOne`, then reads/writes it), not split across
+    sub-routes. Family-wide read **and** write — unlike Letters, which is
+    author-scoped, a reentry plan is shared planning work any active member
+    can edit.
 - `/letter-request/[token]` — the invitee's own page. Deliberately
   **outside** `/family/**` entirely (not just outside `[familyId]`, the
   way the accept-invite page is) — `proxy.ts`'s edge middleware only
@@ -142,12 +162,14 @@ import the same domain functions Server Actions already use.
   Xonorate account at all. Authorized purely by possessing the token; see
   docs/SECURITY.md.
 
-Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway:
-the Support Letter Builder and Support Letter Requests are built and
-live-verified (docs/AI.md, docs/SECURITY.md); Reentry Planner, Parole
+Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway: the
+Support Letter Builder, Support Letter Requests, and the Reentry Planner
+are built (docs/AI.md, docs/SECURITY.md — Support Letters is
+live-verified with a real AI call; the Reentry Planner's AI call is not
+yet, since this sandbox has no working local DB connection to run one
+through — see "What's verified, and how" in docs/AI.md); Parole
 Preparation, Clemency Preparation, and Case Organizer are next per the
-approved build order and haven't been
-started.
+approved build order and haven't been started.
 
 ### Why the invite route isn't nested under `[familyId]`
 
@@ -180,11 +202,8 @@ admin-layout pattern — Server Actions must not rely on middleware alone.
 
 ## What's deliberately not built yet
 
-Billing, Reentry Planner, Parole Preparation, Clemency Preparation, Case
-Organizer, Support Letter Requests (inviting someone outside the family
-to answer their own questions for a letter — a distinct feature from the
-Builder itself), professional dashboards, Xonorate Inside. See the
-phased build order in the approved architecture plan.
-`[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
-broader "Prepare" section (which Letters is the first real part of)
-rather than a dead link.
+Billing, Parole Preparation, Clemency Preparation, Case Organizer,
+professional dashboards, Xonorate Inside. See the phased build order in
+the approved architecture plan. `[familyId]/layout.tsx`'s nav shows a
+"coming soon" marker for the broader "Prepare" section (which Letters and
+the Reentry Planner are the first real parts of) rather than a dead link.

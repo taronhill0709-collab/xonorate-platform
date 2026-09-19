@@ -461,6 +461,85 @@ export const supportLetterRequestStatusEnum = pgEnum("support_letter_request_sta
   "approved", // invitee approved their own letter — now part of the support packet
 ]);
 
+// --- Reentry Planner (Phase 2 — the second AI-assisted tool) ---
+// One plan per loved one, made up of a fixed row per category (created
+// together — see ensureReentryPlanForLovedOne in reentry-plan.ts) rather
+// than free-form rows a family adds one at a time. This is what makes the
+// "you have X and Y but not Z" gap-detection from spec section 19 a plain
+// query instead of something inferred after the fact from free text: every
+// plan always has exactly one row per category, and that row's status is
+// set directly by the family (or by AI suggestion), never derived.
+
+export const reentryPlanCategoryEnum = pgEnum("reentry_plan_category", [
+  "identification",
+  "housing",
+  "employment",
+  "transportation",
+  "education",
+  "healthcare",
+  "benefits",
+  "finances",
+  "family",
+  "community",
+  "legal_obligations",
+]);
+
+// Mirrors the COMPLETE / INCOMPLETE / NOT STARTED framing from the Parole
+// Preparation spec section, which is meant to carry over here too.
+export const reentryPlanCategoryStatusEnum = pgEnum(
+  "reentry_plan_category_status",
+  ["not_started", "incomplete", "complete"],
+);
+
+export const reentryPlans = pgTable(
+  "reentry_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    lovedOneId: uuid("loved_one_id")
+      .notNull()
+      .references(() => lovedOnes.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    // One plan per loved one — ensureReentryPlanForLovedOne relies on this
+    // to make plan creation idempotent rather than risking duplicates under
+    // concurrent first-visits.
+    uniqueIndex("reentry_plans_loved_one_unique").on(table.lovedOneId),
+  ],
+);
+
+// Freeform 30/60/90-day content lives alongside status on the same row
+// (not a separate task-list table) — per the approved spec, each category
+// is one entry with a status plus its plan content across the three time
+// horizons, not a checklist of independently-completable line items.
+export const reentryPlanCategories = pgTable(
+  "reentry_plan_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => reentryPlans.id, { onDelete: "cascade" }),
+    category: reentryPlanCategoryEnum("category").notNull(),
+    status: reentryPlanCategoryStatusEnum("status")
+      .notNull()
+      .default("not_started"),
+    plan30Day: text("plan_30_day"),
+    plan60Day: text("plan_60_day"),
+    plan90Day: text("plan_90_day"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("reentry_plan_categories_plan_category_unique").on(
+      table.planId,
+      table.category,
+    ),
+  ],
+);
+
 export const supportLetterRequests = pgTable("support_letter_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   familyId: uuid("family_id")

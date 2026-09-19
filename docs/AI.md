@@ -2,10 +2,11 @@
 
 Phase 2 (Intelligence) started with the Support Letter Builder — the
 first real AI-assisted tool, and the first thing to actually use the
-`AIService` abstraction from the approved architecture plan. This
-document covers the abstraction, the context rule every tool must follow,
-and the guardrails, so the next tool (Reentry Planner, Parole Prep,
-Clemency Prep, Case Organizer) can follow the same shape.
+`AIService` abstraction from the approved architecture plan. The Reentry
+Planner is the second, following the same shape. This document covers the
+abstraction, the context rule every tool must follow, and the guardrails,
+so the next tool (Parole Prep, Clemency Prep, Case Organizer) can follow
+the same shape too.
 
 ## The `AIService` abstraction
 
@@ -31,6 +32,12 @@ Clemency Prep, Case Organizer) can follow the same shape.
 - `support-letter.ts` — the Support Letter Builder's own prompt/schema/
   generation function, sitting on top of `aiService.draft()`. Each tool
   gets its own file like this — never one shared generic prompt.
+- `reentry-plan.ts` — the Reentry Planner's two calls: a gap-detection
+  insight (spec section 19's "you have identified housing and employment,
+  but transportation has not yet been planned" example, plus a "next best
+  action") and a per-category 30/60/90-day drafting assist. Two calls in
+  one file, not two files, since they share the same guardrail text and
+  both belong to the same tool.
 
 Tool code (`support-letters.ts` today) calls `aiService.draft(...)` or a
 tool-specific wrapper like `generateSupportLetterDraft(...)` — never
@@ -51,6 +58,14 @@ prompt by hand, not delegate "just send everything relevant" to some
 context-assembly helper that could quietly grow to include more over
 time. When building the next tool, write out what it actually needs
 before writing the prompt, the same way this one did.
+
+The Reentry Planner follows the same discipline: its insight call sends
+only each category's status (not the family's raw notes, documents, or
+case details) plus the support network's name + `canHelpWith` tags — never
+a support person's email, phone, or free-text `notes` field. Its
+per-category drafting call additionally sends that one category's own
+existing 30/60/90-day text, never another category's, and only the
+support people whose `canHelpWith` plausibly matches that category.
 
 ## Guardrails
 
@@ -99,3 +114,17 @@ family-wide-read/author-scoped-write access pattern (see
 `docs/SECURITY.md`) but do not call the real AI — they test
 `updateSupportLetterAnswers`/`updateSupportLetterContent`/etc. directly,
 never `regenerateSupportLetterDraft`.
+
+The Reentry Planner's two AI calls (`generateReentryPlanInsight`,
+`generateReentryPlanCategoryDraft`) have **not** been live-verified the
+same way yet — this was built in an environment with no working local
+database connection (`netlify dev` isn't usable here), so there's no way
+to exercise a real request end to end without deploying first.
+`reentry-plan.integration.test.ts` covers the family-wide-read/write
+authorization pattern and the one-row-per-category creation invariant
+against a real database, same as `calendar.integration.test.ts`, but —
+like the Support Letter tests — never calls the real AI. Before relying
+on the AI output in production, verify it once live the same way Support
+Letters was: a temporary diagnostic route, a realistic set of category
+statuses and a support network, checking the model only references what
+it was given and never promises an outcome.
