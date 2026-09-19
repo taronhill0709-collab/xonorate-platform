@@ -164,12 +164,10 @@ import the same domain functions Server Actions already use.
 
 Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway: the
 Support Letter Builder, Support Letter Requests, and the Reentry Planner
-are built (docs/AI.md, docs/SECURITY.md — Support Letters is
-live-verified with a real AI call; the Reentry Planner's AI call is not
-yet, since this sandbox has no working local DB connection to run one
-through — see "What's verified, and how" in docs/AI.md); Parole
-Preparation, Clemency Preparation, and Case Organizer are next per the
-approved build order and haven't been started.
+are built and live-verified with real AI calls (docs/AI.md,
+docs/SECURITY.md); Parole Preparation, Clemency Preparation, and Case
+Organizer are next per the approved build order and haven't been
+started.
 
 ### Why the invite route isn't nested under `[familyId]`
 

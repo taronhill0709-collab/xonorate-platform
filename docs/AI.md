@@ -115,16 +115,29 @@ family-wide-read/author-scoped-write access pattern (see
 `updateSupportLetterAnswers`/`updateSupportLetterContent`/etc. directly,
 never `regenerateSupportLetterDraft`.
 
-The Reentry Planner's two AI calls (`generateReentryPlanInsight`,
-`generateReentryPlanCategoryDraft`) have **not** been live-verified the
-same way yet — this was built in an environment with no working local
-database connection (`netlify dev` isn't usable here), so there's no way
-to exercise a real request end to end without deploying first.
+The Reentry Planner's two AI calls were verified live once, the same way
+— a temporary diagnostic route on production, since this was built in an
+environment with no working local database connection. Given a realistic
+mix of category statuses (four complete, two incomplete, five not
+started) and a two-person support network where only one person's
+`canHelpWith` matched an unstarted category, `generateReentryPlanInsight`
+correctly named every complete/incomplete/not-started category and tied
+its next-best-action to that one matching support person rather than
+inventing one for an unmatched category. `generateReentryPlanCategoryDraft`
+produced 30/60/90-day content that stayed conditional on facts not given
+("if Marcus wants a driver's license," "if a vehicle is part of the
+picture") instead of asserting them, and never promised an outcome.
+
+The first live run caught a real bug: `generateReentryPlanCategoryDraft`'s
+`maxTokens` of 800 wasn't enough for three prose fields plus
+structured-output overhead, so the response was cut mid-string ("Failed
+to parse structured output as JSON: Unterminated string"). Raised to
+2000 — a reminder that a schema with several prose fields needs
+meaningfully more headroom than `support-letter.ts`'s single field, and
+that this class of failure only shows up against the real API, never in
+a schema-shape unit test.
+
 `reentry-plan.integration.test.ts` covers the family-wide-read/write
 authorization pattern and the one-row-per-category creation invariant
 against a real database, same as `calendar.integration.test.ts`, but —
-like the Support Letter tests — never calls the real AI. Before relying
-on the AI output in production, verify it once live the same way Support
-Letters was: a temporary diagnostic route, a realistic set of category
-statuses and a support network, checking the model only references what
-it was given and never promises an outcome.
+like the Support Letter tests — never calls the real AI.
