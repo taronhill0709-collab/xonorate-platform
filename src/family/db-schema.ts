@@ -424,14 +424,71 @@ export const supportLetters = pgTable("support_letters", {
   // context rule). Shape varies by purpose; see
   // support-letters-types.ts's question sets.
   answers: jsonb("answers"),
-  // The AI-generated draft, exactly as produced — kept separate from
-  // finalContent so "regenerate" never destroys the author's own edits
-  // without them explicitly starting over.
+  // The AI-generated draft, exactly as produced. Kept separate from
+  // finalContent (rather than one shared column) so a fresh regeneration
+  // is always distinguishable from the author's own edits — see
+  // getLetterContent() in support-letters-types.ts and
+  // regenerateSupportLetterDraft() in support-letters.ts, which
+  // deliberately clears finalContent whenever this is rewritten.
   draftContent: text("draft_content"),
   // The author's edited version. Null until they've started editing;
   // once set, this (not draftContent) is what's shown/exported.
   finalContent: text("final_content"),
   status: supportLetterStatusEnum("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Support Letter Requests ---
+// A family member invites someone OUTSIDE the family (an employer, a
+// pastor, a friend) to write their own support letter. Deliberately a
+// separate table from supportLetters, not a nullable-author variant of
+// it: the invitee has no Xonorate account and no family membership by
+// design (spec section 17/18 — "the person who is supposedly authoring
+// the letter must have the opportunity to review and approve it," which
+// only works if they can do so without signing up for anything). Access
+// to a request's own answer/draft/approve flow is entirely by possession
+// of `token` — no login, no family session — the same threat model as
+// the existing public case-submission follow-up flow
+// (inquiries.followUpToken). Once approved, it displays alongside
+// self-authored supportLetters rows in the family's letters list (see
+// the merge in src/app/family/[familyId]/letters/page.tsx) — two tables,
+// one read-side view, rather than forcing both shapes into one table.
+
+export const supportLetterRequestStatusEnum = pgEnum("support_letter_request_status", [
+  "pending", // invite sent, invitee hasn't answered yet
+  "answered", // invitee has answered and generated a draft, not yet approved
+  "approved", // invitee approved their own letter — now part of the support packet
+]);
+
+export const supportLetterRequests = pgTable("support_letter_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  // The family member who sent the request — not the letter's author.
+  requestedByUserId: uuid("requested_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  purpose: supportLetterPurposeEnum("purpose").notNull(),
+  recipientName: text("recipient_name"),
+  // Free text — the invitee has no account, so this is provenance/display
+  // only, never used for authorization (the token is).
+  inviteeName: text("invitee_name").notNull(),
+  inviteeEmail: text("invitee_email").notNull(),
+  // An optional personal note from the requester shown to the invitee
+  // (e.g. "This would mean a lot for John's parole hearing next month").
+  personalNote: text("personal_note"),
+  token: text("token").notNull().unique(),
+  tokenExpires: timestamp("token_expires").notNull(),
+  answers: jsonb("answers"),
+  draftContent: text("draft_content"),
+  finalContent: text("final_content"),
+  status: supportLetterRequestStatusEnum("status").notNull().default("pending"),
+  approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -1,0 +1,161 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { SUPPORT_LETTER_PURPOSE_LABELS, type SupportLetterPurpose } from "@/family/support-letters-types";
+import { createLetterRequestAction } from "./actions";
+
+export function CreateRequestForm({
+  familyId,
+  lovedOnes,
+  defaultLovedOneId,
+}: {
+  familyId: string;
+  lovedOnes: { id: string; name: string }[];
+  defaultLovedOneId?: string;
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<
+    { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string } | { kind: "sent" }
+  >({ kind: "idle" });
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus({ kind: "loading" });
+    const formData = new FormData(e.currentTarget);
+    const result = await createLetterRequestAction(familyId, formData);
+    if (result.success) {
+      setStatus({ kind: "sent" });
+      setTimeout(() => router.push(`/family/${familyId}/letters`), 1200);
+    } else {
+      setStatus({ kind: "error", message: result.error });
+    }
+  }
+
+  if (status.kind === "sent") {
+    return (
+      <p className="mx-auto max-w-sm text-center text-sm text-accent">
+        Invitation sent — taking you back to your letters…
+      </p>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4 text-left">
+      <div>
+        <label htmlFor="lovedOneId" className="block text-sm font-medium">
+          Who is this letter supporting?
+        </label>
+        <select
+          id="lovedOneId"
+          name="lovedOneId"
+          required
+          defaultValue={defaultLovedOneId ?? ""}
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        >
+          <option value="" disabled>
+            Choose a loved one
+          </option>
+          {lovedOnes.map((lo) => (
+            <option key={lo.id} value={lo.id}>
+              {lo.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="purpose" className="block text-sm font-medium">
+          Letter type
+        </label>
+        <select
+          id="purpose"
+          name="purpose"
+          defaultValue=""
+          required
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        >
+          <option value="" disabled>
+            Choose a type
+          </option>
+          {(Object.entries(SUPPORT_LETTER_PURPOSE_LABELS) as [SupportLetterPurpose, string][]).map(
+            ([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ),
+          )}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="recipientName" className="block text-sm font-medium">
+          Recipient <span className="font-normal text-muted">(optional)</span>
+        </label>
+        <input
+          id="recipientName"
+          name="recipientName"
+          placeholder="e.g. Parole Board, Jane Smith - Hiring Manager"
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="inviteeName" className="block text-sm font-medium">
+            Their name
+          </label>
+          <input
+            id="inviteeName"
+            name="inviteeName"
+            required
+            placeholder="e.g. Aunt Lisa"
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+          />
+        </div>
+        <div>
+          <label htmlFor="inviteeEmail" className="block text-sm font-medium">
+            Their email
+          </label>
+          <input
+            id="inviteeEmail"
+            name="inviteeEmail"
+            type="email"
+            required
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="personalNote" className="block text-sm font-medium">
+          Personal note <span className="font-normal text-muted">(optional)</span>
+        </label>
+        <textarea
+          id="personalNote"
+          name="personalNote"
+          rows={2}
+          placeholder="This would mean a lot for John's parole hearing next month."
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        />
+      </div>
+
+      {status.kind === "error" && (
+        <p className="text-sm text-brand" role="alert">
+          {status.message}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={status.kind === "loading"}
+        className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-brand-foreground transition hover:opacity-90 disabled:opacity-60"
+      >
+        {status.kind === "loading" ? "Sending…" : "Send Invitation"}
+      </button>
+      <p className="text-center text-xs text-muted">
+        They&rsquo;ll get an email with a link — no account needed. They review and approve their
+        own letter before it&rsquo;s shared with your family.
+      </p>
+    </form>
+  );
+}
