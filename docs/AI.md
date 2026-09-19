@@ -168,14 +168,20 @@ authorization pattern and the one-row-per-category creation invariant
 against a real database, same as `calendar.integration.test.ts`, but —
 like the Support Letter tests — never calls the real AI.
 
-Parole Preparation's one AI call (`generateParolePreparationInsight`) has
-**not** been live-verified yet — before relying on its output in
-production, verify it the same way: a temporary diagnostic route on
-production, a realistic mix of section statuses across all 11 sections,
-checking the model correctly separates the 7 stored sections from the 4
-derived ones, ties its next-best-action to an actual support-network
-match, and never predicts or implies a parole outcome (this tool's
-specific fifth guardrail, above). `parole-preparation.integration.test.ts`
-covers the same family-wide-read/write and one-row-per-section creation
-pattern as the Reentry Planner's, plus the full 11-section overview
-composition, again without calling the real AI.
+Parole Preparation's one AI call was verified live once, the same way —
+a temporary diagnostic route on production. Given three complete
+sections, three incomplete, and five not started, plus a two-person
+support network where one person's `canHelpWith` was deliberately left
+empty, `generateParolePreparationInsight` reproduced the exact
+complete/incomplete/not-started split with no drift, correctly noted
+that the empty-`canHelpWith` person's willingness was on file without
+inventing what they could help with, and suggested a concrete next step
+without ever touching parole odds or a predicted outcome — the guardrail
+this tool adds beyond the standard four. No bugs this run (unlike the
+Reentry Planner's first attempt); the insight schema's two short fields
+stayed well under its 500-token budget.
+
+`parole-preparation.integration.test.ts` covers the same
+family-wide-read/write and one-row-per-section creation pattern as the
+Reentry Planner's, plus the full 11-section overview composition, but —
+like every other tool's tests — never calls the real AI.
