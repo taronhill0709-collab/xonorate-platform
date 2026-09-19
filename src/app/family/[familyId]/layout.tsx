@@ -67,6 +67,7 @@ export default async function FamilyDetailLayout({
           ) : (
             <ComingSoonNavItem label="My Loved One" />
           )}
+          <NavLink href={`/family/${familyId}/letters`} label="Letters" />
           <ComingSoonNavItem label="Prepare" />
           <NavLink href={`/family/${familyId}/calendar`} label="Calendar" />
           <NavLink href={`/family/${familyId}/documents`} label="Documents" />

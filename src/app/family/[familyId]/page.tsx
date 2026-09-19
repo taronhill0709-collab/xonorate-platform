@@ -15,17 +15,6 @@ function QuickAction({ href, label }: { href: string; label: string }) {
   );
 }
 
-function QuickActionComingSoon({ label }: { label: string }) {
-  return (
-    <span
-      title="Coming soon"
-      className="cursor-default rounded-xl border border-border bg-background px-4 py-2 text-sm text-muted/50"
-    >
-      {label}
-    </span>
-  );
-}
-
 export default async function FamilyDashboardPage({
   params,
 }: {
@@ -220,7 +209,7 @@ export default async function FamilyDashboardPage({
           <QuickAction href={`/family/${familyId}/documents/new`} label="Add Document" />
           <QuickAction href={`/family/${familyId}/notes/new`} label="Add a Note" />
           <QuickAction href={`/family/${familyId}/support/new`} label="Add Support Person" />
-          <QuickActionComingSoon label="Write a Letter" />
+          <QuickAction href={`/family/${familyId}/letters/new`} label="Write a Letter" />
         </div>
       </section>
 

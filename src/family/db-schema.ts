@@ -379,3 +379,59 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// --- Support Letters (Phase 2 — the first AI-assisted tool) ---
+
+export const supportLetterPurposeEnum = pgEnum("support_letter_purpose", [
+  "family",
+  "character",
+  "parole",
+  "employer",
+  "community",
+  "faith_leader",
+]);
+
+// draft: the author is still answering guided questions, no AI draft yet.
+// generated: AI has produced a draft from those answers.
+// approved: the author has reviewed/edited and signed off — this is the
+// version meant to actually be sent/printed.
+export const supportLetterStatusEnum = pgEnum("support_letter_status", [
+  "draft",
+  "generated",
+  "approved",
+]);
+
+export const supportLetters = pgTable("support_letters", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  // The letter is written in this person's own voice/first person — only
+  // they can edit or regenerate it (see src/family/support-letters.ts),
+  // even though every active family member can read it once generated.
+  authorUserId: uuid("author_user_id")
+    .notNull()
+    .references(() => users.id),
+  purpose: supportLetterPurposeEnum("purpose").notNull(),
+  // Free text (e.g. "Parole Board", "Jane Smith, Hiring Manager") — not
+  // every purpose has a single named recipient, so this stays optional.
+  recipientName: text("recipient_name"),
+  // The author's guided-question answers — the ONLY factual material the
+  // AI draft is allowed to draw on (see src/family/ai/ and docs/AI.md's
+  // context rule). Shape varies by purpose; see
+  // support-letters-types.ts's question sets.
+  answers: jsonb("answers"),
+  // The AI-generated draft, exactly as produced — kept separate from
+  // finalContent so "regenerate" never destroys the author's own edits
+  // without them explicitly starting over.
+  draftContent: text("draft_content"),
+  // The author's edited version. Null until they've started editing;
+  // once set, this (not draftContent) is what's shown/exported.
+  finalContent: text("final_content"),
+  status: supportLetterStatusEnum("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

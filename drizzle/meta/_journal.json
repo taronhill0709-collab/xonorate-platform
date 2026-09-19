@@ -288,6 +288,13 @@
       "when": 1789694463030,
       "tag": "0040_equal_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1789778131108,
+      "tag": "0041_lethal_gideon",
+      "breakpoints": true
     }
   ]
 }
