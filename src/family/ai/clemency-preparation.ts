@@ -154,7 +154,13 @@ export async function generateAttorneyQuestions(params: {
     prompt,
     schema: attorneyQuestionsSchema,
     effort: "low",
-    maxTokens: 700,
+    // 700 wasn't enough during live verification — the model's numbered
+    // list plus structured-output overhead got cut mid-string ("Failed
+    // to parse structured output as JSON: Unterminated string"), the
+    // same class of failure the Reentry Planner's category-draft call
+    // hit. Raised to 1500, matching support-letter.ts's headroom for a
+    // single prose field.
+    maxTokens: 1500,
   });
   return result.questions;
 }
