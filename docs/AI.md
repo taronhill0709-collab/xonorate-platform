@@ -311,15 +311,18 @@ against the real API, never a schema-shape unit test.
 family-scoping and creation-invariant patterns against a real database,
 again without calling the real AI.
 
-Case Organizer's `generateCaseSummary` has **not** been live-verified
-yet — before relying on its output in production, verify it the same
-way: a temporary diagnostic route on production, a realistic timeline/
-documents/people/issues mix, checking specifically for the two rules
-this spec is most explicit about (no score of any kind, no guilt/
-innocence/wrongful-conviction determination) since those are the ones
-most worth scrutinizing in actual model output rather than assuming the
-prompt wording alone is enough — the same lesson the two `maxTokens`
-bugs above taught about *other* guardrail properties. `generateDocumentUnderstanding`
+Case Organizer's `generateCaseSummary` was verified live on production
+via a temporary diagnostic route, against a realistic timeline (arrest,
+conviction, appeal filed, a milestone, an undated hearing), four
+document titles, three people, and two open issues. Checked specifically
+for the two rules this spec is most explicit about: the response
+contained no score or percentage of any kind, and made no claim of
+innocence, guilt, or a wrongful-conviction determination. It also kept
+"the family said X" distinct from fact throughout ("according to the
+timeline you've built," "reportedly," "the family noted"), treated the
+open recantation question as unresolved rather than settled, and
+deferred the appeal's legal significance to the attorney rather than
+opining on it. No truncation at `maxTokens: 1500`. `generateDocumentUnderstanding`
 and `extractTimelineEventCandidates` are unverified too, and can't be
 meaningfully verified until they have real document text to run
 against — verify them together with whatever future milestone builds
