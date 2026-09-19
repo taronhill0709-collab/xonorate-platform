@@ -3,10 +3,10 @@
 Phase 2 (Intelligence) started with the Support Letter Builder — the
 first real AI-assisted tool, and the first thing to actually use the
 `AIService` abstraction from the approved architecture plan. The Reentry
-Planner is the second, following the same shape. This document covers the
-abstraction, the context rule every tool must follow, and the guardrails,
-so the next tool (Parole Prep, Clemency Prep, Case Organizer) can follow
-the same shape too.
+Planner is the second, Parole Preparation the third, both following the
+same shape. This document covers the abstraction, the context rule every
+tool must follow, and the guardrails, so the next tool (Clemency Prep,
+Case Organizer) can follow the same shape too.
 
 ## The `AIService` abstraction
 
@@ -38,6 +38,14 @@ the same shape too.
   action") and a per-category 30/60/90-day drafting assist. Two calls in
   one file, not two files, since they share the same guardrail text and
   both belong to the same tool.
+- `parole-preparation.ts` — Parole Preparation's one call: the same
+  gap-detection-plus-next-best-action shape as the Reentry Planner's
+  insight, across all 11 spec sections (not just the 7 this tool stores
+  itself — see docs/ARCHITECTURE.md). No per-section drafting assist;
+  the spec only asked for "identify missing preparation areas" and a
+  "NEXT BEST ACTION" here, not drafting help, so that's all this tool
+  builds — the same "don't build unused surface area" reasoning as
+  `ai-service.ts`'s single `draft()` method.
 
 Tool code (`support-letters.ts` today) calls `aiService.draft(...)` or a
 tool-specific wrapper like `generateSupportLetterDraft(...)` — never
@@ -67,6 +75,15 @@ per-category drafting call additionally sends that one category's own
 existing 30/60/90-day text, never another category's, and only the
 support people whose `canHelpWith` plausibly matches that category.
 
+Parole Preparation's insight call sends only each of the 11 sections'
+*status* (complete/incomplete/not_started) plus the same minimal support-
+network summary — never the freeform notes text behind a freeform
+section's status, never a support letter's content, never a document's
+title or contents, never the Reentry Plan's own 30/60/90-day text behind
+its rolled-up First 90 Days status. The status is the only thing the
+insight needs to do its job; the underlying content stays out of the
+prompt entirely.
+
 ## Guardrails
 
 Every tool's system prompt must state, explicitly, in its own words (not
@@ -91,6 +108,15 @@ by reference — a model reads the prompt it's given, not this file):
   future tool's UI should do the same — never present AI output as
   though the user wrote every word unassisted, and never let it be sent
   anywhere without the user reviewing it first.
+
+Parole Preparation's spec adds a tool-specific fifth rule, restated in
+`ai/parole-preparation.ts`'s own system prompt alongside the four above:
+**never predict, promise, or imply a parole outcome** — not odds, not "the
+board will likely grant this," not "this makes release more likely."
+Preparation completeness has no bearing on what a parole board decides.
+This is the same "never guarantee an outcome" principle as the second
+bullet above, just spelled out explicitly for a tool where a user might
+otherwise read "3 of 11 complete" as a prediction rather than a checklist.
 
 These aren't just prompt instructions — `regenerateSupportLetterDraft`
 throws `AIRefusalError` (from `ai-service.ts`) when the model itself
@@ -141,3 +167,15 @@ a schema-shape unit test.
 authorization pattern and the one-row-per-category creation invariant
 against a real database, same as `calendar.integration.test.ts`, but —
 like the Support Letter tests — never calls the real AI.
+
+Parole Preparation's one AI call (`generateParolePreparationInsight`) has
+**not** been live-verified yet — before relying on its output in
+production, verify it the same way: a temporary diagnostic route on
+production, a realistic mix of section statuses across all 11 sections,
+checking the model correctly separates the 7 stored sections from the 4
+derived ones, ties its next-best-action to an actual support-network
+match, and never predicts or implies a parole outcome (this tool's
+specific fifth guardrail, above). `parole-preparation.integration.test.ts`
+covers the same family-wide-read/write and one-row-per-section creation
+pattern as the Reentry Planner's, plus the full 11-section overview
+composition, again without calling the real AI.

@@ -540,6 +540,69 @@ export const reentryPlanCategories = pgTable(
   ],
 );
 
+// --- Parole Preparation (Phase 2 — the third tool) ---
+// Deliberately NOT a self-contained checklist like the Reentry Planner.
+// Per the approved spec, four of its eleven sections (Support Network,
+// Support Letters, Documents, First 90 Days) are read-only rollups of
+// data Family already has — supportPeople, supportLetters/
+// supportLetterRequests filtered to purpose "parole", familyDocuments
+// filtered to category "parole" (both enum values exist for exactly this
+// reason), and the loved one's existing Reentry Plan. Only the remaining
+// seven sections — ones with no parole-specific home elsewhere — get
+// their own row here. See src/family/parole-preparation-types.ts for the
+// full eleven-section list and which kind each one is.
+
+export const paroleFreeformSectionEnum = pgEnum("parole_freeform_section", [
+  "housing",
+  "employment",
+  "transportation",
+  "education",
+  "community_support",
+  "personal_goals",
+  "family_support",
+]);
+
+export const parolePreparations = pgTable(
+  "parole_preparations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    lovedOneId: uuid("loved_one_id")
+      .notNull()
+      .references(() => lovedOnes.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("parole_preparations_loved_one_unique").on(table.lovedOneId),
+  ],
+);
+
+// Reuses reentryPlanCategoryStatusEnum (not_started/incomplete/complete)
+// rather than declaring a duplicate three-value enum — same shape, same
+// meaning, no reason for a second Postgres type.
+export const parolePreparationSections = pgTable(
+  "parole_preparation_sections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    preparationId: uuid("preparation_id")
+      .notNull()
+      .references(() => parolePreparations.id, { onDelete: "cascade" }),
+    section: paroleFreeformSectionEnum("section").notNull(),
+    status: reentryPlanCategoryStatusEnum("status").notNull().default("not_started"),
+    notes: text("notes"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("parole_preparation_sections_prep_section_unique").on(
+      table.preparationId,
+      table.section,
+    ),
+  ],
+);
+
 export const supportLetterRequests = pgTable("support_letter_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   familyId: uuid("family_id")

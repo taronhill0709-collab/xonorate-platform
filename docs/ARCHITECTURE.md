@@ -74,6 +74,23 @@ src/family/                 Domain logic — DB access, authorization, and
                                detection insight ("you have X and Y but not
                                Z") and a per-category 30/60/90-day drafting
                                assist, both on aiService.draft()
+  parole-preparation.ts        parole preparation CRUD/rollup — family-wide
+                               read/write, always scoped to lovedOneId+
+                               familyId; only 7 of 11 sections have a row
+                               here (see parole-preparation-types.ts) —
+                               the other 4 are computed live by composing
+                               existing domain functions (support-people.ts,
+                               support-letters.ts, support-letter-requests.ts,
+                               documents.ts, reentry-plan.ts), never a raw
+                               query against their tables
+  parole-preparation-types.ts  client-safe section/status labels, the
+                               fixed 11-section list with each one's
+                               freeform/derived kind, and the derived-
+                               section status functions (pure — see below)
+  ai/parole-preparation.ts     the Parole Preparation gap-detection insight,
+                               same shape as reentry-plan.ts's but with an
+                               added guardrail: never predict or imply a
+                               parole outcome
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -154,6 +171,17 @@ import the same domain functions Server Actions already use.
     sub-routes. Family-wide read **and** write — unlike Letters, which is
     author-scoped, a reentry plan is shared planning work any active member
     can edit.
+  - `/family/[familyId]/parole`, `/parole/[lovedOneId]` — Parole
+    Preparation (Phase 2's third tool — see docs/AI.md). Same
+    chooser/redirect and lazy-create shape as `/reentry`. The board shows
+    all 11 spec sections, but only 7 (Housing, Employment, Transportation,
+    Education, Community Support, Personal Goals, Family Support) are
+    editable here — Support Network, Support Letters, Documents, and
+    First 90 Days are read-only tiles computed from supportPeople,
+    supportLetters/supportLetterRequests (`purpose: "parole"`),
+    familyDocuments (`category: "parole"`), and the loved one's Reentry
+    Plan, each linking out to that feature's own page rather than
+    duplicating its data entry.
 - `/letter-request/[token]` — the invitee's own page. Deliberately
   **outside** `/family/**` entirely (not just outside `[familyId]`, the
   way the accept-invite page is) — `proxy.ts`'s edge middleware only
@@ -163,11 +191,10 @@ import the same domain functions Server Actions already use.
   docs/SECURITY.md.
 
 Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway: the
-Support Letter Builder, Support Letter Requests, and the Reentry Planner
-are built and live-verified with real AI calls (docs/AI.md,
-docs/SECURITY.md); Parole Preparation, Clemency Preparation, and Case
-Organizer are next per the approved build order and haven't been
-started.
+Support Letter Builder, Support Letter Requests, the Reentry Planner, and
+Parole Preparation are built (docs/AI.md, docs/SECURITY.md); Clemency
+Preparation and Case Organizer are next per the approved build order and
+haven't been started.
 
 ### Why the invite route isn't nested under `[familyId]`
 
@@ -200,8 +227,8 @@ admin-layout pattern — Server Actions must not rely on middleware alone.
 
 ## What's deliberately not built yet
 
-Billing, Parole Preparation, Clemency Preparation, Case Organizer,
-professional dashboards, Xonorate Inside. See the phased build order in
-the approved architecture plan. `[familyId]/layout.tsx`'s nav shows a
-"coming soon" marker for the broader "Prepare" section (which Letters and
-the Reentry Planner are the first real parts of) rather than a dead link.
+Billing, Clemency Preparation, Case Organizer, professional dashboards,
+Xonorate Inside. See the phased build order in the approved architecture
+plan. `[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
+broader "Prepare" section (which Letters, the Reentry Planner, and Parole
+Preparation are the first real parts of) rather than a dead link.
