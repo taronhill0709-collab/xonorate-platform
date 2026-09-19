@@ -103,10 +103,39 @@ one — visibility — and the two must never be conflated:
   member hitting the edit route for someone else's note gets the same
   "not found" as a note that doesn't exist at all.
 
-If a future resource type (support people? case-organizer entries?) needs
-per-item visibility again, follow this shape: filter visibility in the
-query that lists/reads, and additionally scope mutations to whoever should
-be allowed to mutate — don't assume "can read" implies "can write."
+If a future resource type needs per-item visibility again, follow this
+shape: filter visibility in the query that lists/reads, and additionally
+scope mutations to whoever should be allowed to mutate — don't assume
+"can read" implies "can write."
+
+## Support letters: family-wide read, author-scoped write
+
+A third shape, distinct from notes' private-by-default: `supportLetters`
+has no visibility column at all — every active family member can read
+every letter via `listSupportLettersForFamily()` (it's part of the loved
+one's shared support packet, not a private aside, so there's no "hide
+this from the family" case to handle). But every *mutation* —
+`getOwnSupportLetterForFamily`, `updateSupportLetterAnswers`,
+`regenerateSupportLetterDraft`, `updateSupportLetterContent`,
+`approveSupportLetter`, `deleteSupportLetter` — is scoped to
+`authorUserId` in the `WHERE` clause, same mechanism as notes' mutation
+scoping. A letter is written in one person's own voice; only they can
+answer its questions, regenerate it, edit it, approve it, or delete it.
+Covered by `support-letters.integration.test.ts`, including the read/write
+asymmetry specifically (a non-author sees the letter in the family list
+but every mutation attempt returns `null`).
+
+## AI calls carry the same authorization as everything else
+
+`regenerateSupportLetterDraft` is called from a Server Action that already
+calls `requireFamilyMember()` before anything else, then the function
+itself re-checks `authorUserId` via `getOwnSupportLetterForFamily`. The AI
+call itself has no independent authorization — it's just a function call
+inside an already-authorized request, the same as any other database
+write. What it does need independent care for is data minimization: see
+`docs/AI.md`'s context rule for what actually gets sent to the model
+(deliberately far less than everything the letter's Server Action could
+technically reach).
 
 ## Invite tokens
 

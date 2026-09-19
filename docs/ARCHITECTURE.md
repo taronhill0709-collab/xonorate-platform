@@ -47,6 +47,16 @@ src/family/                 Domain logic — DB access, authorization, and
     storage-service.ts          StorageService interface
     netlify-blobs-provider.ts   the only implementation so far
     index.ts                    re-exports the active provider as `storageService`
+  support-letters.ts           support letter CRUD — family-wide read,
+                               author-scoped write (see docs/SECURITY.md)
+  support-letters-types.ts     client-safe enum labels, question sets,
+                               and getLetterContent (pure — see below)
+  ai/
+    ai-service.ts                AIService interface (see docs/AI.md)
+    anthropic-provider.ts        the only implementation so far
+    index.ts                     re-exports the active provider as `aiService`
+    support-letter.ts            the Support Letter Builder's own prompt/
+                                  schema, sitting on aiService.draft()
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -83,7 +93,7 @@ integration-tested (`*.integration.test.ts` in `src/family/`) without
 spinning up Next.js routing, and so a future AI/billing/storage layer can
 import the same domain functions Server Actions already use.
 
-## Route tree (Phase 1 — complete)
+## Route tree
 
 - `/family` — routes to onboarding (no family), a single family's dashboard
   (one family), or a switcher (multiple families).
@@ -110,10 +120,16 @@ import the same domain functions Server Actions already use.
     private/family notes.
   - `/family/[familyId]/support`, `/support/new`,
     `/support/[personId]/edit` — the support network.
+  - `/family/[familyId]/letters`, `/letters/new`, `/letters/[letterId]` —
+    the Support Letter Builder (Phase 2's first tool — see docs/AI.md).
+    `[letterId]` is one combined workflow page (answer questions ->
+    generate -> edit -> approve -> delete), not split across sub-routes.
 
-Phase 1 (Foundation) is complete as of this route tree. Phase 2
-(Intelligence — the AI toolbox, starting with the Support Letter Builder)
-is next per the approved build order; nothing in Phase 2 has been started.
+Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway:
+the Support Letter Builder is built and live-verified (docs/AI.md);
+Reentry Planner, Parole Preparation, Clemency Preparation, and Case
+Organizer are next per the approved build order and haven't been
+started.
 
 ### Why the invite route isn't nested under `[familyId]`
 
@@ -146,7 +162,11 @@ admin-layout pattern — Server Actions must not rely on middleware alone.
 
 ## What's deliberately not built yet
 
-AI toolbox, billing, calendar, document vault, notes, support network,
-professional dashboards, Xonorate Inside. See the phased build order in
-the approved architecture plan. `[familyId]/layout.tsx`'s nav shows
-"coming soon" markers for Prepare/Organize rather than dead links.
+Billing, Reentry Planner, Parole Preparation, Clemency Preparation, Case
+Organizer, Support Letter Requests (inviting someone outside the family
+to answer their own questions for a letter — a distinct feature from the
+Builder itself), professional dashboards, Xonorate Inside. See the
+phased build order in the approved architecture plan.
+`[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
+broader "Prepare" section (which Letters is the first real part of)
+rather than a dead link.

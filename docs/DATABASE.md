@@ -10,12 +10,12 @@ domain, without splitting drizzle-kit's single entry point.
 ## Xonorate Family tables
 
 `families`, `familyMembers`, `lovedOnes`, `facilities`, `familyCalendarEvents`,
-`familyDocuments`, `familyNotes`, `supportPeople`, `auditLog`, and
-`timelineEvents` (the one table with no UI yet — no CRUD exists for the
-loved-one Journey/timeline; that's Phase 2's document-extraction work,
-per the approved plan's phasing).
+`familyDocuments`, `familyNotes`, `supportPeople`, `supportLetters`,
+`auditLog`, and `timelineEvents` (the one table with no UI yet — no CRUD
+exists for the loved-one Journey/timeline; that's tied to Case
+Organizer's document-extraction work, per the approved plan's phasing).
 See the comments in `src/family/db-schema.ts` for
-per-table rationale. Two decisions worth calling out:
+per-table rationale. Three decisions worth calling out:
 
 - **`familyMembers` is the access-control table, not `users.role`.**
   `users.role` stays exactly the site-wide `supporter`/`admin` distinction
@@ -27,6 +27,18 @@ per-table rationale. Two decisions worth calling out:
   a minimal, `verified: false` row on the fly from a loved-one's profile
   form. A future facility-admin surface can enrich/verify these rows
   without changing this function's contract.
+- **`supportLetters` keeps `draftContent` and `finalContent` separate**
+  rather than one mutable `content` column. `draftContent` is always
+  exactly what the AI last produced; `finalContent` is the author's own
+  edited version, null until they've actually changed something.
+  `getLetterContent()` (in `support-letters-types.ts`) picks whichever
+  exists, preferring `finalContent` — which is why
+  `regenerateSupportLetterDraft` explicitly clears `finalContent` back to
+  null whenever it writes a fresh `draftContent`: otherwise the author's
+  old edited version would keep winning and "Regenerate" would silently
+  appear to do nothing. The client warns before calling it if a draft
+  already exists (`letter-workflow.tsx`), since regenerating is
+  destructive to any edits made so far.
 
 ## Migration drift — now tooled, not manual
 
