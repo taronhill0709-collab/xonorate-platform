@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLovedOneForFamily } from "@/family/loved-ones";
 import { listTimelineEventsForLovedOne } from "@/family/timeline";
+import { formatTimelineEventDate, getTimelineEventLabel } from "@/family/timeline-types";
+import { CaseTabs } from "../case/case-tabs";
 
 export default async function TimelinePage({
   params,
@@ -15,7 +17,8 @@ export default async function TimelinePage({
   const events = await listTimelineEventsForLovedOne(familyId, lovedOneId);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <CaseTabs familyId={familyId} lovedOneId={lovedOneId} />
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold tracking-wide text-muted uppercase">Journey</p>
@@ -52,16 +55,14 @@ export default async function TimelinePage({
                 className="flex items-start justify-between gap-4 transition hover:text-brand"
               >
                 <div>
-                  <p className="font-medium capitalize">{event.eventType.replace(/_/g, " ")}</p>
+                  <p className="font-medium capitalize">{getTimelineEventLabel(event)}</p>
                   <p className="mt-1 text-sm text-muted">{event.description}</p>
+                  {event.relatedPersonName && (
+                    <p className="mt-1 text-xs text-muted">Related: {event.relatedPersonName}</p>
+                  )}
                 </div>
                 <span className="shrink-0 text-xs font-semibold text-muted">
-                  {new Date(event.eventDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    timeZone: "UTC",
-                  })}
+                  {formatTimelineEventDate(event.eventDate, event.dateConfidence)}
                 </span>
               </Link>
             </li>

@@ -13,6 +13,7 @@ import {
   boolean,
   jsonb,
   uniqueIndex,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { users } from "@/db/schema";
 
@@ -55,7 +56,23 @@ export const familyDocumentCategoryEnum = pgEnum("family_document_category", [
   "reentry",
   "letters",
   "other",
+  // Added for Case Organizer (spec section 4) — the case-document
+  // categories it lists that didn't already have a home.
+  "trial",
+  "post_conviction",
+  "transcripts",
+  "evidence",
+  "attorney_correspondence",
 ]);
+
+// Minimal foundation for future AI document intelligence (Case Organizer
+// spec section 4's "Processing status" field + section 11's prepared,
+// not-yet-built document-understanding architecture) — no OCR/extraction
+// pipeline exists yet, so every document is "uploaded" until one does.
+export const familyDocumentProcessingStatusEnum = pgEnum(
+  "family_document_processing_status",
+  ["uploaded", "needs_review", "processed"],
+);
 
 // Where a timeline event came from — "ai_extracted" is reserved for Phase 2
 // (document-extraction); Phase 1 only ever writes "user".
@@ -88,6 +105,13 @@ export const familyCalendarEventTypeEnum = pgEnum(
     "application_deadline",
     "family_event",
     "custom",
+    // Added for Case Organizer's Important Dates (spec section 7) — the
+    // date types it lists that didn't already map to an existing value
+    // ("Court date" -> court, "Attorney meeting" -> attorney_meeting,
+    // "Visitation" -> visit already existed).
+    "hearing",
+    "appeal_deadline",
+    "filing_deadline",
   ],
 );
 
@@ -255,28 +279,82 @@ export const familyDocuments = pgTable("family_documents", {
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
   tags: jsonb("tags"),
+  // The metadata fields below are additions for Case Organizer (spec
+  // section 4) — extending the existing Document Vault rather than
+  // forking a parallel "case documents" table.
+  description: text("description"),
+  // The date the document itself pertains to (e.g. a sentencing order's
+  // date) — distinct from createdAt, which is upload time.
+  documentDate: date("document_date"),
+  documentDateConfidence: dateConfidenceEnum("document_date_confidence")
+    .notNull()
+    .default("unknown"),
+  // Explicit `AnyPgColumn` return type on these two forward references
+  // (to tables declared later in this file) breaks a circular-inference
+  // cycle with timelineEvents, which references familyDocuments back via
+  // sourceDocumentId — without it, TypeScript can't resolve either
+  // table's type from its own initializer.
+  relatedTimelineEventId: uuid("related_timeline_event_id").references(
+    (): AnyPgColumn => timelineEvents.id,
+    { onDelete: "set null" },
+  ),
+  relatedPersonId: uuid("related_person_id").references(
+    (): AnyPgColumn => familyCasePeople.id,
+    { onDelete: "set null" },
+  ),
+  notes: text("notes"),
+  processingStatus: familyDocumentProcessingStatusEnum("processing_status")
+    .notNull()
+    .default("uploaded"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // --- Timeline ---
+// Extended for Case Organizer (spec section 3) rather than replaced by a
+// separate "case timeline events" table — this table already existed for
+// exactly this purpose (see the Clemency Preparation comment below and
+// docs/DATABASE.md), so the case-specific fields it was missing
+// (title, date confidence/unknown, a related person, notes, and who
+// created it) are added here instead of forked into a duplicate.
 
 export const timelineEvents = pgTable("timeline_events", {
   id: uuid("id").defaultRandom().primaryKey(),
   lovedOneId: uuid("loved_one_id")
     .notNull()
     .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  // Nullable — pre-Case-Organizer rows (and any event a family adds
+  // without typing a short label) fall back to eventType for display.
+  title: text("title"),
   // Free text (not an enum) — families need to log events beyond a fixed
   // list (arrest/trial/conviction/appeal/parole/release), including fully
   // custom ones; the UI offers common values as suggestions, not a closed
   // vocabulary.
   eventType: text("event_type").notNull(),
-  eventDate: date("event_date").notNull(),
+  // Nullable — spec section 3 explicitly wants an "unknown date" option
+  // (a family may know something happened without knowing when); an
+  // unknown-date event sorts after every dated one instead of being
+  // forced to guess a date just to satisfy a NOT NULL constraint.
+  eventDate: date("event_date"),
+  dateConfidence: dateConfidenceEnum("date_confidence").notNull().default("confirmed"),
   description: text("description").notNull(),
   sourceDocumentId: uuid("source_document_id").references(
     () => familyDocuments.id,
     { onDelete: "set null" },
   ),
+  // Forward reference — familyCasePeople is defined later in this file;
+  // Drizzle resolves the callback lazily, so declaration order doesn't
+  // matter (the same pattern sourceDocumentId above already relies on,
+  // just in the other direction).
+  relatedPersonId: uuid("related_person_id").references(
+    (): AnyPgColumn => familyCasePeople.id,
+    { onDelete: "set null" },
+  ),
+  notes: text("notes"),
+  // Nullable — pre-Case-Organizer rows have no recorded creator.
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   origin: timelineEventOriginEnum("origin").notNull().default("user"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -343,6 +421,13 @@ export const familyCalendarEvents = pgTable("family_calendar_events", {
   type: familyCalendarEventTypeEnum("type").notNull().default("custom"),
   title: text("title").notNull(),
   eventDate: timestamp("event_date").notNull(),
+  // Added for Case Organizer's Important Dates (spec section 7) — reuses
+  // the same confirmed/approximate/unknown enum lovedOnes' dates already
+  // use, rather than a duplicate. Defaults to "confirmed" (not
+  // lovedOnes' "unknown" default): a calendar event's date is always
+  // explicitly entered by the family when the row is created, unlike a
+  // lovedOne profile field that may start out never visited at all.
+  dateConfidence: dateConfidenceEnum("date_confidence").notNull().default("confirmed"),
   notes: text("notes"),
   // { channel: "email" | "sms" | "push", offsetDays: number } — provider
   // choice is deliberately not baked into the schema; Phase 2's notification
@@ -695,6 +780,157 @@ export const supportLetterRequests = pgTable("support_letter_requests", {
   finalContent: text("final_content"),
   status: supportLetterRequestStatusEnum("status").notNull().default("pending"),
   approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Case Organizer (Phase 2 — the fifth tool) ---
+// Every export here is prefixed "familyCase", never bare "case" —
+// src/db/schema.ts already owns `cases`, `caseStatusEnum`,
+// `caseDocuments`, `caseUpdates`, and `caseVideos` for Xonorate's public
+// case-review system (exoneree profiles). That is a completely separate,
+// public feature; a family's private case workspace must never share a
+// name with it, let alone a table. Documents, Timeline, Notes, and
+// Important Dates are NOT duplicated here — see the extensions to
+// familyDocuments/timelineEvents/familyCalendarEvents above and
+// familyNotes' existing lovedOneId scoping — only the three genuinely
+// new concepts (the case snapshot, case-specific people, and issues/
+// questions) get their own tables.
+
+export const familyCaseStageEnum = pgEnum("family_case_stage", [
+  "arrest",
+  "pretrial",
+  "trial",
+  "sentenced",
+  "direct_appeal",
+  "post_conviction",
+  "federal_review",
+  "clemency",
+  "parole",
+  "reentry",
+  "other",
+  "unknown",
+]);
+
+// One row per loved one, lazily created (ensureFamilyCaseForLovedOne),
+// same pattern as reentryPlans/parolePreparations/clemencyPreparations.
+// Deliberately does NOT duplicate lovedOnes.sentenceLength,
+// lovedOnes.facilityId, or lovedOnes.currentStatus — the Case Overview
+// reads and edits those columns directly so "Sentence"/"Facility"/
+// "Case status" never have two copies that could drift apart. `state`
+// here is the case's own jurisdiction state (where it was
+// charged/tried) — a distinct fact from lovedOnes.state, which is about
+// the loved one's current location, and the two can legitimately differ
+// (an interstate or federal case).
+export const familyCases = pgTable(
+  "family_cases",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => families.id, { onDelete: "cascade" }),
+    lovedOneId: uuid("loved_one_id")
+      .notNull()
+      .references(() => lovedOnes.id, { onDelete: "cascade" }),
+    caseLabel: text("case_label"),
+    caseNumber: text("case_number"),
+    jurisdiction: text("jurisdiction"),
+    court: text("court"),
+    state: text("state"),
+    stage: familyCaseStageEnum("stage").notNull().default("unknown"),
+    // Free text, not a structured list — charges vary too much in how
+    // families actually describe them to force a rigid shape here.
+    charges: text("charges"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("family_cases_loved_one_unique").on(table.lovedOneId),
+  ],
+);
+
+export const familyCasePersonTypeEnum = pgEnum("family_case_person_type", [
+  "attorney",
+  "public_defender",
+  "private_attorney",
+  "family_member",
+  "witness",
+  "investigator",
+  "advocate",
+  "case_worker",
+  "facility_contact",
+  "other",
+]);
+
+// A variable-length list (direct familyId+lovedOneId scoping), same
+// shape as familyCalendarEvents/familyDocuments/clemencyAccomplishments
+// — never assume a person is an attorney just because a document
+// mentions their name; this is the family's own explicit entry.
+export const familyCasePeople = pgTable("family_case_people", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  personType: familyCasePersonTypeEnum("person_type").notNull().default("other"),
+  name: text("name").notNull(),
+  organization: text("organization"),
+  email: text("email"),
+  phone: text("phone"),
+  relationshipToCase: text("relationship_to_case"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const familyCaseIssueStatusEnum = pgEnum("family_case_issue_status", [
+  "open",
+  "in_progress",
+  "waiting",
+  "resolved",
+]);
+
+export const familyCaseIssuePriorityEnum = pgEnum("family_case_issue_priority", [
+  "low",
+  "medium",
+  "high",
+]);
+
+// Deliberately separate from familyNotes (spec section 6: "Notes" reuses
+// the existing family-notes feature filtered by lovedOneId — see
+// notes.ts — while "Issues" is structured, trackable data with a status/
+// priority/assignee lifecycle that a freeform note has no place for).
+// This is a question-tracker, not a legal issue-spotter: it records that
+// the family has a concern, never that the concern is legally valid.
+export const familyCaseIssues = pgTable("family_case_issues", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  lovedOneId: uuid("loved_one_id")
+    .notNull()
+    .references(() => lovedOnes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: familyCaseIssueStatusEnum("status").notNull().default("open"),
+  priority: familyCaseIssuePriorityEnum("priority").notNull().default("medium"),
+  createdByUserId: uuid("created_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  assignedPersonId: uuid("assigned_person_id").references(() => familyCasePeople.id, {
+    onDelete: "set null",
+  }),
+  relatedDocumentId: uuid("related_document_id").references(() => familyDocuments.id, {
+    onDelete: "set null",
+  }),
+  relatedTimelineEventId: uuid("related_timeline_event_id").references(
+    () => timelineEvents.id,
+    { onDelete: "set null" },
+  ),
+  dueDate: date("due_date"),
+  resolutionNotes: text("resolution_notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

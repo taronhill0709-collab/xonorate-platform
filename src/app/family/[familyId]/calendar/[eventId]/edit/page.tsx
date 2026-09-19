@@ -25,6 +25,7 @@ export default async function EditCalendarEventPage({
           eventDateIso={event.eventDate.toISOString()}
           title={event.title}
           type={event.type as CalendarEventType}
+          dateConfidence={event.dateConfidence}
           lovedOneId={event.lovedOneId}
           notes={event.notes}
           lovedOnes={lovedOnes.map((lo) => ({ id: lo.id, name: lo.preferredName || lo.name }))}

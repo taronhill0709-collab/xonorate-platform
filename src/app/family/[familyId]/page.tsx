@@ -3,6 +3,9 @@ import { listLovedOnesForFamily } from "@/family/loved-ones";
 import { listFamilyMembers } from "@/family/invites";
 import { listCalendarEventsForFamily } from "@/family/calendar";
 import { computeAttentionItems, computeUpcomingList } from "@/family/dashboard";
+import { listFamilyDocuments } from "@/family/documents";
+import { listTimelineEventsForLovedOne } from "@/family/timeline";
+import { listCaseIssuesForLovedOne } from "@/family/case-issues";
 
 function QuickAction({ href, label }: { href: string; label: string }) {
   return (
@@ -79,16 +82,37 @@ export default async function FamilyDashboardPage({
   const attentionItems = computeAttentionItems(lovedOnes, calendarEvents);
   const upcoming = computeUpcomingList(lovedOnes, calendarEvents);
 
+  // Case Organizer dashboard integration (spec section 18) — kept
+  // deliberately small: a family-wide total across every loved one's
+  // case, not a duplicate of the detailed workspace itself. Computed
+  // directly here rather than folded into computeAttentionItems/
+  // computeUpcomingList, so those pure, already-tested functions keep
+  // their existing contract.
+  const [allDocuments, timelineEventCounts, openIssues] = await Promise.all([
+    listFamilyDocuments(familyId),
+    Promise.all(lovedOnes.map((lo) => listTimelineEventsForLovedOne(familyId, lo.id))),
+    Promise.all(lovedOnes.map((lo) => listCaseIssuesForLovedOne(familyId, lo.id))),
+  ]);
+  const totalTimelineEvents = timelineEventCounts.reduce((sum, events) => sum + events.length, 0);
+  const flatOpenIssues = openIssues.flat().filter((i) => i.status !== "resolved");
+
   return (
     <div className="space-y-8">
       <section className="rounded-2xl border border-brand/30 bg-brand-light p-6">
         <h2 className="font-serif text-lg text-brand">What needs attention</h2>
-        {attentionItems.length === 0 ? (
+        {attentionItems.length === 0 && flatOpenIssues.length === 0 ? (
           <p className="mt-3 text-sm text-foreground">
             Nothing urgent right now — you&rsquo;re all caught up.
           </p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
+            {flatOpenIssues.length > 0 && (
+              <li className="flex items-center justify-between rounded-xl bg-background/60 px-4 py-3">
+                <span>
+                  {flatOpenIssues.length} open case {flatOpenIssues.length === 1 ? "question" : "questions"}
+                </span>
+              </li>
+            )}
             {attentionItems.map((item, i) => (
               <li
                 key={i}
@@ -197,6 +221,23 @@ export default async function FamilyDashboardPage({
           >
             Add another loved one →
           </Link>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-muted-background p-6">
+          <h3 className="font-serif text-base">Case</h3>
+          <ul className="mt-3 space-y-2 text-sm text-muted">
+            <li>{allDocuments.length} document{allDocuments.length === 1 ? "" : "s"}</li>
+            <li>{totalTimelineEvents} timeline event{totalTimelineEvents === 1 ? "" : "s"}</li>
+            <li>{flatOpenIssues.length} open issue{flatOpenIssues.length === 1 ? "" : "s"}</li>
+          </ul>
+          {lovedOnes[0] && (
+            <Link
+              href={`/family/${familyId}/loved-ones/${lovedOnes[0].id}/case`}
+              className="mt-3 inline-block text-xs font-semibold text-brand"
+            >
+              Open Case Organizer →
+            </Link>
+          )}
         </section>
       </div>
 

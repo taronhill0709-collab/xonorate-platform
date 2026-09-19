@@ -3,9 +3,16 @@
 // the browser bundle. See docs/ARCHITECTURE.md's "Keep client-safe
 // constants out of DB-touching files" note (the same split calendar-types.ts
 // exists for) — never import these from documents.ts's callers client-side.
-import { familyDocumentCategoryEnum } from "@/db/schema";
+import { familyDocumentCategoryEnum, familyDocumentProcessingStatusEnum } from "@/db/schema";
 
 export type DocumentCategory = (typeof familyDocumentCategoryEnum.enumValues)[number];
+export type DocumentProcessingStatus = (typeof familyDocumentProcessingStatusEnum.enumValues)[number];
+
+export const DOCUMENT_PROCESSING_STATUS_LABELS: Record<DocumentProcessingStatus, string> = {
+  uploaded: "Uploaded",
+  needs_review: "Needs review",
+  processed: "Processed",
+};
 
 /** Human-language labels for the UI — never show the raw db enum value to a user. */
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
@@ -22,6 +29,11 @@ export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
   reentry: "Reentry",
   letters: "Letters",
   other: "Other",
+  trial: "Trial",
+  post_conviction: "Post-conviction",
+  transcripts: "Transcripts",
+  evidence: "Evidence",
+  attorney_correspondence: "Attorney correspondence",
 };
 
 export const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;

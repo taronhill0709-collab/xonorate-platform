@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { familyCalendarEvents, lovedOnes } from "@/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import type { CalendarEventType } from "@/family/calendar-types";
+import type { DateConfidence } from "@/family/loved-ones";
 
 // Re-exported for server-side callers (list/edit pages) that already need
 // the DB functions from this file — client components must import these
@@ -14,6 +15,7 @@ export type CalendarEventInput = {
   type: CalendarEventType;
   title: string;
   eventDate: Date;
+  dateConfidence?: DateConfidence;
   notes?: string | null;
 };
 
@@ -35,6 +37,7 @@ export async function listCalendarEventsForFamily(familyId: string) {
       type: familyCalendarEvents.type,
       title: familyCalendarEvents.title,
       eventDate: familyCalendarEvents.eventDate,
+      dateConfidence: familyCalendarEvents.dateConfidence,
       notes: familyCalendarEvents.notes,
     })
     .from(familyCalendarEvents)

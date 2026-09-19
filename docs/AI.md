@@ -4,9 +4,10 @@ Phase 2 (Intelligence) started with the Support Letter Builder — the
 first real AI-assisted tool, and the first thing to actually use the
 `AIService` abstraction from the approved architecture plan. The Reentry
 Planner is the second, Parole Preparation the third, Clemency Preparation
-the fourth, all following the same shape. This document covers the
-abstraction, the context rule every tool must follow, and the guardrails,
-so the next tool (Case Organizer) can follow the same shape too.
+the fourth, Case Organizer the fifth and last on the approved build
+order, all following the same shape. This document covers the
+abstraction, the context rule every tool must follow, and the
+guardrails.
 
 ## The `AIService` abstraction
 
@@ -57,6 +58,17 @@ so the next tool (Case Organizer) can follow the same shape too.
   an attorney" — the tool asks the questions, never answers them). Three
   calls in one file, same reasoning as `reentry-plan.ts`'s two: one
   shared guardrail block, one tool.
+- `case-organizer.ts` — Case Organizer's one *active* call,
+  `generateCaseSummary` (built from the case's own structured data —
+  timeline, document titles, people, open issues — never document
+  contents), plus two *prepared-but-unwired* ones,
+  `generateDocumentUnderstanding` and `extractTimelineEventCandidates`
+  (spec sections 11/12's document-summary and timeline-extraction
+  architecture). All three are real, complete implementations on
+  `aiService.draft()` with the full guardrail block — they're not stubs
+  — but the latter two have no caller yet, since no OCR/text-extraction
+  pipeline exists to produce the `documentText` they need. Wire them in
+  once that pipeline lands, rather than building a second version then.
 
 Tool code (`support-letters.ts` today) calls `aiService.draft(...)` or a
 tool-specific wrapper like `generateSupportLetterDraft(...)` — never
@@ -106,6 +118,19 @@ code, not in any family's data. The attorney-questions call sends only
 the current narrative text and the missing-documentation gaps already
 identified, nothing further back into the family's records.
 
+Case Organizer's spec (section 10) is the one that names this rule
+explicitly: "The AI must NEVER automatically receive the family's entire
+vault for every request." `generateCaseSummary` follows it the same way
+every tool before it already did — timeline event types/dates/
+descriptions, document *titles* (never contents — nothing extracts them
+yet), people's names and role types, and open issue *titles* (never
+their descriptions or resolution notes). It never sends: document
+contents, note bodies, other loved ones' data, or a resolved issue's
+resolution notes. `generateDocumentUnderstanding` and
+`extractTimelineEventCandidates` are scoped even tighter by design —
+each takes exactly one document's own text and that loved one's name,
+nothing else — though neither is wired to a caller yet (see above).
+
 ## Guardrails
 
 Every tool's system prompt must state, explicitly, in its own words (not
@@ -152,6 +177,37 @@ things to ask a real attorney instead of answering it itself. This is
 the clemency-specific instance of the third bullet above (never claim
 legal authority), spelled out because "drafting assistance" is easy to
 blur into "legal advice" when the content itself is legal-adjacent.
+
+Case Organizer's spec (sections 10 and 27) is the most explicit of any
+Family tool about what it must never do, and adds real rules beyond
+restating the four above:
+- **Never create or imply a score, percentage, or rating of any kind
+  about the case or its strength — no "innocence score," no completeness
+  percentage.** This is the single most important line in the spec given
+  Xonorate's wrongful-conviction mission, and it's why
+  `case-overview-types.ts`'s `computeCaseCompleteness` (the Overview's
+  "what's missing" checklist) is a **plain, non-AI function** that
+  returns present/missing labels, never a number — see spec section 8's
+  explicit "this is NOT a score" and its example of exactly the sentence
+  ("Your case is 72% complete") never to show.
+- **Never claim someone is innocent. Never claim someone is guilty.
+  Never determine or imply whether someone was wrongfully convicted.**
+  This tool makes no legal determinations of any kind — restated because
+  it's the whole reason this tool exists to be careful about, unlike
+  every other Family tool where the question doesn't arise.
+- **A contradiction is something to review, never proof of anything.**
+  If two pieces of information don't match, the model must say "this
+  appears different from..." or "this may warrant verification" — never
+  state "there is an inconsistency" as settled fact, and never treat a
+  mismatch as evidence of misconduct in either direction.
+- **Distinguish what the family entered from what the AI is
+  organizing.** The spec's own four-way taxonomy (User-Provided Fact /
+  Document Content / AI Summary / Potential Issue to Review) is a UI/data
+  concern more than a prompt one here, since `generateCaseSummary`'s
+  entire input already *is* family-entered structured data (there's no
+  document content in its context at all yet) — but the summary's own
+  language still has to keep "the family said X" distinct from "X is
+  true," per the guardrail text in `case-organizer.ts`.
 
 These aren't just prompt instructions — `regenerateSupportLetterDraft`
 throws `AIRefusalError` (from `ai-service.ts`) when the model itself
@@ -254,3 +310,24 @@ against the real API, never a schema-shape unit test.
 `clemency-preparation.integration.test.ts` cover the usual
 family-scoping and creation-invariant patterns against a real database,
 again without calling the real AI.
+
+Case Organizer's `generateCaseSummary` has **not** been live-verified
+yet — before relying on its output in production, verify it the same
+way: a temporary diagnostic route on production, a realistic timeline/
+documents/people/issues mix, checking specifically for the two rules
+this spec is most explicit about (no score of any kind, no guilt/
+innocence/wrongful-conviction determination) since those are the ones
+most worth scrutinizing in actual model output rather than assuming the
+prompt wording alone is enough — the same lesson the two `maxTokens`
+bugs above taught about *other* guardrail properties. `generateDocumentUnderstanding`
+and `extractTimelineEventCandidates` are unverified too, and can't be
+meaningfully verified until they have real document text to run
+against — verify them together with whatever future milestone builds
+the extraction pipeline that feeds them, not in isolation with
+synthetic text now. `case-overview.integration.test.ts`,
+`case-people.integration.test.ts`, and `case-issues.integration.test.ts`
+cover the usual family-scoping and creation-invariant patterns against a
+real database for the three new tables, again without calling the real
+AI; `case-overview-types.test.ts` unit-tests `computeCaseCompleteness`
+directly, including a dedicated assertion that it never produces
+anything but a labeled present/missing list — no score, ever.

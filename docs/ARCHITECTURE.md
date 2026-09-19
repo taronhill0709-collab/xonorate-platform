@@ -127,6 +127,68 @@ src/family/                 Domain logic — DB access, authorization, and
                                20's guardrail: drafting assistance, not
                                legal advice, never represented as an
                                attorney
+  timeline.ts                  timeline event CRUD for a loved one's
+                               "Journey" — general Phase 1 schema
+                               (timelineEvents) that had no domain module
+                               or UI until Case Organizer needed
+                               "organize chronology"; no familyId column
+                               of its own, so every query joins lovedOnes
+                               to enforce family scoping. Extended (not
+                               forked) for Case Organizer's title/date-
+                               confidence/related-person/notes/created-by
+                               fields — see docs/DATABASE.md
+  timeline-types.ts             client-safe display helpers
+                               (getTimelineEventLabel, formatTimelineEventDate
+                               — pure, see below); no enum labels needed
+                               since eventType is free text and origin
+                               isn't user-editable
+  case-people.ts                case-specific people CRUD (attorney,
+                               witness, investigator, etc.) — direct
+                               familyId+lovedOneId scoping, a variable-
+                               length list like clemencyAccomplishments,
+                               not a fixed-row hub
+  case-people-types.ts          client-safe person-type labels and
+                               ATTORNEY_PERSON_TYPES (which types the
+                               Overview treats as "the attorney" when
+                               surfacing a primary legal contact — not a
+                               stored flag, just read off the list)
+  case-issues.ts                case issue/question tracking — separate
+                               from familyNotes on purpose (spec section
+                               6: "Notes" reuses the existing feature
+                               filtered by lovedOneId; "Issues" is
+                               structured status/priority/assignee data a
+                               freeform note has no place for). Records
+                               that the family has a concern, never that
+                               the concern is legally valid
+  case-issues-types.ts           client-safe status/priority labels
+  case-overview.ts               the case-snapshot hub (one row per
+                               loved one, family-wide read/write) plus
+                               re-exports of case-overview-types.ts's
+                               pure functions. Deliberately does NOT
+                               duplicate lovedOnes.sentenceLength/
+                               facilityId/currentStatus — the Overview
+                               page reads and edits those columns
+                               directly instead of forking a second copy
+  case-overview-types.ts         client-safe case-stage labels and
+                               computeCaseCompleteness (pure — see
+                               below): a deterministic presence checklist
+                               across real structured data, explicitly
+                               NOT a score (spec section 8 is explicit
+                               that "Your case is 72% complete" is
+                               exactly what this must never show)
+  ai/case-organizer.ts           generateCaseSummary (the one live AI
+                               call this milestone — built from
+                               structured data only: timeline titles/
+                               types/dates, document *titles*, people,
+                               open issue titles; never a document's
+                               actual contents, since nothing extracts
+                               them yet) plus generateDocumentUnderstanding
+                               and extractTimelineEventCandidates —
+                               real, working implementations of spec
+                               sections 11/12's prepared-not-built
+                               architecture, not wired to any UI button
+                               yet since no OCR/text-extraction pipeline
+                               exists to feed them
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -188,6 +250,37 @@ import the same domain functions Server Actions already use.
     item, unlike Reentry/Parole/Clemency: `timelineEvents.lovedOneId` is
     `.notNull()` — an event always belongs to exactly one loved one, never
     optionally family-wide the way a calendar event or document can be.
+  - `/family/[familyId]/loved-ones/[lovedOneId]/case` — Case Organizer
+    (Phase 2's fifth tool — see docs/AI.md). Entry point is the loved-one
+    profile ("Open Case Organizer"), per the approved spec, not a
+    top-level nav item like Reentry/Parole/Clemency — a case is
+    inherently loved-one-scoped in a way those chooser/redirect tools
+    aren't. A shared `case-tabs.tsx` (Overview/Timeline/Documents/People/
+    Notes & Issues/Important Dates) renders atop every page in this tree
+    **and** atop `/timeline` above, so the workspace feels like one
+    cohesive place even though Timeline lives outside `/case` as its own
+    sibling route.
+    - `/case` — Overview: the case snapshot form (lazily created via
+      `ensureFamilyCaseForLovedOne`), an on-demand AI summary, upcoming
+      dates (reusing `dashboard.ts`'s `computeUpcomingList`), the
+      completeness checklist, and quick actions.
+    - `/case/documents` — this loved one's documents, filtered from the
+      existing Document Vault; uploading/editing still goes through the
+      existing `/documents/new`/`/documents/[id]/edit` routes (now
+      carrying the Case Organizer metadata fields — see docs/DATABASE.md),
+      not a duplicate upload flow.
+    - `/case/people`, `/people/new`, `/people/[personId]/edit` — case
+      people CRUD (new).
+    - `/case/notes-issues` — Notes (this loved one's family notes,
+      filtered) and Issues (new) on one combined page, matching the
+      spec's single "Notes & Issues" tab.
+    - `/case/issues/new`, `/case/issues/[issueId]/edit` — case issue CRUD
+      (new); issue status/priority/assignee/resolution live here.
+    - `/case/dates` — this loved one's calendar events, filtered from the
+      existing Calendar; adding/editing still goes through the existing
+      `/calendar/new`/`/calendar/[id]/edit` routes (now carrying
+      `dateConfidence` and the new Hearing/Appeal deadline/Filing
+      deadline types).
   - `/family/[familyId]/calendar`, `/calendar/new`,
     `/calendar/[eventId]/edit` — calendar events.
   - `/family/[familyId]/documents`, `/documents/new`,
@@ -245,14 +338,17 @@ import the same domain functions Server Actions already use.
   Xonorate account at all. Authorized purely by possessing the token; see
   docs/SECURITY.md.
 
-Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway: the
-Support Letter Builder, Support Letter Requests, the Reentry Planner,
-Parole Preparation, and Clemency Preparation are built (docs/AI.md,
-docs/SECURITY.md); Case Organizer is next per the approved build order
-and hasn't been started. Case Organizer's document-extraction step is
-expected to write into the same `timelineEvents` table Clemency
-Preparation's Timeline feature uses, with `origin: "ai_extracted"`
-instead of `"user"` — no schema change needed when that lands.
+Phase 1 (Foundation) is complete. Phase 2 (Intelligence)'s full approved
+build order — Support Letter Builder, Support Letter Requests, the
+Reentry Planner, Parole Preparation, Clemency Preparation, and Case
+Organizer — is now built (docs/AI.md, docs/SECURITY.md). Case
+Organizer's own document-extraction step (spec sections 11/12) is
+deliberately not built yet — no OCR/text-extraction pipeline exists to
+feed it — but the AI functions it would call
+(`generateDocumentUnderstanding`, `extractTimelineEventCandidates`) are
+already written and would write into the same `timelineEvents` table
+with `origin: "ai_extracted"` instead of `"user"`, with no schema change
+needed when that pipeline lands.
 
 ### Why the invite route isn't nested under `[familyId]`
 
@@ -285,9 +381,15 @@ admin-layout pattern — Server Actions must not rely on middleware alone.
 
 ## What's deliberately not built yet
 
-Billing, Case Organizer, professional dashboards, Xonorate Inside. See
-the phased build order in the approved architecture plan.
-`[familyId]/layout.tsx`'s nav shows a "coming soon" marker for the
-broader "Prepare" section (which Letters, the Reentry Planner, Parole
-Preparation, and Clemency Preparation are the first real parts of)
-rather than a dead link.
+Billing, professional dashboards, Xonorate Inside. See the phased build
+order in the approved architecture plan. Within Case Organizer itself:
+any OCR/document-text-extraction pipeline (spec section 4 explicitly
+says to prepare the architecture, not build the pipeline, this
+milestone), and therefore the UI to trigger `generateDocumentUnderstanding`/
+`extractTimelineEventCandidates` — those functions exist and are
+guardrailed but nothing calls them yet. `[familyId]/layout.tsx`'s nav
+shows a "coming soon" marker for the broader "Prepare" section (which
+Letters, the Reentry Planner, Parole Preparation, and Clemency
+Preparation are the first real parts of) rather than a dead link — Case
+Organizer isn't part of that nav group at all, since its entry point is
+the loved-one profile, not a family-wide tool link.

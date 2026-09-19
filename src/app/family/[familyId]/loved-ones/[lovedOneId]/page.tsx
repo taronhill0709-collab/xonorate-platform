@@ -6,6 +6,7 @@ import { listFamilyDocuments } from "@/family/documents";
 import { DOCUMENT_CATEGORY_LABELS, type DocumentCategory } from "@/family/documents-types";
 import { listSupportPeopleForFamily } from "@/family/support-people";
 import { listTimelineEventsForLovedOne } from "@/family/timeline";
+import { formatTimelineEventDate, getTimelineEventLabel } from "@/family/timeline-types";
 
 function nextUpcomingDate(lovedOne: Awaited<ReturnType<typeof getLovedOneForFamily>>) {
   if (!lovedOne) return null;
@@ -57,6 +58,12 @@ export default async function LovedOneProfilePage({
               </span>
             )}
             <Link
+              href={`/family/${familyId}/loved-ones/${lovedOneId}/case`}
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground transition hover:opacity-90"
+            >
+              Open Case Organizer
+            </Link>
+            <Link
               href={`/family/${familyId}/loved-ones/${lovedOneId}/edit`}
               className="rounded-xl border border-border bg-background px-4 py-2 text-sm transition hover:border-brand hover:text-brand"
             >
@@ -99,14 +106,9 @@ export default async function LovedOneProfilePage({
                     href={`/family/${familyId}/loved-ones/${lovedOneId}/timeline/${event.id}/edit`}
                     className="flex items-center justify-between rounded-xl bg-background px-3 py-2 transition hover:ring-1 hover:ring-brand"
                   >
-                    <span className="capitalize">{event.eventType.replace(/_/g, " ")}</span>
+                    <span className="capitalize">{getTimelineEventLabel(event)}</span>
                     <span className="text-xs text-muted">
-                      {new Date(event.eventDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        timeZone: "UTC",
-                      })}
+                      {formatTimelineEventDate(event.eventDate, event.dateConfidence)}
                     </span>
                   </Link>
                 </li>

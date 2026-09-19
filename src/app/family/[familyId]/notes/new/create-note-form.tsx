@@ -8,9 +8,11 @@ import { createNoteAction } from "./actions";
 export function CreateNoteForm({
   familyId,
   lovedOnes,
+  defaultLovedOneId,
 }: {
   familyId: string;
   lovedOnes: { id: string; name: string }[];
+  defaultLovedOneId?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<
@@ -73,7 +75,7 @@ export function CreateNoteForm({
           <select
             id="lovedOneId"
             name="lovedOneId"
-            defaultValue=""
+            defaultValue={defaultLovedOneId ?? ""}
             className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
           >
             <option value="">Not specific to one loved one</option>

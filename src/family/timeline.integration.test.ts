@@ -40,7 +40,7 @@ describe.skipIf(!hasDb)("timeline event cross-family isolation", () => {
     const lovedOne = await lovedOnesLib.createLovedOne(familyA, { name: "Test Loved One" });
     lovedOneA = lovedOne.id;
 
-    const event = await timelineLib.createTimelineEvent(familyA, lovedOneA, {
+    const event = await timelineLib.createTimelineEvent(familyA, lovedOneA, ownerA, {
       eventType: "Sentencing",
       eventDate: "2020-01-15",
       description: "Sentenced to 5 years.",
@@ -57,12 +57,31 @@ describe.skipIf(!hasDb)("timeline event cross-family isolation", () => {
   });
 
   it("refuses to create an event for a loved one that doesn't belong to the caller's family", async () => {
-    const event = await timelineLib.createTimelineEvent(familyB, lovedOneA, {
+    const event = await timelineLib.createTimelineEvent(familyB, lovedOneA, ownerA, {
       eventType: "Hijacked",
       eventDate: "2020-01-01",
       description: "Should not be created.",
     });
     expect(event).toBeNull();
+  });
+
+  it("defaults title to null and dateConfidence to confirmed, and supports an unknown-date event", async () => {
+    const dated = await timelineLib.createTimelineEvent(familyA, lovedOneA, ownerA, {
+      eventType: "Trial",
+      eventDate: "2020-06-01",
+      description: "Trial began.",
+    });
+    expect(dated?.title).toBeNull();
+    expect(dated?.dateConfidence).toBe("confirmed");
+
+    const undated = await timelineLib.createTimelineEvent(familyA, lovedOneA, ownerA, {
+      eventType: "Milestone",
+      eventDate: null,
+      dateConfidence: "unknown",
+      description: "Something happened, exact date unknown.",
+    });
+    expect(undated?.eventDate).toBeNull();
+    expect(undated?.dateConfidence).toBe("unknown");
   });
 
   it("finds the event under its own family", async () => {

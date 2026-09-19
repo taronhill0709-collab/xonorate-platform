@@ -22,7 +22,7 @@ const narrativeSchema = z.object({
     ),
 });
 
-export type ChronologyEventSummary = { eventType: string; eventDate: string; description: string };
+export type ChronologyEventSummary = { eventType: string; eventDate: string | null; description: string };
 export type AccomplishmentSummary = { title: string; description: string | null; achievedDate: string | null };
 
 function buildNarrativePrompt(params: {
@@ -32,7 +32,7 @@ function buildNarrativePrompt(params: {
   supportPeople: SupportPersonSummary[];
 }): string {
   const chronologyLines = params.chronology.length
-    ? params.chronology.map((e) => `- ${e.eventDate}: ${e.eventType} — ${e.description}`).join("\n")
+    ? params.chronology.map((e) => `- ${e.eventDate ?? "(date unknown)"}: ${e.eventType} — ${e.description}`).join("\n")
     : "(no timeline events recorded yet)";
 
   const accomplishmentLines = params.accomplishments.length

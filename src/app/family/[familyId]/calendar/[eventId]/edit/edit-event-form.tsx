@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CALENDAR_EVENT_TYPE_LABELS, type CalendarEventType } from "@/family/calendar-types";
+import type { DateConfidence } from "@/family/loved-ones";
 import { deleteCalendarEventAction, updateCalendarEventAction } from "./actions";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
+
+const CONFIDENCE_OPTIONS: { value: DateConfidence; label: string }[] = [
+  { value: "confirmed", label: "Confirmed" },
+  { value: "approximate", label: "Approximate" },
+  { value: "unknown", label: "Unknown" },
+];
 
 export function EditEventForm({
   familyId,
@@ -15,6 +22,7 @@ export function EditEventForm({
   eventDateIso,
   title,
   type,
+  dateConfidence,
   lovedOneId,
   notes,
   lovedOnes,
@@ -24,6 +32,7 @@ export function EditEventForm({
   eventDateIso: string;
   title: string;
   type: CalendarEventType;
+  dateConfidence: DateConfidence;
   lovedOneId: string | null;
   notes: string | null;
   lovedOnes: { id: string; name: string }[];
@@ -140,6 +149,24 @@ export function EditEventForm({
             className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="dateConfidence" className="block text-sm font-medium">
+          Date confidence
+        </label>
+        <select
+          id="dateConfidence"
+          name="dateConfidence"
+          defaultValue={dateConfidence}
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        >
+          {CONFIDENCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {lovedOnes.length > 0 && (

@@ -2,33 +2,40 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { DateConfidence } from "@/family/loved-ones";
+import { SUGGESTED_TIMELINE_EVENT_TYPES } from "@/family/timeline-types";
 import { deleteTimelineEventAction, updateTimelineEventAction } from "./actions";
 
-const SUGGESTED_EVENT_TYPES = [
-  "Arrest",
-  "Trial",
-  "Conviction",
-  "Sentencing",
-  "Appeal",
-  "Parole hearing",
-  "Release",
-  "Milestone",
+const CONFIDENCE_OPTIONS: { value: DateConfidence; label: string }[] = [
+  { value: "confirmed", label: "Confirmed" },
+  { value: "approximate", label: "Approximate" },
+  { value: "unknown", label: "Unknown" },
 ];
 
 export function EditTimelineEventForm({
   familyId,
   lovedOneId,
   eventId,
+  title,
   eventType,
   eventDate,
+  dateConfidence,
   description,
+  relatedPersonId,
+  notes,
+  casePeople,
 }: {
   familyId: string;
   lovedOneId: string;
   eventId: string;
+  title: string | null;
   eventType: string;
-  eventDate: string;
+  eventDate: string | null;
+  dateConfidence: DateConfidence;
   description: string;
+  relatedPersonId: string | null;
+  notes: string | null;
+  casePeople: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<
@@ -57,6 +64,18 @@ export function EditTimelineEventForm({
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4 text-left">
       <div>
+        <label htmlFor="title" className="block text-sm font-medium">
+          Title <span className="font-normal text-muted">(optional)</span>
+        </label>
+        <input
+          id="title"
+          name="title"
+          defaultValue={title ?? ""}
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        />
+      </div>
+
+      <div>
         <label htmlFor="eventType" className="block text-sm font-medium">
           Type
         </label>
@@ -69,24 +88,36 @@ export function EditTimelineEventForm({
           className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
         />
         <datalist id="event-type-suggestions">
-          {SUGGESTED_EVENT_TYPES.map((type) => (
+          {SUGGESTED_TIMELINE_EVENT_TYPES.map((type) => (
             <option key={type} value={type} />
           ))}
         </datalist>
       </div>
 
-      <div>
-        <label htmlFor="eventDate" className="block text-sm font-medium">
-          Date
-        </label>
-        <input
-          id="eventDate"
-          type="date"
-          name="eventDate"
-          required
-          defaultValue={eventDate}
-          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
-        />
+      <div className="grid grid-cols-[1fr_auto] items-end gap-3">
+        <div>
+          <label htmlFor="eventDate" className="block text-sm font-medium">
+            Date
+          </label>
+          <input
+            id="eventDate"
+            type="date"
+            name="eventDate"
+            defaultValue={eventDate ?? ""}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+          />
+        </div>
+        <select
+          name="dateConfidence"
+          defaultValue={dateConfidence}
+          className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
+        >
+          {CONFIDENCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -99,6 +130,40 @@ export function EditTimelineEventForm({
           rows={3}
           required
           defaultValue={description}
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        />
+      </div>
+
+      {casePeople.length > 0 && (
+        <div>
+          <label htmlFor="relatedPersonId" className="block text-sm font-medium">
+            Related person <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <select
+            id="relatedPersonId"
+            name="relatedPersonId"
+            defaultValue={relatedPersonId ?? ""}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+          >
+            <option value="">None</option>
+            {casePeople.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="notes" className="block text-sm font-medium">
+          Notes <span className="font-normal text-muted">(optional)</span>
+        </label>
+        <textarea
+          id="notes"
+          name="notes"
+          rows={2}
+          defaultValue={notes ?? ""}
           className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
         />
       </div>

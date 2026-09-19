@@ -40,9 +40,22 @@ covers this directly. The same pattern is now also applied to every
 family-scoped table Phase 1 added — `src/family/calendar.ts`,
 `src/family/documents.ts`, `src/family/notes.ts` (additionally scoped to
 the author for mutations — see "Notes: a second authorization dimension"
-below), and `src/family/support-people.ts` — each with its own
-`*.integration.test.ts`. Apply it to every family-scoped table Phase 2
-adds.
+below), and `src/family/support-people.ts` — and every one Phase 2
+added: `reentry-plan.ts`, `parole-preparation.ts`,
+`clemency-preparation.ts`, `case-overview.ts`, `case-people.ts`, and
+`case-issues.ts`, each with its own `*.integration.test.ts`.
+
+`timeline.ts` needs the pattern applied one level indirect: `timelineEvents`
+has no `familyId` column of its own, only `lovedOneId` (see
+docs/DATABASE.md), so every query joins `lovedOnes` and checks
+`lovedOnes.familyId` there instead of on the event row directly.
+`updateTimelineEvent`/`deleteTimelineEvent` use a check-then-act shape
+(a family-scoped read via the join, then an unscoped mutation by ID)
+rather than a single scoped `UPDATE`/`DELETE`, since Drizzle doesn't
+support a join directly inside those statements — acceptable here the
+same way it's acceptable elsewhere in this codebase (family data, not a
+high-frequency-attack surface), but worth knowing this table's guard
+looks structurally different from every other one's before touching it.
 
 ## Document Vault
 
@@ -136,6 +149,36 @@ write. What it does need independent care for is data minimization: see
 `docs/AI.md`'s context rule for what actually gets sent to the model
 (deliberately far less than everything the letter's Server Action could
 technically reach).
+
+Case Organizer's `generateCaseSummaryAction` follows the identical
+shape — `requireFamilyMember()` first, then plain reads scoped to
+`familyId`/`lovedOneId` before anything reaches `aiService.draft()` —
+but is also where a *product* guardrail becomes a security-relevant one:
+`case-organizer.ts`'s system prompt forbids any score, rating, or guilt/
+innocence/wrongful-conviction determination (see docs/AI.md's Guardrails
+section). That rule can only be enforced in the prompt and reviewed in
+live output, never at the authorization layer — worth remembering when
+extending this tool, since it's easy to add a feature request like "show
+a confidence score" without realizing it directly contradicts an
+explicit product requirement, not just a style preference.
+
+## A naming collision this repo already has, and how Case Organizer avoided it
+
+`src/db/schema.ts` (the public, non-Family part of the schema) already
+defines `cases`, `caseStatusEnum`, `caseDocuments`, `caseUpdates`, and
+`caseVideos` for Xonorate's public case-review system — exoneree
+profiles, a completely different feature and a completely different
+trust boundary (public) from Family's private per-loved-one case
+workspace. Every Case Organizer export is prefixed `familyCase`
+(`familyCases`, `familyCasePeople`, `familyCaseIssues`, etc.) specifically
+to avoid this. This isn't just a style choice: a table-name collision
+would have been a build-time error, but a near-miss (e.g. naming a
+Family export `caseDocuments` when the public schema already has an
+unrelated `caseDocuments`) could have been a working-but-confusingly-named
+export that a future change might import from the wrong place. Grep
+`src/db/schema.ts` for existing exports before naming anything new in a
+shared codebase like this one — this is what caught it before any
+schema was written.
 
 ## Invite tokens
 

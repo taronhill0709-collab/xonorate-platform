@@ -7,6 +7,7 @@ import {
   MAX_DOCUMENT_BYTES,
   type DocumentCategory,
 } from "@/family/documents-types";
+import type { DateConfidence } from "@/family/loved-ones";
 
 export class InvalidDocumentError extends Error {}
 
@@ -28,6 +29,13 @@ export async function listFamilyDocuments(
       fileSize: familyDocuments.fileSize,
       mimeType: familyDocuments.mimeType,
       tags: familyDocuments.tags,
+      description: familyDocuments.description,
+      documentDate: familyDocuments.documentDate,
+      documentDateConfidence: familyDocuments.documentDateConfidence,
+      relatedTimelineEventId: familyDocuments.relatedTimelineEventId,
+      relatedPersonId: familyDocuments.relatedPersonId,
+      notes: familyDocuments.notes,
+      processingStatus: familyDocuments.processingStatus,
       createdAt: familyDocuments.createdAt,
     })
     .from(familyDocuments)
@@ -109,6 +117,15 @@ export async function updateFamilyDocument(
     category: DocumentCategory;
     lovedOneId: string | null;
     tags: string[] | null;
+    // Case Organizer metadata (spec section 4) — see db-schema.ts's
+    // familyDocuments comment for why these live here rather than a
+    // separate "case documents" table.
+    description: string | null;
+    documentDate: string | null;
+    documentDateConfidence: DateConfidence;
+    relatedTimelineEventId: string | null;
+    relatedPersonId: string | null;
+    notes: string | null;
   }>,
 ) {
   const [row] = await db

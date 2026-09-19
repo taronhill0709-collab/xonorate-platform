@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getLovedOneForFamily } from "@/family/loved-ones";
+import { listCasePeopleForLovedOne } from "@/family/case-people";
 import { CreateTimelineEventForm } from "./create-timeline-event-form";
 
 export default async function NewTimelineEventPage({
@@ -8,7 +9,10 @@ export default async function NewTimelineEventPage({
   params: Promise<{ familyId: string; lovedOneId: string }>;
 }) {
   const { familyId, lovedOneId } = await params;
-  const lovedOne = await getLovedOneForFamily(familyId, lovedOneId);
+  const [lovedOne, casePeople] = await Promise.all([
+    getLovedOneForFamily(familyId, lovedOneId),
+    listCasePeopleForLovedOne(familyId, lovedOneId),
+  ]);
   if (!lovedOne) notFound();
 
   return (
@@ -18,7 +22,11 @@ export default async function NewTimelineEventPage({
         Build {lovedOne.preferredName || lovedOne.name}&rsquo;s journey, one milestone at a time.
       </p>
       <div className="mt-8">
-        <CreateTimelineEventForm familyId={familyId} lovedOneId={lovedOneId} />
+        <CreateTimelineEventForm
+          familyId={familyId}
+          lovedOneId={lovedOneId}
+          casePeople={casePeople.map((p) => ({ id: p.id, name: p.name }))}
+        />
       </div>
     </div>
   );

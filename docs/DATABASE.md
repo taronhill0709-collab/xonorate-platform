@@ -11,12 +11,32 @@ domain, without splitting drizzle-kit's single entry point.
 
 `families`, `familyMembers`, `lovedOnes`, `facilities`, `familyCalendarEvents`,
 `familyDocuments`, `familyNotes`, `supportPeople`, `supportLetters`,
-`supportLetterRequests`, `auditLog`, and `timelineEvents` (the one table
-with no UI yet — no CRUD exists for the loved-one Journey/timeline;
-that's tied to Case Organizer's document-extraction work, per the
-approved plan's phasing).
-See the comments in `src/family/db-schema.ts` for
-per-table rationale. Three decisions worth calling out:
+`supportLetterRequests`, `auditLog`, `timelineEvents`, `reentryPlans`/
+`reentryPlanCategories`, `parolePreparations`/`parolePreparationSections`,
+`clemencyPreparations`/`clemencyAccomplishments`, and `familyCases`/
+`familyCasePeople`/`familyCaseIssues`. See the comments in
+`src/family/db-schema.ts` for per-table rationale. Four decisions worth
+calling out:
+
+- **Every Case Organizer export is prefixed `familyCase`, never bare
+  `case`.** `src/db/schema.ts` already owns `cases`, `caseStatusEnum`,
+  `caseDocuments`, `caseUpdates`, and `caseVideos` for Xonorate's public
+  case-review system (exoneree profiles) — a completely unrelated,
+  public feature. A private family's case workspace must never share a
+  name with it, let alone a table. This was caught during Case
+  Organizer's own build, before any schema was written, by grepping
+  `src/db/schema.ts` for existing `case`-prefixed exports first — worth
+  repeating that check before naming anything in a shared codebase like
+  this one.
+- **`timelineEvents` is a general loved-one feature, not Case-Organizer-
+  specific**, even though Case Organizer is what finally gave it a UI
+  (previously dormant Phase 1 schema — no CRUD existed for the loved-one
+  Journey/timeline until this milestone). It has no `familyId` column of
+  its own, only `lovedOneId`, so every query in `timeline.ts` joins
+  `lovedOnes` to enforce family scoping — see that file's own comments.
+  A future Case Organizer document-extraction step is expected to write
+  into this same table with `origin: "ai_extracted"` instead of
+  `"user"`; no schema change will be needed for that.
 
 - **`familyMembers` is the access-control table, not `users.role`.**
   `users.role` stays exactly the site-wide `supporter`/`admin` distinction

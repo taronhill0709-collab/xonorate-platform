@@ -3,14 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CALENDAR_EVENT_TYPE_LABELS, type CalendarEventType } from "@/family/calendar-types";
+import type { DateConfidence } from "@/family/loved-ones";
 import { createCalendarEventAction } from "./actions";
+
+const CONFIDENCE_OPTIONS: { value: DateConfidence; label: string }[] = [
+  { value: "confirmed", label: "Confirmed" },
+  { value: "approximate", label: "Approximate" },
+  { value: "unknown", label: "Unknown" },
+];
 
 export function CreateEventForm({
   familyId,
   lovedOnes,
+  defaultLovedOneId,
 }: {
   familyId: string;
   lovedOnes: { id: string; name: string }[];
+  defaultLovedOneId?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<
@@ -104,6 +113,24 @@ export function CreateEventForm({
         </div>
       </div>
 
+      <div>
+        <label htmlFor="dateConfidence" className="block text-sm font-medium">
+          Date confidence
+        </label>
+        <select
+          id="dateConfidence"
+          name="dateConfidence"
+          defaultValue="confirmed"
+          className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+        >
+          {CONFIDENCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {lovedOnes.length > 0 && (
         <div>
           <label htmlFor="lovedOneId" className="block text-sm font-medium">
@@ -112,7 +139,7 @@ export function CreateEventForm({
           <select
             id="lovedOneId"
             name="lovedOneId"
-            defaultValue=""
+            defaultValue={defaultLovedOneId ?? ""}
             className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
           >
             <option value="">Not specific to one loved one</option>

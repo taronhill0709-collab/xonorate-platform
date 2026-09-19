@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireFamilyMember } from "@/family/authz";
 import { createCalendarEvent } from "@/family/calendar";
-import { familyCalendarEventTypeEnum } from "@/db/schema";
+import { familyCalendarEventTypeEnum, dateConfidenceEnum } from "@/db/schema";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Please enter a title."),
   type: z.enum(familyCalendarEventTypeEnum.enumValues),
+  dateConfidence: z.enum(dateConfidenceEnum.enumValues),
   // An ISO string computed in the browser (see create-event-form.tsx), not
   // separate date/time fields parsed here — parsing "2026-01-02T14:00" on
   // the server would use the SERVER's local timezone, not the family's, and
@@ -31,7 +32,7 @@ export async function createCalendarEventAction(
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
-  const { title, type, eventDateIso, lovedOneId, notes } = parsed.data;
+  const { title, type, eventDateIso, dateConfidence, lovedOneId, notes } = parsed.data;
 
   const eventDate = new Date(eventDateIso);
   if (Number.isNaN(eventDate.getTime())) {
@@ -42,6 +43,7 @@ export async function createCalendarEventAction(
     title,
     type,
     eventDate,
+    dateConfidence,
     lovedOneId: lovedOneId || null,
     notes: notes || null,
   });

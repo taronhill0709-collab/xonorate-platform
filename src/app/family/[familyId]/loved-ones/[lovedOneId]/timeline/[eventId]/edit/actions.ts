@@ -4,11 +4,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireFamilyMember } from "@/family/authz";
 import { deleteTimelineEvent, updateTimelineEvent } from "@/family/timeline";
+import { dateConfidenceEnum } from "@/db/schema";
 
 const schema = z.object({
+  title: z.string().trim().optional(),
   eventType: z.string().trim().min(1, "Please choose or enter a type."),
-  eventDate: z.string().min(1, "Please choose a date."),
+  dateConfidence: z.enum(dateConfidenceEnum.enumValues),
+  eventDate: z.string().optional(),
   description: z.string().trim().min(1, "Please describe what happened."),
+  relatedPersonId: z.string().optional(),
+  notes: z.string().trim().optional(),
 });
 
 export async function updateTimelineEventAction(
@@ -23,12 +28,22 @@ export async function updateTimelineEventAction(
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
+  const { title, eventType, dateConfidence, eventDate, description, relatedPersonId, notes } = parsed.data;
 
-  const updated = await updateTimelineEvent(familyId, eventId, parsed.data);
+  const updated = await updateTimelineEvent(familyId, eventId, {
+    title: title || null,
+    eventType,
+    eventDate: dateConfidence === "unknown" || !eventDate ? null : eventDate,
+    dateConfidence,
+    description,
+    relatedPersonId: relatedPersonId || null,
+    notes: notes || null,
+  });
   if (!updated) return { success: false, error: "Event not found." };
 
   revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}/timeline`);
   revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}`);
+  revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}/case`);
   return { success: true };
 }
 
@@ -41,5 +56,6 @@ export async function deleteTimelineEventAction(
   const removed = await deleteTimelineEvent(familyId, eventId);
   revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}/timeline`);
   revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}`);
+  revalidatePath(`/family/${familyId}/loved-ones/${lovedOneId}/case`);
   return { success: Boolean(removed) };
 }

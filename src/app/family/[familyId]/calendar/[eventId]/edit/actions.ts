@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireFamilyMember } from "@/family/authz";
 import { deleteCalendarEvent, updateCalendarEvent } from "@/family/calendar";
-import { familyCalendarEventTypeEnum } from "@/db/schema";
+import { familyCalendarEventTypeEnum, dateConfidenceEnum } from "@/db/schema";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Please enter a title."),
@@ -12,6 +12,7 @@ const schema = z.object({
   // See create/actions.ts's schema comment: computed client-side so the
   // family's own timezone is used, not the server's.
   eventDateIso: z.string().min(1, "Please choose a date."),
+  dateConfidence: z.enum(dateConfidenceEnum.enumValues),
   lovedOneId: z.string().optional(),
   notes: z.string().trim().optional(),
 });
@@ -27,7 +28,7 @@ export async function updateCalendarEventAction(
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
-  const { title, type, eventDateIso, lovedOneId, notes } = parsed.data;
+  const { title, type, eventDateIso, dateConfidence, lovedOneId, notes } = parsed.data;
 
   const eventDate = new Date(eventDateIso);
   if (Number.isNaN(eventDate.getTime())) {
@@ -38,6 +39,7 @@ export async function updateCalendarEventAction(
     title,
     type,
     eventDate,
+    dateConfidence,
     lovedOneId: lovedOneId || null,
     notes: notes || null,
   });

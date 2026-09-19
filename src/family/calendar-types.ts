@@ -22,4 +22,7 @@ export const CALENDAR_EVENT_TYPE_LABELS: Record<CalendarEventType, string> = {
   application_deadline: "Application deadline",
   family_event: "Family event",
   custom: "Custom",
+  hearing: "Hearing",
+  appeal_deadline: "Appeal deadline",
+  filing_deadline: "Filing deadline",
 };
