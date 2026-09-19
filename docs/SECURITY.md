@@ -153,6 +153,47 @@ properties worth preserving in any future change:
   account. No family data is exposed to an invited-but-not-accepted row
   (`requireFamilyMember` excludes non-active status).
 
+## Support letter request tokens: token-only authorization, by design
+
+`src/family/support-letter-requests.ts`. The most exposed surface in
+Family so far: unlike the family-member invite above, there is **no
+login and no email match** — the invitee (an employer, a pastor, a
+friend) is expected to have no Xonorate account at all, so the
+`crypto.randomBytes(24)` token itself is the entire authorization for
+every public function (`lookupLetterRequestToken`,
+`saveLetterRequestAnswers`, `generateLetterRequestDraft`,
+`updateLetterRequestContent`, `approveLetterRequest`). This is the same
+threat model the existing (pre-Family) case-submission follow-up flow
+already uses (`inquiries.followUpToken`) — not a new pattern invented for
+this feature.
+
+What limits the exposure:
+- Every public function takes **only the token** as a parameter — never a
+  `familyId`/`lovedOneId`/`requestId` from the client — and resolves
+  everything else from the row that token matches. There is no code path
+  where a client-supplied ID could point a public function at a different
+  family's request.
+- The context a request's public page can show is deliberately thin: the
+  loved one's (preferred) name, the family's display name, the purpose,
+  the recipient, and the requester's optional personal note — never any
+  other family data (documents, notes, other letters, membership list).
+- 14-day expiry, checked on every lookup (`lookupLetterRequestToken`),
+  not just at creation.
+- Family-side actions (`createLetterRequest`, `deleteLetterRequest`) still
+  go through the normal `requireFamilyMember()` gate — only the
+  invitee-facing half of this feature is token-only.
+- No rate limiting is applied to the public token routes yet (the token
+  space is large enough that guessing is infeasible, so this is a cost
+  concern — repeated AI regenerations on a legitimately-known token —
+  rather than a confidentiality one). Revisit if abuse patterns emerge,
+  the same judgment call already made for invite creation.
+
+Covered by `support-letter-requests.integration.test.ts` (token
+lookup/expiry, every public mutation refusing an invalid token, and
+`deleteLetterRequest`'s requester+family scoping) and live-verified
+against a real database (all 7 checks passed) since this is a genuinely
+new class of exposure, not just a variant of an existing one.
+
 ## Route-level exposure
 
 `[familyId]/layout.tsx` returns `notFound()` (not a "forbidden" page) for
@@ -184,9 +225,13 @@ confirmed it's inaccessible under a different family, and confirmed
 delete removes both the DB row and the underlying blob. See
 `docs/DATABASE.md`'s "Live verification" section for how (a temporary
 in-process diagnostic route, since this sandbox's `vitest` process can't
-reach the local dev database directly) and exactly what ran. These were
-one-time manual passes, not a repeatable CI-style gate — re-verify after
-any change to the functions they covered.
+reach the local dev database directly) and exactly what ran. The Support
+Letter Builder's real AI call and the full Support Letter Request
+lifecycle (create -> lookup -> save answers -> invalid-token rejection ->
+requester/family-scoped delete -> approve -> appears in the family list,
+7/7 checks) have also been verified this way. These were one-time manual
+passes, not a repeatable CI-style gate — re-verify after any change to
+the functions they covered.
 
 ## What's not proven yet
 

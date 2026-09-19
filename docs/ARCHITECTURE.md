@@ -57,6 +57,12 @@ src/family/                 Domain logic — DB access, authorization, and
     index.ts                     re-exports the active provider as `aiService`
     support-letter.ts            the Support Letter Builder's own prompt/
                                   schema, sitting on aiService.draft()
+  support-letter-requests.ts   invite someone outside the family to write
+                               their own letter — a separate table, not a
+                               nullable-author variant of supportLetters;
+                               its public functions are authorized purely
+                               by token possession, no login, no family
+                               membership (see docs/SECURITY.md)
 
 src/app/family/**            Routes and Server Actions — thin. A page loads
                              data via src/family/*.ts and renders; an
@@ -124,11 +130,23 @@ import the same domain functions Server Actions already use.
     the Support Letter Builder (Phase 2's first tool — see docs/AI.md).
     `[letterId]` is one combined workflow page (answer questions ->
     generate -> edit -> approve -> delete), not split across sub-routes.
+    Lists both self-written letters and approved Support Letter Requests
+    (below) in one merged view.
+  - `/family/[familyId]/letters/requests/new` — a family member invites
+    someone outside the family to write their own letter.
+- `/letter-request/[token]` — the invitee's own page. Deliberately
+  **outside** `/family/**` entirely (not just outside `[familyId]`, the
+  way the accept-invite page is) — `proxy.ts`'s edge middleware only
+  matches `/family/:path*`, so this route is never gated behind a login
+  requirement, matching the design goal that the invitee needs no
+  Xonorate account at all. Authorized purely by possessing the token; see
+  docs/SECURITY.md.
 
 Phase 1 (Foundation) is complete. Phase 2 (Intelligence) is underway:
-the Support Letter Builder is built and live-verified (docs/AI.md);
-Reentry Planner, Parole Preparation, Clemency Preparation, and Case
-Organizer are next per the approved build order and haven't been
+the Support Letter Builder and Support Letter Requests are built and
+live-verified (docs/AI.md, docs/SECURITY.md); Reentry Planner, Parole
+Preparation, Clemency Preparation, and Case Organizer are next per the
+approved build order and haven't been
 started.
 
 ### Why the invite route isn't nested under `[familyId]`

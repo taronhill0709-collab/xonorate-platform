@@ -11,9 +11,10 @@ domain, without splitting drizzle-kit's single entry point.
 
 `families`, `familyMembers`, `lovedOnes`, `facilities`, `familyCalendarEvents`,
 `familyDocuments`, `familyNotes`, `supportPeople`, `supportLetters`,
-`auditLog`, and `timelineEvents` (the one table with no UI yet — no CRUD
-exists for the loved-one Journey/timeline; that's tied to Case
-Organizer's document-extraction work, per the approved plan's phasing).
+`supportLetterRequests`, `auditLog`, and `timelineEvents` (the one table
+with no UI yet — no CRUD exists for the loved-one Journey/timeline;
+that's tied to Case Organizer's document-extraction work, per the
+approved plan's phasing).
 See the comments in `src/family/db-schema.ts` for
 per-table rationale. Three decisions worth calling out:
 
@@ -39,6 +40,13 @@ per-table rationale. Three decisions worth calling out:
   appear to do nothing. The client warns before calling it if a draft
   already exists (`letter-workflow.tsx`), since regenerating is
   destructive to any edits made so far.
+- **`supportLetterRequests` is a separate table from `supportLetters`,
+  not a nullable-`authorUserId` variant of it.** The invitee has no
+  Xonorate account, so there's no `users` row to reference — the same
+  `draftContent`/`finalContent`/answers lifecycle lives directly on the
+  request row instead. Once approved, it's displayed alongside real
+  `supportLetters` rows by merging both queries at the presentation layer
+  (`letters/page.tsx`), not by unifying them into one table.
 
 ## Migration drift — now tooled, not manual
 
@@ -200,3 +208,10 @@ colleague's): the same technique applies. Check `netlify.migrations` for
 ledger gaps before assuming the migration SQL itself is broken — the SQL
 in this repo has been correct throughout; the local ledger's bookkeeping
 was what was inconsistent.
+
+**Unrelated follow-up**: with the ledger fixed, a completely ordinary
+`netlify database migrations apply` now works normally — used in the
+next session to apply the `supportLetters`/`supportLetterRequests`
+migrations (which had only ever been generated/synced as files, never
+actually run against this local database) before their own live
+verification passes.
