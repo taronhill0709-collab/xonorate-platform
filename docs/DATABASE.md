@@ -140,9 +140,17 @@ and a separate invite's acceptor, correctly triggering the
 `family_members_family_user_unique` constraint) — not a defect, and not
 a scenario the real `invites.integration.test.ts` constructs.
 
-**Still not verified live**: the document vault's actual upload → Netlify
-Blobs → download round trip (the cross-family *guard* is covered; the
-happy path needs real Blobs credentials, which weren't exercised here).
+**Update**: the document vault's real upload → Netlify Blobs → download →
+delete round trip was verified live in a follow-up session, the same way
+(a temporary in-process diagnostic route): uploaded a real file through
+`uploadFamilyDocument`, downloaded it back through `downloadFamilyDocument`
+and confirmed the bytes/content-type/filename matched exactly, confirmed
+it's `null` when requested under a different family, then deleted it and
+confirmed both the DB row and the underlying blob are gone (a second
+download returns `null`). All 4 checks passed. Every family-scoped
+resource type's core guarantees are now verified against a real local
+database, live storage included — not just via `describe.skipIf`-gated
+tests.
 
 ### The migration ledger gap (found and fixed)
 

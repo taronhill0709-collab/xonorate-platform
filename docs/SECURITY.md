@@ -147,23 +147,22 @@ Cross-family isolation for loved ones, calendar events, documents, and
 support people; private-note invisibility to another active family
 member; and the invite email-mismatch rejection have all been confirmed
 against a real (local) database, not just via `describe.skipIf`-gated
-tests. See `docs/DATABASE.md`'s "Live verification" section for how (a
-temporary in-process diagnostic route, since this sandbox's `vitest`
-process can't reach the local dev database directly) and exactly what
-ran. This was a one-time manual pass, not a repeatable CI-style gate —
-re-verify after any change to the authorization functions it covered.
+tests. The document vault's actual upload → Netlify Blobs → download →
+delete round trip (not just the cross-family guard, the real storage
+happy path) has also been confirmed live: uploaded a real file, downloaded
+it back byte-for-byte with the correct content-type and filename,
+confirmed it's inaccessible under a different family, and confirmed
+delete removes both the DB row and the underlying blob. See
+`docs/DATABASE.md`'s "Live verification" section for how (a temporary
+in-process diagnostic route, since this sandbox's `vitest` process can't
+reach the local dev database directly) and exactly what ran. These were
+one-time manual passes, not a repeatable CI-style gate — re-verify after
+any change to the functions they covered.
 
 ## What's not proven yet
 
 - No admin-side family read path exists yet to test `requireFamilyAdminAccess`
   against a real route (only the authz test suite exercises it directly).
-- The document upload/download/delete-with-storage-call happy paths (as
-  opposed to the wrong-family guard paths, which are covered both by
-  `documents.integration.test.ts` and the live pass above) have never run
-  against live Netlify Blobs — untouched by either verification pass so
-  far. The pre-existing migration wedge that used to block a stable local
-  `netlify dev` session is now fixed (docs/DATABASE.md), so this is worth
-  trying again in a future session.
 - `npm run test:db`'s actual `vitest` CLI path has still never completed
   a full run against a real database in this sandbox — the live
   verification above exercised the same functions and assertions, but
